@@ -1,0 +1,6 @@
+bin/
+build/
+.cache/
+
+clox
+compile_commands.json
