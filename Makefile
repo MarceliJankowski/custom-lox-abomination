@@ -41,9 +41,10 @@ non_test_builds := $(filter-out test,${BUILDS})
 
 compile_cflags := -Wall -Wextra -Werror -std=c17 -pedantic
 compile_cppflags := -I ${INCLUDE_DIR} -MMD -MP
+link_flags := -lm
 
 compile = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${TARGET_ARCH} -c)
-link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${LDFLAGS} ${TARGET_ARCH})
+link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${link_flags} ${LDFLAGS} ${TARGET_ARCH})
 
 sources := $(shell ${FIND} ${SRC_DIR} -name '*.c')
 objects := $(patsubst %.c,%.o,${sources})

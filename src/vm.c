@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -61,7 +62,7 @@ static void vm_run(void) {
 #endif
     uint8_t const opcode = READ_BYTE();
 
-    static_assert(OP_OPCODE_COUNT == 7, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
         value_print(vm_stack_pop());
@@ -96,6 +97,12 @@ static void vm_run(void) {
       }
       case OP_DIVIDE: {
         BINARY_OP(/);
+        break;
+      }
+      case OP_MODULO: {
+        Value const divisor = vm_stack_pop();
+        assert(vm.stack_top != vm.stack && "Attempt to access nonexistent stack value");
+        *(vm.stack_top - 1) = fmod(*(vm.stack_top - 1), divisor);
         break;
       }
       default:

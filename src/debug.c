@@ -35,6 +35,9 @@ static inline long debug_simple_instruction(uint8_t const opcode, long const off
     case OP_DIVIDE:
       puts("OP_DIVIDE");
       break;
+    case OP_MODULO:
+      puts("OP_MODULO");
+      break;
     default:
       INTERNAL_ERROR("Unknown simple instruction opcode '%d'", opcode);
   }
@@ -80,13 +83,14 @@ long debug_disassemble_instruction(Chunk *const chunk, long const offset) {
 
   uint8_t const opcode = chunk->code[offset];
 
-  static_assert(OP_OPCODE_COUNT == 7, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
   switch (opcode) {
     case OP_RETURN:
     case OP_ADD:
     case OP_SUBTRACT:
     case OP_MULTIPLY:
     case OP_DIVIDE:
+    case OP_MODULO:
       return debug_simple_instruction(opcode, offset);
     case OP_CONSTANT:
     case OP_CONSTANT_2B:
