@@ -121,11 +121,10 @@ long chunk_get_instruction_line(Chunk *const chunk, long const offset) {
   long instruction_index = 0;
   long loop_offset = 0;
 
-  static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 7, "Exhaustive opcode handling");
   while (loop_offset < offset) {
     switch (chunk->code[loop_offset]) {
       case OP_RETURN:
-      case OP_NEGATE:
       case OP_ADD:
       case OP_SUBTRACT:
       case OP_MULTIPLY:

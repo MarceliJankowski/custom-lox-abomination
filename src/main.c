@@ -15,7 +15,6 @@ int main(void) {
   chunk_append_constant_instruction(&chunk, 5, 4);
   chunk_append_instruction(&chunk, OP_DIVIDE, 4);
 
-  chunk_append_instruction(&chunk, OP_NEGATE, 5);
   chunk_append_instruction(&chunk, OP_RETURN, 6);
 
   vm_interpret(&chunk);
