@@ -6,13 +6,15 @@
 #include "chunk.h"
 #include "value.h"
 
-#define VM_STACK_MAX 256
+#define VM_STACK_INITIAL_CAPACITY 256
 
 typedef struct {
   Chunk *chunk;
   uint8_t *ip;
-  Value *stack_top;
-  Value stack[VM_STACK_MAX];
+  struct {
+    Value *values;
+    long capacity, count;
+  } stack;
 } VirtualMachine;
 
 void vm_init(void);

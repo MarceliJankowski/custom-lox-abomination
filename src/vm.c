@@ -1,63 +1,61 @@
+#include <assert.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "debug.h"
 #include "error.h"
 #include "memory.h"
+#include "stack.h"
 #include "value.h"
 #include "vm.h"
 
 static VirtualMachine vm;
 
-/**@desc reset virtual machine stack*/
-static inline void vm_stack_reset(void) {
-  vm.stack_top = vm.stack;
+/**@desc initialize virtual machine*/
+void vm_init(void) {
+  STACK_INIT(Value, &vm.stack, values, VM_STACK_INITIAL_CAPACITY);
+}
+
+/**@desc free virtual machine*/
+void vm_free(void) {
+  STACK_FREE(&vm.stack, values);
 }
 
 /**@desc push `value` on top of virtual machine stack*/
 void vm_stack_push(Value const value) {
-  // TODO: address stack overflow
-
-  *vm.stack_top = value;
-  vm.stack_top++;
+  STACK_PUSH(&vm.stack, values, value);
 }
 
 /**@desc pop value from virtual machine stack
 @return popped value*/
 Value vm_stack_pop(void) {
-  assert(vm.stack_top != vm.stack && "Attempt to pop value from an empty stack");
+  Value popped_value;
+  STACK_POP(&vm.stack, values, &popped_value);
 
-  vm.stack_top--;
-  return *vm.stack_top;
+  return popped_value;
 }
-
-/**@desc initialize virtual machine*/
-void vm_init(void) {
-  vm_stack_reset();
-}
-
-/**@desc free virtual machine*/
-void vm_free(void) {}
 
 /**@desc run virtual machine; execute all vm.chunk instructions*/
 static void vm_run(void) {
 #define READ_BYTE() (*vm.ip++)
-#define BINARY_OP(operator)                                                          \
-  do {                                                                               \
-    Value const right_operand = vm_stack_pop();                                      \
-    assert(vm.stack_top != vm.stack && "Attempt to access nonexistent stack value"); \
-    *(vm.stack_top - 1) operator##= right_operand;                                   \
+#define BINARY_OP(operator)                                                                         \
+  do {                                                                                              \
+    Value const right_operand = vm_stack_pop();                                                     \
+    assert(vm.stack.count > 0 && "Attempt to access nonexistent stack frame");                      \
+    STACK_TOP_FRAME(&vm.stack, values) = STACK_TOP_FRAME(&vm.stack, values) operator right_operand; \
   } while (0)
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     printf("[ ");
-    for (Value *slot = vm.stack; slot < vm.stack_top;) {
-      value_print(*slot);
-      if (++slot < vm.stack_top) printf(", ");
+    for (long i = 0; i < vm.stack.count;) {
+      value_print(vm.stack.values[i]);
+      if (++i < vm.stack.count) printf(", ");
     }
-    printf(" ]\n");
+    puts(" ]");
     debug_disassemble_instruction(vm.chunk, vm.ip - vm.chunk->code);
 #endif
     uint8_t const opcode = READ_BYTE();
@@ -101,8 +99,8 @@ static void vm_run(void) {
       }
       case OP_MODULO: {
         Value const divisor = vm_stack_pop();
-        assert(vm.stack_top != vm.stack && "Attempt to access nonexistent stack value");
-        *(vm.stack_top - 1) = fmod(*(vm.stack_top - 1), divisor);
+        assert(vm.stack.count > 0 && "Attempt to access nonexistent stack frame");
+        STACK_TOP_FRAME(&vm.stack, values) = fmod(STACK_TOP_FRAME(&vm.stack, values), divisor);
         break;
       }
       default:
