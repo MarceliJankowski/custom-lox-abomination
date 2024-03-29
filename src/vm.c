@@ -42,6 +42,12 @@ void vm_free(void) {}
 /**@desc run virtual machine; execute all vm.chunk instructions*/
 static void vm_run(void) {
 #define READ_BYTE() (*vm.ip++)
+#define BINARY_OP(operator)                             \
+  do {                                                  \
+    Value right_operand = vm_stack_pop();               \
+    Value left_operand = vm_stack_pop();                \
+    vm_stack_push(left_operand operator right_operand); \
+  } while (0)
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -55,8 +61,12 @@ static void vm_run(void) {
 #endif
     uint8_t const opcode = READ_BYTE();
 
-    static_assert(OP_OPCODE_COUNT == 3, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
     switch (opcode) {
+      case OP_RETURN:
+        value_print(vm_stack_pop());
+        printf("\n");
+        return;
       case OP_CONSTANT: {
         Value constant = vm.chunk->constants.values[READ_BYTE()];
         vm_stack_push(constant);
@@ -71,15 +81,27 @@ static void vm_run(void) {
         vm_stack_push(constant);
         break;
       }
-      case OP_RETURN:
-        value_print(vm_stack_pop());
-        printf("\n");
-        return;
+      case OP_NEGATE:
+        vm_stack_push(-vm_stack_pop());
+        break;
+      case OP_ADD:
+        BINARY_OP(+);
+        break;
+      case OP_SUBTRACT:
+        BINARY_OP(-);
+        break;
+      case OP_MULTIPLY:
+        BINARY_OP(*);
+        break;
+      case OP_DIVIDE:
+        BINARY_OP(/);
+        break;
       default:
         INTERNAL_ERROR("Unknown opcode '%d'", opcode);
     }
   }
 
+#undef BINARY_OP
 #undef READ_BYTE
 }
 
