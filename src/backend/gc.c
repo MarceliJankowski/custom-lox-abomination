@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "error.h"
-#include "gc.h"
+#include "backend/gc.h"
+#include "util/error.h"
 
 /**@desc manage `object` memory with garbage collector.
 Memory of objects tracked by garbage collector must be managed exclusively by this function (from the get-go).

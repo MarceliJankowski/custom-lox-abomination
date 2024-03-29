@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include "memory.h"
+#include "util/memory.h"
 
 extern uint8_t get_byte(unsigned long object, int index);
 

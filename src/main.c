@@ -1,5 +1,5 @@
-#include "chunk.h"
-#include "vm.h"
+#include "backend/chunk.h"
+#include "backend/vm.h"
 
 int main(void) {
   vm_init();

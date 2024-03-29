@@ -1,7 +1,7 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include "chunk.h"
+#include "backend/chunk.h"
 
 #ifdef DEBUG
 // enable all supported debug features

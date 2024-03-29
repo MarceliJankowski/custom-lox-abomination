@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "chunk.h"
-#include "error.h"
-#include "gc.h"
+#include "backend/chunk.h"
+#include "backend/gc.h"
 #include "global.h"
-#include "memory.h"
+#include "util/error.h"
+#include "util/memory.h"
 
 /**@desc initialize bytecode `chunk`*/
 void chunk_init(Chunk *const chunk) {

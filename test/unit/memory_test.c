@@ -1,6 +1,6 @@
 #include <criterion/criterion.h>
 
-#include "memory.h"
+#include "util/memory.h"
 
 Test(get_byte, retrieve_bytes_in_LSB_to_MSB_order) {
   uint8_t const MSB = 1;

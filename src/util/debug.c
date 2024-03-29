@@ -1,11 +1,11 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "backend/value.h"
 #include "common.h"
-#include "debug.h"
-#include "error.h"
-#include "memory.h"
-#include "value.h"
+#include "util/debug.h"
+#include "util/error.h"
+#include "util/memory.h"
 
 /**@desc disassemble and print `chunk` annotated with `name`*/
 void debug_disassemble_chunk(Chunk *const chunk, char const *const name) {

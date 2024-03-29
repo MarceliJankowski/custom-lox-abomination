@@ -1,8 +1,8 @@
+#include <assert.h>
 #include <stdio.h>
 
-#include "assert.h"
-#include "gc.h"
-#include "value.h"
+#include "backend/gc.h"
+#include "backend/value.h"
 
 /**@desc initialize `value_array`*/
 void value_array_init(ValueArray *const value_array) {

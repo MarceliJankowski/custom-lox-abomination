@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "debug.h"
-#include "error.h"
-#include "memory.h"
-#include "stack.h"
-#include "value.h"
-#include "vm.h"
+#include "backend/value.h"
+#include "backend/vm.h"
+#include "util/debug.h"
+#include "util/error.h"
+#include "util/memory.h"
+#include "util/stack.h"
 
 static VirtualMachine vm;
 
