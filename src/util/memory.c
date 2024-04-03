@@ -27,7 +27,7 @@ Endianness detect_endianness(void) {
 /**@desc concatenate `byte_count` uint8_t `bytes`; `bytes` go from MSB to LSB
 @return unsigned long formed from `bytes` concatenation*/
 unsigned long concatenate_bytes(int byte_count, ...) {
-  assert(byte_count >= 2 && "Expected at least 2 bytes to combine");
+  assert(byte_count >= 2 && "Expected at least 2 bytes to concatenate");
   assert((size_t)byte_count < sizeof(long) && "Exceeded maximum number of bytes that can be concatenated");
 
   va_list bytes;

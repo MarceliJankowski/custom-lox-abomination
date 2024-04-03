@@ -3,13 +3,13 @@
 ##################################################
 # meant to provide simple layer of customizability
 
-EXEC_NAME ?= clox
-BUILD_DIR ?= build
-BIN_DIR ?= bin
+CLOX_EXEC_NAME ?= clox
 SRC_DIR := src
 INCLUDE_DIR := include
+BUILD_DIR := build
+BIN_DIR := bin
 TEST_DIR := test
-TEST_LIBS := criterion
+TEST_LIBS := cmocka
 
 FIND ?= find
 MKDIR := mkdir -p
@@ -46,20 +46,25 @@ link_flags := -lm
 compile = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${TARGET_ARCH} -c)
 link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${link_flags} ${LDFLAGS} ${TARGET_ARCH})
 
-sources := $(shell ${FIND} ${SRC_DIR} -name '*.c')
-objects := $(patsubst %.c,%.o,${sources})
-dependencies := $(foreach build,${non_test_builds},$(patsubst %.o,${BUILD_DIR}/${build}/%.d,${objects}))
+sources := $(shell ${FIND} ${SRC_DIR} -type f -name '*.c')
+source_objects := $(patsubst %.c,%.o,${sources})
 
-unit_tests := $(shell ${FIND} ${TEST_DIR}/unit -name '*.c')
-unit_test_objects := $(patsubst %.c,${BUILD_DIR}/test/%.o,${unit_tests})
+unit_tests := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.c')
+unit_test_executables := $(patsubst %.c,${BIN_DIR}/test/unit/%,${unit_tests})
 
-integration_tests := $(shell ${FIND} ${TEST_DIR}/integration -name '*.c')
-integration_test_objects := $(patsubst %.c,${BUILD_DIR}/test/%.o,${integration_tests})
+integration_tests := $(shell ${FIND} ${TEST_DIR}/integration -type f -name '*.c')
+integration_test_executables := $(patsubst %.c,${BIN_DIR}/test/integration/%,${integration_tests})
 
-dependencies += $(patsubst %.o,%.d,${unit_test_objects} ${integration_test_objects})
+# objects that integration tests depend on; 'main.o' is excluded because each test file defines its own entry point
+integration_test_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
 
-# objects to be included in test build; 'main.o' is excluded because criterion brings its own main entry point
-test_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${objects}))
+unit_test_makefiles := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.mk')
+unit_test_mk_target_prefix := ${BIN_DIR}/test/unit/${TEST_DIR}/unit
+unit_test_mk_prerequisite_prefix := ${BUILD_DIR}/release/${SRC_DIR}
+
+# compiler generated makefiles tracking header dependencies
+dependency_makefiles := $(foreach build,${non_test_builds},$(patsubst %.o,${BUILD_DIR}/${build}/%.d,${source_objects}))
+dependency_makefiles += $(patsubst %.c,${BUILD_DIR}/test/%.d,${unit_tests} ${integration_tests})
 
 clean_build_targets := $(foreach build,${BUILDS},clean-${build})
 clean_targets := clean ${clean_build_targets}
@@ -85,6 +90,15 @@ clean-$1:
 endef
 
 ##################################################
+#                CANNED SEQUENCES                #
+##################################################
+
+define make_target_dir_and_link_prerequisites_into_target
+	@ ${MKDIR} $(dir $@)
+	${link} $^ -o $@
+endef
+
+##################################################
 #                     RULES                      #
 ##################################################
 
@@ -95,32 +109,30 @@ endef
 release: compile_cflags += ${RELEASE_CFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
+test: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
 all: ${BUILDS}
 
-# build "build"
-${non_test_builds}: %: ${BIN_DIR}/%/${EXEC_NAME}
+# make build
+${non_test_builds}: %: ${BIN_DIR}/%/${CLOX_EXEC_NAME}
+test: ${unit_test_executables} ${integration_test_executables}
 
-# build test "build"
-test: ${BIN_DIR}/test/unit ${BIN_DIR}/test/integration
+# make build executable
+${BIN_DIR}/%/${CLOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
+	${make_target_dir_and_link_prerequisites_into_target}
 
-# build "build" executable
-${BIN_DIR}/%/${EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${objects})
-	@ ${MKDIR} $(dir $@)
-	${link} $^ -o $@
+# make test build executables
+${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o
+	${make_target_dir_and_link_prerequisites_into_target}
 
-# build test "build" executables
-${BIN_DIR}/test/unit: ${unit_test_objects}
-${BIN_DIR}/test/integration: ${integration_test_objects}
-${BIN_DIR}/test/%: ${test_objects}
-	@ ${MKDIR} $(dir $@)
-	${link} $(foreach test_lib,${TEST_LIBS},-l ${test_lib}) $^ -o $@
+${BIN_DIR}/test/integration/%: ${BUILD_DIR}/test/%.o ${integration_test_objects}
+	${make_target_dir_and_link_prerequisites_into_target}
 
-# build "build" objects
+# make build objects
 $(foreach build,${BUILDS}, \
   $(eval $(call generate_rule_building_objects_for_given_build,${build})))
 
-# clean "build"
+# clean builds
 $(foreach build,${BUILDS}, \
   $(eval $(call generate_rule_cleaning_given_build,${build})))
 
@@ -128,16 +140,16 @@ clean:
 	${RM} ${BUILD_DIR} ${BIN_DIR}
 
 ##################################################
-#                  DEPENDENCIES                  #
+#                    INCLUDES                    #
 ##################################################
 
-# include automatically generated makefiles tracking header dependencies (unless user just wants to clean up)
+# only include makefiles if user doesn't want to just clean up
 ifndef MAKECMDGOALS
 # if there are no command goals, user doesn't want to clean up
-  -include ${dependencies}
+  -include ${dependency_makefiles} ${unit_test_makefiles}
 else
   ifneq "$(filter ${clean_targets},${MAKECMDGOALS})" "${MAKECMDGOALS}"
 # if there are command goals but not all of them are clean targets, user doesn't want to just clean up
-    -include ${dependencies}
+    -include ${dependency_makefiles} ${unit_test_makefiles}
   endif
 endif
