@@ -6,11 +6,13 @@
 
 #include "common.h"
 
-#define MEMORY_ERROR_CODE 1
-#define LEXICAL_ERROR_CODE 2
-#define SYNTAX_ERROR_CODE 3
-#define SEMANTIC_ERROR_CODE 4
-#define RUNTIME_ERROR_CODE 5
+#define INVALID_ARG_ERROR_CODE 1
+#define MEMORY_ERROR_CODE 2
+#define LEXICAL_ERROR_CODE 3
+#define SYNTAX_ERROR_CODE 4
+#define SEMANTIC_ERROR_CODE 5
+#define RUNTIME_ERROR_CODE 6
+#define ERROR_CODE_COUNT RUNTIME_ERROR_CODE
 
 #define INTERNAL_FILE_LINE __FILE__ ":" STRINGIZE(__LINE__)
 
@@ -38,6 +40,8 @@
     ERROR_BOILERPLATE_PRINT_ARGS(__VA_ARGS__);                  \
     abort();                                                    \
   } while (0)
+
+#define INVALID_ARG_ERROR(...) ERROR_BOILERPLATE(INVALID_ARG_ERROR_CODE, "[INVALID_ARG_ERROR]", __VA_ARGS__)
 
 #define MEMORY_ERROR(...) ERROR_BOILERPLATE(MEMORY_ERROR_CODE, "[MEMORY_ERROR]", __VA_ARGS__)
 
