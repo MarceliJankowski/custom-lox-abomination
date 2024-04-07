@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#define ERROR_CODE 1
+#define MEMORY_ERROR_CODE 1
 #define LEXICAL_ERROR_CODE 2
 #define SYNTAX_ERROR_CODE 3
 #define SEMANTIC_ERROR_CODE 4
@@ -39,7 +39,7 @@
     abort();                                                    \
   } while (0)
 
-#define ERROR(...) ERROR_BOILERPLATE(ERROR_CODE, "[ERROR]", __VA_ARGS__)
+#define MEMORY_ERROR(...) ERROR_BOILERPLATE(MEMORY_ERROR_CODE, "[MEMORY_ERROR]", __VA_ARGS__)
 
 #define LEXICAL_ERROR(file, line, column, ...)                                                            \
   ERROR_BOILERPLATE(                                                                                      \

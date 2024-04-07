@@ -37,7 +37,7 @@ void *gc_manage_memory(void *const object, size_t const old_size, size_t const n
   }
 
   void *const reallocated_object = realloc(object, new_size);
-  if (reallocated_object == NULL) ERROR("%s", strerror(errno));
+  if (reallocated_object == NULL) MEMORY_ERROR("%s", strerror(errno));
 
   return reallocated_object;
 }

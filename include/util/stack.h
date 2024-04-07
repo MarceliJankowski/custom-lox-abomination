@@ -13,7 +13,7 @@
     (stack_ptr)->capacity = initial_capacity;                                  \
     (stack_ptr)->count = 0;                                                    \
     (stack_ptr)->array_name = malloc((initial_capacity) * sizeof(frame_type)); \
-    if ((stack_ptr)->array_name == NULL) ERROR("%s", strerror(errno));         \
+    if ((stack_ptr)->array_name == NULL) MEMORY_ERROR("%s", strerror(errno));  \
   } while (0)
 
 #define STACK_CAPACITY_GROWTH_FACTOR 2
@@ -22,7 +22,7 @@
     size_t const old_capacity = (stack_ptr)->capacity;                                              \
     (stack_ptr)->capacity = (old_capacity) * STACK_CAPACITY_GROWTH_FACTOR;                          \
     (stack_ptr)->array_name = realloc((stack_ptr)->array_name, (stack_ptr)->capacity * frame_size); \
-    if ((stack_ptr)->array_name == NULL) ERROR("%s", strerror(errno));                              \
+    if ((stack_ptr)->array_name == NULL) MEMORY_ERROR("%s", strerror(errno));                       \
   } while (0)
 
 #define STACK_PUSH(stack_ptr, array_name, frame)                                                         \
