@@ -113,7 +113,7 @@ static void vm_run(void) {
 }
 
 /**@desc interpret bytecode `chunk`*/
-void vm_interpret(Chunk *chunk) {
+void vm_interpret(Chunk *const chunk) {
   assert(chunk != NULL);
 
   vm.chunk = chunk;

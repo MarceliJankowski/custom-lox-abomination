@@ -4,13 +4,14 @@
 
 #include "backend/vm.h"
 #include "util/error.h"
+#include "util/io.h"
 
 static struct {
   unsigned int help : 1;
 } execution_options;
 
 static void print_manual(void) {
-  static_assert(ERROR_CODE_COUNT == 6, "Exhaustive error code handling");
+  static_assert(ERROR_CODE_COUNT == 7, "Exhaustive error code handling");
   printf(
     "NAME\n"
     "      clox - Lox interpreter written in C\n"
@@ -32,6 +33,8 @@ static void print_manual(void) {
     "\n"
     "      %d  Memory error occurred.\n"
     "\n"
+    "      %d  Input/Output error occurred.\n"
+    "\n"
     "      %d  Error occurred during lexical analysis.\n"
     "\n"
     "      %d  Error occurred during syntactic analysis.\n"
@@ -39,8 +42,8 @@ static void print_manual(void) {
     "      %d  Error occurred during semantic analysis.\n"
     "\n"
     "      %d  Error occurred at runtime.\n",
-    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, LEXICAL_ERROR_CODE, SYNTAX_ERROR_CODE, SEMANTIC_ERROR_CODE,
-    RUNTIME_ERROR_CODE
+    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, LEXICAL_ERROR_CODE, SYNTAX_ERROR_CODE,
+    SEMANTIC_ERROR_CODE, RUNTIME_ERROR_CODE
   );
 }
 
