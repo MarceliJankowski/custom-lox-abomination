@@ -103,8 +103,7 @@ static void vm_run(void) {
         STACK_TOP_FRAME(&vm.stack, values) = fmod(STACK_TOP_FRAME(&vm.stack, values), divisor);
         break;
       }
-      default:
-        INTERNAL_ERROR("Unknown opcode '%d'", opcode);
+      default: INTERNAL_ERROR("Unknown opcode '%d'", opcode);
     }
   }
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "backend/value.h"
@@ -20,26 +21,31 @@ void debug_disassemble_chunk(Chunk *const chunk, char const *const name) {
 @return offset to next instruction*/
 static inline long debug_simple_instruction(uint8_t const opcode, long const offset) {
   switch (opcode) {
-    case OP_RETURN:
+    case OP_RETURN: {
       puts("OP_RETURN");
       break;
-    case OP_ADD:
+    }
+    case OP_ADD: {
       puts("OP_ADD");
       break;
-    case OP_SUBTRACT:
+    }
+    case OP_SUBTRACT: {
       puts("OP_SUBTRACT");
       break;
-    case OP_MULTIPLY:
+    }
+    case OP_MULTIPLY: {
       puts("OP_MULTIPLY");
       break;
-    case OP_DIVIDE:
+    }
+    case OP_DIVIDE: {
       puts("OP_DIVIDE");
       break;
-    case OP_MODULO:
+    }
+    case OP_MODULO: {
       puts("OP_MODULO");
       break;
-    default:
-      INTERNAL_ERROR("Unknown simple instruction opcode '%d'", opcode);
+    }
+    default: INTERNAL_ERROR("Unknown simple instruction opcode '%d'", opcode);
   }
 
   return offset + 1;
@@ -90,12 +96,13 @@ long debug_disassemble_instruction(Chunk *const chunk, long const offset) {
     case OP_SUBTRACT:
     case OP_MULTIPLY:
     case OP_DIVIDE:
-    case OP_MODULO:
+    case OP_MODULO: {
       return debug_simple_instruction(opcode, offset);
+    }
     case OP_CONSTANT:
-    case OP_CONSTANT_2B:
+    case OP_CONSTANT_2B: {
       return debug_constant_instruction(chunk, opcode, offset);
-    default:
-      INTERNAL_ERROR("Unknown opcode '%d'", opcode);
+    }
+    default: INTERNAL_ERROR("Unknown opcode '%d'", opcode);
   }
 }

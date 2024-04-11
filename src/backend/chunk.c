@@ -129,17 +129,19 @@ long chunk_get_instruction_line(Chunk *const chunk, long const offset) {
       case OP_SUBTRACT:
       case OP_MULTIPLY:
       case OP_DIVIDE:
-      case OP_MODULO:
+      case OP_MODULO: {
         loop_offset += 1;
         break;
-      case OP_CONSTANT:
+      }
+      case OP_CONSTANT: {
         loop_offset += 2;
         break;
-      case OP_CONSTANT_2B:
+      }
+      case OP_CONSTANT_2B: {
         loop_offset += 3;
         break;
-      default:
-        INTERNAL_ERROR("Unknown opcode '%d'", chunk->code[loop_offset]);
+      }
+      default: INTERNAL_ERROR("Unknown opcode '%d'", chunk->code[loop_offset]);
     }
 
     instruction_index++;

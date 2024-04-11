@@ -71,11 +71,11 @@ static inline void process_flag_component(char const *flag_component) {
 
   while (*flag_component) {
     switch (*flag_component++) {
-      case 'h':
+      case 'h': {
         execution_options.help = true;
         break;
-      default:
-        INVALID_ARG_ERROR("Invalid command-line flag supplied: '%c'", flag_component[-1]);
+      }
+      default: INVALID_ARG_ERROR("Invalid command-line flag supplied: '%c'", flag_component[-1]);
     }
   }
 }
