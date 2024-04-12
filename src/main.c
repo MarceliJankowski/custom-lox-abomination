@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "backend/vm.h"
+#include "frontend/compiler.h"
 #include "util/error.h"
 #include "util/io.h"
 
@@ -47,10 +48,33 @@ static void print_manual(void) {
   );
 }
 
-static void enter_repl(void) {}
+static void enter_repl(void) {
+  char input_line[1024];
 
-static void run_lox_file(char const *const file) {
-  assert(file != NULL);
+  // TODO: support multiline input
+  for (;;) {
+    printf("> ");
+
+    if (fgets(input_line, sizeof(input_line), stdin) == NULL) {
+      if (ferror(stdin)) IO_ERROR("Failed to read a line from stdin");
+
+      // EOF reached
+      printf("\n");
+      break;
+    }
+
+    compiler_compile(input_line);
+  }
+}
+
+static void run_lox_file(char const *const filepath) {
+  assert(filepath != NULL);
+
+  char *const lox_source_code = read_file(filepath);
+
+  compiler_compile(lox_source_code);
+
+  free(lox_source_code);
 }
 
 /**@desc process `flag_component` (CLI argument that begins with a '-' and may contain multiple flags)*/
