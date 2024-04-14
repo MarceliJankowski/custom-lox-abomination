@@ -27,9 +27,9 @@ readonly INTERNAL_ERROR_CODE=255
 
 # test types must be in lowercase
 readonly UNIT_TEST_TYPE='unit'
-readonly INTEGRATION_TEST_TYPE='integration'
+readonly COMPONENT_TEST_TYPE='component'
 readonly E2E_TEST_TYPE='e2e'
-readonly ALL_TEST_TYPES=("$UNIT_TEST_TYPE" "$INTEGRATION_TEST_TYPE" "$E2E_TEST_TYPE") # order matters
+readonly ALL_TEST_TYPES=("$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" "$E2E_TEST_TYPE") # order matters
 
 readonly MAX_ARG_COUNT=${#ALL_TEST_TYPES[@]}
 
@@ -220,13 +220,12 @@ run_unit_tests() {
 	run_test_executables "$UNIT_TEST_TYPE" "$unit_test_files"
 }
 
-run_integration_tests() {
-	[[ $# -ne 0 ]] && throw_internal_error "run_integration_tests() expects no arguments"
+run_component_tests() {
+	[[ $# -ne 0 ]] && throw_internal_error "run_component_tests() expects no arguments"
 
-	local -r integration_test_files=$(find ${TEST_DIR}/integration -type f -name '*_test.c')
+	local -r component_test_files=$(find ${TEST_DIR}/component -type f -name '*_test.c')
 
-	log_if_verbose "Running integration tests..."
-	# nothing to run yet...
+	run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_files"
 }
 
 run_e2e_tests() {
@@ -283,12 +282,12 @@ cd "$PROJECT_ROOT_DIR"
 # make builds required for testing
 log_if_verbose "Making builds required for testing..."
 array_contains "${TEST_TYPES_TO_RUN[*]}" "$E2E_TEST_TYPE" && make_build release
-array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$INTEGRATION_TEST_TYPE" && make_build test
+array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" && make_build test
 
 # run test types in specified order
 for ((i = 0; i < ${#TEST_TYPES_TO_RUN[@]}; i++)); do
 	[[ "${TEST_TYPES_TO_RUN[$i]}" = "$UNIT_TEST_TYPE" ]] && run_unit_tests
-	[[ "${TEST_TYPES_TO_RUN[$i]}" = "$INTEGRATION_TEST_TYPE" ]] && run_integration_tests
+	[[ "${TEST_TYPES_TO_RUN[$i]}" = "$COMPONENT_TEST_TYPE" ]] && run_component_tests
 	[[ "${TEST_TYPES_TO_RUN[$i]}" = "$E2E_TEST_TYPE" ]] && run_e2e_tests
 done
 

@@ -52,11 +52,11 @@ source_objects := $(patsubst %.c,%.o,${sources})
 unit_tests := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.c')
 unit_test_executables := $(patsubst %.c,${BIN_DIR}/test/unit/%,${unit_tests})
 
-integration_tests := $(shell ${FIND} ${TEST_DIR}/integration -type f -name '*.c')
-integration_test_executables := $(patsubst %.c,${BIN_DIR}/test/integration/%,${integration_tests})
+component_tests := $(shell ${FIND} ${TEST_DIR}/component -type f -name '*.c')
+component_test_executables := $(patsubst %.c,${BIN_DIR}/test/component/%,${component_tests})
 
-# objects that integration tests depend on; 'main.o' is excluded because each test file defines its own entry point
-integration_test_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
+# objects that component tests depend on; 'main.o' is excluded because each test file defines its own entry point
+component_test_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
 
 unit_test_makefiles := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.mk')
 unit_test_mk_target_prefix := ${BIN_DIR}/test/unit/${TEST_DIR}/unit
@@ -64,7 +64,7 @@ unit_test_mk_prerequisite_prefix := ${BUILD_DIR}/release/${SRC_DIR}
 
 # compiler generated makefiles tracking header dependencies
 dependency_makefiles := $(foreach build,${non_test_builds},$(patsubst %.o,${BUILD_DIR}/${build}/%.d,${source_objects}))
-dependency_makefiles += $(patsubst %.c,${BUILD_DIR}/test/%.d,${unit_tests} ${integration_tests})
+dependency_makefiles += $(patsubst %.c,${BUILD_DIR}/test/%.d,${unit_tests} ${component_tests})
 
 clean_build_targets := $(foreach build,${BUILDS},clean-${build})
 clean_targets := clean ${clean_build_targets}
@@ -115,7 +115,7 @@ all: ${BUILDS}
 
 # make build
 ${non_test_builds}: %: ${BIN_DIR}/%/${CLOX_EXEC_NAME}
-test: ${unit_test_executables} ${integration_test_executables}
+test: ${unit_test_executables} ${component_test_executables}
 
 # make build executable
 ${BIN_DIR}/%/${CLOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
@@ -125,7 +125,7 @@ ${BIN_DIR}/%/${CLOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 ${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o
 	${make_target_dir_and_link_prerequisites_into_target}
 
-${BIN_DIR}/test/integration/%: ${BUILD_DIR}/test/%.o ${integration_test_objects}
+${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_objects}
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make build objects
