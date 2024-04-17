@@ -24,17 +24,23 @@ static Token scan_assert(TokenType const expected_type, char const *const expect
   return token;
 }
 
+static inline void assert_position(Token const token, int const expected_line, int const expected_column) {
+  assert_int_equal(token.line, expected_line);
+  assert_int_equal(token.column, expected_column);
+}
+
 static Token scan_assert_all(
-  TokenType const expected_type, char const *const expected_lexeme, int const expected_line
+  TokenType const expected_type, char const *const expected_lexeme, int const expected_line,
+  int const expected_column
 ) {
   Token const token = scan_assert(expected_type, expected_lexeme);
-
-  assert_int_equal(token.line, expected_line);
+  assert_position(token, expected_line, expected_column);
   return token;
 }
 
 #define scan_assert_eof() scan_assert(TOKEN_EOF, "EOF")
-#define scan_assert_all_eof(expected_line) scan_assert_all(TOKEN_EOF, "EOF", expected_line)
+#define scan_assert_all_eof(expected_line, expected_column) \
+  scan_assert_all(TOKEN_EOF, "EOF", expected_line, expected_column)
 
 static inline void init_scan_assert(char const *const lexeme, TokenType const expected_type) {
   lexer_init(lexeme);
@@ -43,17 +49,11 @@ static inline void init_scan_assert(char const *const lexeme, TokenType const ex
 }
 
 static inline void init_scan_assert_eof(char const *const lexeme) {
-  lexer_init(lexeme);
-  scan_assert_eof();
+  lexer_init(lexeme), scan_assert_eof();
 }
 
-static inline void init_scan_assert_all_eof(char const *const lexeme, int const expected_line) {
-  lexer_init(lexeme);
-  scan_assert_all_eof(expected_line);
-}
-
-static inline void init_scan_assert_error(char const *const init_lexeme, char const *const error_lexeme) {
-  lexer_init(init_lexeme);
+static inline void init_scan_assert_error(char const *const source_code, char const *const error_lexeme) {
+  lexer_init(source_code);
   scan_assert(TOKEN_ERROR, error_lexeme);
   scan_assert_eof();
 }
@@ -100,9 +100,23 @@ static void test_unexpected_char(void **const state) {
 static void test_position_tracking(void **const state) {
   (void)state; // unused
 
-  init_scan_assert_all_eof("", 1);
-  init_scan_assert_all_eof("\r\n", 2);
-  init_scan_assert_all_eof("\n\n", 3);
+  // line
+  lexer_init(""), assert_int_equal(lexer_scan().line, 1);
+  lexer_init("\n"), assert_int_equal(lexer_scan().line, 2);
+  lexer_init("\r\n"), assert_int_equal(lexer_scan().line, 2);
+  lexer_init("\n\n"), assert_int_equal(lexer_scan().line, 3);
+
+  // column
+  lexer_init(""), assert_int_equal(lexer_scan().column, 1);
+  lexer_init(" "), assert_int_equal(lexer_scan().column, 2);
+  lexer_init("  "), assert_int_equal(lexer_scan().column, 3);
+  lexer_init("\t"), assert_int_equal(lexer_scan().column, 2);
+  lexer_init("\r"), assert_int_equal(lexer_scan().column, 2);
+
+  // line and column
+  lexer_init("   \n"), assert_position(lexer_scan(), 2, 1);
+  lexer_init("   \n   "), assert_position(lexer_scan(), 2, 4);
+  lexer_init("1 \n 2"), assert_position(lexer_scan(), 1, 1), assert_position(lexer_scan(), 2, 2);
 }
 
 static void test_string_literal(void **const state) {
@@ -204,9 +218,7 @@ static void test_comment(void **const state) {
 
   init_scan_assert_eof("# comment");
   init_scan_assert_eof("# comment... # continues...");
-
-  lexer_init("# comment spans single line\n +");
-  scan_assert(TOKEN_PLUS, "+");
+  lexer_init("# comment spans single line\n +"), scan_assert(TOKEN_PLUS, "+");
 }
 
 static void test_input_source_code_1(void **const state) {
@@ -215,22 +227,22 @@ static void test_input_source_code_1(void **const state) {
              "var y = 10;\n"
              "print x + y;");
 
-  scan_assert_all(TOKEN_VAR, "var", 1);
-  scan_assert_all(TOKEN_IDENTIFIER, "x", 1);
-  scan_assert_all(TOKEN_EQUAL, "=", 1);
-  scan_assert_all(TOKEN_NUMBER, "5", 1);
-  scan_assert_all(TOKEN_SEMICOLON, ";", 1);
-  scan_assert_all(TOKEN_VAR, "var", 2);
-  scan_assert_all(TOKEN_IDENTIFIER, "y", 2);
-  scan_assert_all(TOKEN_EQUAL, "=", 2);
-  scan_assert_all(TOKEN_NUMBER, "10", 2);
-  scan_assert_all(TOKEN_SEMICOLON, ";", 2);
-  scan_assert_all(TOKEN_PRINT, "print", 3);
-  scan_assert_all(TOKEN_IDENTIFIER, "x", 3);
-  scan_assert_all(TOKEN_PLUS, "+", 3);
-  scan_assert_all(TOKEN_IDENTIFIER, "y", 3);
-  scan_assert_all(TOKEN_SEMICOLON, ";", 3);
-  scan_assert_all_eof(3);
+  scan_assert_all(TOKEN_VAR, "var", 1, 1);
+  scan_assert_all(TOKEN_IDENTIFIER, "x", 1, 5);
+  scan_assert_all(TOKEN_EQUAL, "=", 1, 7);
+  scan_assert_all(TOKEN_NUMBER, "5", 1, 9);
+  scan_assert_all(TOKEN_SEMICOLON, ";", 1, 10);
+  scan_assert_all(TOKEN_VAR, "var", 2, 1);
+  scan_assert_all(TOKEN_IDENTIFIER, "y", 2, 5);
+  scan_assert_all(TOKEN_EQUAL, "=", 2, 7);
+  scan_assert_all(TOKEN_NUMBER, "10", 2, 9);
+  scan_assert_all(TOKEN_SEMICOLON, ";", 2, 11);
+  scan_assert_all(TOKEN_PRINT, "print", 3, 1);
+  scan_assert_all(TOKEN_IDENTIFIER, "x", 3, 7);
+  scan_assert_all(TOKEN_PLUS, "+", 3, 9);
+  scan_assert_all(TOKEN_IDENTIFIER, "y", 3, 11);
+  scan_assert_all(TOKEN_SEMICOLON, ";", 3, 12);
+  scan_assert_all_eof(3, 13);
 }
 
 static void test_input_source_code_2(void **const state) {
@@ -240,29 +252,29 @@ static void test_input_source_code_2(void **const state) {
              "}\n"
              "print add(2.5, 7.5);");
 
-  scan_assert_all(TOKEN_FUN, "fun", 1);
-  scan_assert_all(TOKEN_IDENTIFIER, "add", 1);
-  scan_assert_all(TOKEN_OPEN_PAREN, "(", 1);
-  scan_assert_all(TOKEN_IDENTIFIER, "a", 1);
-  scan_assert_all(TOKEN_COMMA, ",", 1);
-  scan_assert_all(TOKEN_IDENTIFIER, "b", 1);
-  scan_assert_all(TOKEN_CLOSE_PAREN, ")", 1);
-  scan_assert_all(TOKEN_OPEN_CURLY_BRACE, "{", 1);
-  scan_assert_all(TOKEN_RETURN, "return", 2);
-  scan_assert_all(TOKEN_IDENTIFIER, "a", 2);
-  scan_assert_all(TOKEN_PLUS, "+", 2);
-  scan_assert_all(TOKEN_IDENTIFIER, "b", 2);
-  scan_assert_all(TOKEN_SEMICOLON, ";", 2);
-  scan_assert_all(TOKEN_CLOSE_CURLY_BRACE, "}", 3);
-  scan_assert_all(TOKEN_PRINT, "print", 4);
-  scan_assert_all(TOKEN_IDENTIFIER, "add", 4);
-  scan_assert_all(TOKEN_OPEN_PAREN, "(", 4);
-  scan_assert_all(TOKEN_NUMBER, "2.5", 4);
-  scan_assert_all(TOKEN_COMMA, ",", 4);
-  scan_assert_all(TOKEN_NUMBER, "7.5", 4);
-  scan_assert_all(TOKEN_CLOSE_PAREN, ")", 4);
-  scan_assert_all(TOKEN_SEMICOLON, ";", 4);
-  scan_assert_all_eof(4);
+  scan_assert_all(TOKEN_FUN, "fun", 1, 1);
+  scan_assert_all(TOKEN_IDENTIFIER, "add", 1, 5);
+  scan_assert_all(TOKEN_OPEN_PAREN, "(", 1, 8);
+  scan_assert_all(TOKEN_IDENTIFIER, "a", 1, 9);
+  scan_assert_all(TOKEN_COMMA, ",", 1, 10);
+  scan_assert_all(TOKEN_IDENTIFIER, "b", 1, 12);
+  scan_assert_all(TOKEN_CLOSE_PAREN, ")", 1, 13);
+  scan_assert_all(TOKEN_OPEN_CURLY_BRACE, "{", 1, 15);
+  scan_assert_all(TOKEN_RETURN, "return", 2, 3);
+  scan_assert_all(TOKEN_IDENTIFIER, "a", 2, 10);
+  scan_assert_all(TOKEN_PLUS, "+", 2, 12);
+  scan_assert_all(TOKEN_IDENTIFIER, "b", 2, 14);
+  scan_assert_all(TOKEN_SEMICOLON, ";", 2, 15);
+  scan_assert_all(TOKEN_CLOSE_CURLY_BRACE, "}", 3, 1);
+  scan_assert_all(TOKEN_PRINT, "print", 4, 1);
+  scan_assert_all(TOKEN_IDENTIFIER, "add", 4, 7);
+  scan_assert_all(TOKEN_OPEN_PAREN, "(", 4, 10);
+  scan_assert_all(TOKEN_NUMBER, "2.5", 4, 11);
+  scan_assert_all(TOKEN_COMMA, ",", 4, 14);
+  scan_assert_all(TOKEN_NUMBER, "7.5", 4, 16);
+  scan_assert_all(TOKEN_CLOSE_PAREN, ")", 4, 19);
+  scan_assert_all(TOKEN_SEMICOLON, ";", 4, 20);
+  scan_assert_all_eof(4, 21);
 }
 
 int main(void) {

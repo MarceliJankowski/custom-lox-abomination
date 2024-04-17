@@ -76,7 +76,7 @@ static_assert(TOKEN_TYPE_COUNT <= UCHAR_MAX, "Too many TokenTypes defined; Token
 typedef struct {
   char const *lexeme;
   long line;
-  int lexeme_length;
+  int column, lexeme_length;
   uint8_t type;
 } Token;
 

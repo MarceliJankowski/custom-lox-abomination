@@ -3,11 +3,13 @@
 #include <string.h>
 
 #include "frontend/lexer.h"
+#include "util/debug.h"
 
 static struct {
   char const *char_cursor;
   char const *lexeme;
   long line;
+  int column, lexeme_start_column;
 } lexer;
 
 /**@desc initialize lexer with `source_code`*/
@@ -17,6 +19,7 @@ void lexer_init(char const *const source_code) {
   lexer.lexeme = source_code;
   lexer.char_cursor = source_code;
   lexer.line = 1;
+  lexer.column = 1;
 }
 
 /**@desc determine whether given `character` is a digit*/
@@ -42,13 +45,14 @@ static inline bool lexer_reached_end(void) {
 /**@desc advance lexer.char_cursor to next source code character
 @return previous (advanced past) character*/
 static inline char lexer_advance(void) {
+  lexer.column++;
   return *lexer.char_cursor++;
 }
 
-/**@desc determine whether `expected_char` matches lexer.char_cursor and advance char_cursor if it does*/
+/**@desc determine whether `expected_char` matches lexer.char_cursor and call lexer_advance if it does*/
 static inline bool lexer_match(char const expected_char) {
   if (*lexer.char_cursor != expected_char) return false;
-  lexer.char_cursor++;
+  lexer_advance();
   return true;
 }
 
@@ -71,6 +75,7 @@ static Token lexer_make_token(TokenType const token_type) {
   Token const token = {
     .type = token_type,
     .line = lexer.line,
+    .column = lexer.lexeme_start_column,
     .lexeme = lexer.lexeme,
     .lexeme_length = lexer.char_cursor - lexer.lexeme,
   };
@@ -86,6 +91,7 @@ static Token lexer_make_error_token(char const *const message) {
   Token const error_token = {
     .type = TOKEN_ERROR,
     .line = lexer.line,
+    .column = lexer.lexeme_start_column,
     .lexeme = message,
     .lexeme_length = strlen(message),
   };
@@ -99,6 +105,7 @@ static Token lexer_make_eof_token(void) {
   Token const eof_token = {
     .type = TOKEN_EOF,
     .line = lexer.line,
+    .column = lexer.lexeme_start_column,
     .lexeme = "EOF",
     .lexeme_length = 3,
   };
@@ -212,6 +219,7 @@ static void lexer_skip_whitespace(void) {
       }
       case '\n': {
         lexer_advance();
+        lexer.column = 1;
         lexer.line++;
         break;
       }
@@ -229,9 +237,13 @@ static void lexer_skip_whitespace(void) {
 @return produced token*/
 Token lexer_scan(void) {
   lexer_skip_whitespace();
+
+  // reset lexeme
+  lexer.lexeme = lexer.char_cursor;
+  lexer.lexeme_start_column = lexer.column;
+
   if (lexer_reached_end()) return lexer_make_eof_token();
 
-  lexer.lexeme = lexer.char_cursor; // reset lexeme
   char const previous_char = lexer_advance();
 
   // literals
