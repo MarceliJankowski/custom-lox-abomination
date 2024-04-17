@@ -80,6 +80,10 @@ static Token lexer_make_token(TokenType const token_type) {
     .lexeme_length = lexer.char_cursor - lexer.lexeme,
   };
 
+#ifdef DEBUG_LEXER
+  debug_token(&token);
+#endif
+
   return token;
 }
 
@@ -96,6 +100,10 @@ static Token lexer_make_error_token(char const *const message) {
     .lexeme_length = strlen(message),
   };
 
+#ifdef DEBUG_LEXER
+  debug_token(&error_token);
+#endif
+
   return error_token;
 }
 
@@ -109,6 +117,10 @@ static Token lexer_make_eof_token(void) {
     .lexeme = "EOF",
     .lexeme_length = 3,
   };
+
+#ifdef DEBUG_LEXER
+  debug_token(&eof_token);
+#endif
 
   return eof_token;
 }

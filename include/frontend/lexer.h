@@ -9,6 +9,7 @@ typedef enum {
   // indicators
   TOKEN_ERROR,
   TOKEN_EOF,
+  TOKEN_INDICATOR_END, // assertion utility
 
   // literals
   TOKEN_STRING,
@@ -64,7 +65,8 @@ typedef enum {
   TOKEN_KEYWORD_END, // assertion utility
 
   // assertion utilities
-  TOKEN_TYPE_COUNT = TOKEN_KEYWORD_END - 3, // -3 to account for assertion utility members
+  TOKEN_TYPE_COUNT = TOKEN_KEYWORD_END - 4, // -4 to account for assertion utility members
+  TOKEN_INDICATOR_COUNT = TOKEN_INDICATOR_END,
   TOKEN_SINGLE_CHAR_COUNT = TOKEN_SINGLE_CHAR_END - TOKEN_LITERAL_END - 1,
   TOKEN_MULTI_CHAR_COUNT = TOKEN_MULTI_CHAR_END - TOKEN_SINGLE_CHAR_END - 1,
   TOKEN_KEYWORD_COUNT = TOKEN_KEYWORD_END - TOKEN_MULTI_CHAR_END - 1

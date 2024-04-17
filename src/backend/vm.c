@@ -49,7 +49,7 @@ static void vm_run(void) {
   } while (0)
 
   for (;;) {
-#ifdef DEBUG_TRACE_EXECUTION
+#ifdef DEBUG_VM
     printf("[ ");
     for (long i = 0; i < vm.stack.count;) {
       value_print(vm.stack.values[i]);

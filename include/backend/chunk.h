@@ -10,15 +10,24 @@
 /**@desc operation code representing bytecode instruction.
 Instruction operands are stored in little-endian order.*/
 typedef enum {
+  // simple opcodes (without operands)
   OP_RETURN,
-  OP_CONSTANT,
-  OP_CONSTANT_2B,
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
   OP_MODULO,
-  OP_OPCODE_COUNT,
+  OP_SIMPLE_OPCODE_END, // assertion utility
+
+  // complex opcodes (with operands)
+  OP_CONSTANT,
+  OP_CONSTANT_2B,
+  OP_COMPLEX_OPCODE_END, // assertion utility
+
+  // assertion utilities
+  OP_OPCODE_COUNT = OP_COMPLEX_OPCODE_END - 1, // -1 to account for assertion utility members
+  OP_SIMPLE_OPCODE_COUNT = OP_SIMPLE_OPCODE_END,
+  OP_COMPLEX_OPCODE_COUNT = OP_COMPLEX_OPCODE_END - OP_SIMPLE_OPCODE_END - 1,
 } OpCode;
 
 static_assert(

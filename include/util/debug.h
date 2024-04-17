@@ -2,12 +2,15 @@
 #define DEBUG_H
 
 #include "backend/chunk.h"
+#include "frontend/lexer.h"
 
 #ifdef DEBUG
 // enable all supported debug features
-#define DEBUG_TRACE_EXECUTION
+#define DEBUG_LEXER
+#define DEBUG_VM
 #endif
 
+void debug_token(Token const *token);
 void debug_disassemble_chunk(Chunk *chunk, char const *name);
 long debug_disassemble_instruction(Chunk *chunk, long offset);
 
