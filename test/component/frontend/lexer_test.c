@@ -223,6 +223,24 @@ static void test_comment(void **const state) {
 
 static void test_input_source_code_1(void **const state) {
   (void)state; // unused
+  lexer_init("(-1 + 2) * 3 - -4");
+
+  scan_assert_all(TOKEN_OPEN_PAREN, "(", 1, 1);
+  scan_assert_all(TOKEN_MINUS, "-", 1, 2);
+  scan_assert_all(TOKEN_NUMBER, "1", 1, 3);
+  scan_assert_all(TOKEN_PLUS, "+", 1, 5);
+  scan_assert_all(TOKEN_NUMBER, "2", 1, 7);
+  scan_assert_all(TOKEN_CLOSE_PAREN, ")", 1, 8);
+  scan_assert_all(TOKEN_STAR, "*", 1, 10);
+  scan_assert_all(TOKEN_NUMBER, "3", 1, 12);
+  scan_assert_all(TOKEN_MINUS, "-", 1, 14);
+  scan_assert_all(TOKEN_MINUS, "-", 1, 16);
+  scan_assert_all(TOKEN_NUMBER, "4", 1, 17);
+  scan_assert_all_eof(1, 18);
+}
+
+static void test_input_source_code_2(void **const state) {
+  (void)state; // unused
   lexer_init("var x = 5;\n"
              "var y = 10;\n"
              "print x + y;");
@@ -245,7 +263,7 @@ static void test_input_source_code_1(void **const state) {
   scan_assert_all_eof(3, 13);
 }
 
-static void test_input_source_code_2(void **const state) {
+static void test_input_source_code_3(void **const state) {
   (void)state; // unused
   lexer_init("fun add(a, b) {\n"
              "  return a + b;\n"
@@ -292,6 +310,7 @@ int main(void) {
     cmocka_unit_test(test_comment),
     cmocka_unit_test(test_input_source_code_1),
     cmocka_unit_test(test_input_source_code_2),
+    cmocka_unit_test(test_input_source_code_3),
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);
