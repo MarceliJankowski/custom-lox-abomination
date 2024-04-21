@@ -7,6 +7,7 @@
 #ifdef DEBUG
 // enable all supported debug features
 #define DEBUG_LEXER
+#define DEBUG_COMPILER
 #define DEBUG_VM
 #endif
 

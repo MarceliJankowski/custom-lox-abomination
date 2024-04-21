@@ -12,6 +12,7 @@ Instruction operands are stored in little-endian order.*/
 typedef enum {
   // simple opcodes (without operands)
   OP_RETURN,
+  OP_NEGATE,
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,

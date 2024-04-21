@@ -4,6 +4,7 @@
 
 #include "backend/vm.h"
 #include "frontend/compiler.h"
+#include "global.h"
 #include "util/error.h"
 #include "util/io.h"
 
@@ -11,8 +12,10 @@ static struct {
   unsigned int help : 1;
 } execution_options;
 
+static int main_exit_code = EXIT_SUCCESS;
+
 static void print_manual(void) {
-  static_assert(ERROR_CODE_COUNT == 7, "Exhaustive error code handling");
+  static_assert(ERROR_CODE_COUNT == 5, "Exhaustive error code handling");
   printf(
     "NAME\n"
     "      clox - Lox interpreter written in C\n"
@@ -36,20 +39,17 @@ static void print_manual(void) {
     "\n"
     "      %d  Input/Output error occurred.\n"
     "\n"
-    "      %d  Error occurred during lexical analysis.\n"
+    "      %d  Error occurred during compilation.\n"
     "\n"
-    "      %d  Error occurred during syntactic analysis.\n"
-    "\n"
-    "      %d  Error occurred during semantic analysis.\n"
-    "\n"
-    "      %d  Error occurred at runtime.\n",
-    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, LEXICAL_ERROR_CODE, SYNTAX_ERROR_CODE,
-    SEMANTIC_ERROR_CODE, RUNTIME_ERROR_CODE
+    "      %d  Error occurred during execution.\n",
+    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, COMPILATION_ERROR_CODE, RUNTIME_ERROR_CODE
   );
 }
 
 static void enter_repl(void) {
   char input_line[1024];
+  g_source_file = "repl";
+  Chunk chunk;
 
   // TODO: support multiline input
   for (;;) {
@@ -63,18 +63,37 @@ static void enter_repl(void) {
       break;
     }
 
-    compiler_compile(input_line);
+    // execute input_line
+    chunk_init(&chunk);
+    if (!compiler_compile(input_line, &chunk)) {
+      chunk_free(&chunk);
+      continue;
+    }
+    vm_interpret(&chunk);
   }
+
+  // clean up
+  chunk_free(&chunk);
 }
 
-static void run_lox_file(char const *const filepath) {
+static void run_file(char const *const filepath) {
   assert(filepath != NULL);
 
-  char *const lox_source_code = read_file(filepath);
+  char *const source_code = read_file(filepath);
+  g_source_file = filepath;
 
-  compiler_compile(lox_source_code);
+  // execute source_code
+  Chunk chunk;
+  chunk_init(&chunk);
+  if (!compiler_compile(source_code, &chunk)) {
+    main_exit_code = COMPILATION_ERROR_CODE;
+    goto clean_up;
+  }
+  vm_interpret(&chunk);
 
-  free(lox_source_code);
+clean_up:
+  chunk_free(&chunk);
+  free(source_code);
 }
 
 /**@desc process `flag_component` (CLI argument that begins with a '-' and may contain multiple flags)*/
@@ -121,12 +140,14 @@ int main(int const argc, char const *argv[]) {
   // handle execution options
   if (execution_options.help) {
     print_manual();
-    exit(EXIT_SUCCESS);
+    goto clean_up;
   }
 
   // begin execution
   if (lox_filepath_arg == NULL) enter_repl();
-  else run_lox_file(lox_filepath_arg);
+  else run_file(lox_filepath_arg);
 
+clean_up:
   vm_free();
+  return main_exit_code;
 }

@@ -95,16 +95,17 @@ void debug_disassemble_chunk(Chunk *const chunk, char const *const name) {
   assert(chunk != NULL);
   assert(name != NULL);
 
-  printf("== %s ==\n", name);
+  printf("\n== %s ==\n", name);
   for (long offset = 0; offset < chunk->count;) offset = debug_disassemble_instruction(chunk, offset);
 }
 
 /**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
 static inline long debug_simple_instruction(uint8_t const opcode, long const offset) {
-  static_assert(OP_SIMPLE_OPCODE_COUNT == 6, "Exhaustive simple opcode handling");
+  static_assert(OP_SIMPLE_OPCODE_COUNT == 7, "Exhaustive simple opcode handling");
   switch (opcode) {
     case OP_RETURN: PUTS_BREAK("OP_RETURN");
+    case OP_NEGATE: PUTS_BREAK("OP_NEGATE");
     case OP_ADD: PUTS_BREAK("OP_ADD");
     case OP_SUBTRACT: PUTS_BREAK("OP_SUBTRACT");
     case OP_MULTIPLY: PUTS_BREAK("OP_MULTIPLY");
@@ -155,9 +156,10 @@ long debug_disassemble_instruction(Chunk *const chunk, long const offset) {
 
   uint8_t const opcode = chunk->code[offset];
 
-  static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 9, "Exhaustive opcode handling");
   switch (opcode) {
     case OP_RETURN:
+    case OP_NEGATE:
     case OP_ADD:
     case OP_SUBTRACT:
     case OP_MULTIPLY:

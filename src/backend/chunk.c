@@ -32,7 +32,7 @@ static inline void chunk_create_and_append_line_count(Chunk *const chunk, long c
   assert(chunk != NULL);
   assert(line >= 1 && "Expected lines to begin at 1");
 
-  ChunkLineCount line_count = {.line = line, .count = 1};
+  ChunkLineCount const line_count = {.line = line, .count = 1};
   GC_DARRAY_APPEND(&chunk->lines, line_counts, line_count);
 }
 
@@ -121,10 +121,11 @@ long chunk_get_instruction_line(Chunk *const chunk, long const offset) {
   long instruction_index = 0;
   long loop_offset = 0;
 
-  static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 9, "Exhaustive opcode handling");
   while (loop_offset < offset) {
     switch (chunk->code[loop_offset]) {
       case OP_RETURN:
+      case OP_NEGATE:
       case OP_ADD:
       case OP_SUBTRACT:
       case OP_MULTIPLY:

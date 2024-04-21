@@ -9,10 +9,8 @@
 #define INVALID_ARG_ERROR_CODE 1
 #define MEMORY_ERROR_CODE 2
 #define IO_ERROR_CODE 3
-#define LEXICAL_ERROR_CODE 4
-#define SYNTAX_ERROR_CODE 5
-#define SEMANTIC_ERROR_CODE 6
-#define RUNTIME_ERROR_CODE 7
+#define COMPILATION_ERROR_CODE 4
+#define RUNTIME_ERROR_CODE 5
 #define ERROR_CODE_COUNT RUNTIME_ERROR_CODE
 
 #define INTERNAL_FILE_LINE __FILE__ ":" STRINGIZE(__LINE__)
@@ -47,28 +45,5 @@
 #define IO_ERROR(...) ERROR_BOILERPLATE(IO_ERROR_CODE, "[IO_ERROR]", __VA_ARGS__)
 
 #define MEMORY_ERROR(...) ERROR_BOILERPLATE(MEMORY_ERROR_CODE, "[MEMORY_ERROR]", __VA_ARGS__)
-
-#define LEXICAL_ERROR(file, line, column, ...)                                                            \
-  ERROR_BOILERPLATE(                                                                                      \
-    LEXICAL_ERROR_CODE, "[LEXICAL_ERROR]" M_S FILE_LINE_COLUMN_FORMAT COMMA file COMMA line COMMA column, \
-    __VA_ARGS__                                                                                           \
-  )
-
-#define SYNTAX_ERROR(file, line, column, ...)                                                           \
-  ERROR_BOILERPLATE(                                                                                    \
-    SYNTAX_ERROR_CODE, "[SYNTAX_ERROR]" M_S FILE_LINE_COLUMN_FORMAT COMMA file COMMA line COMMA column, \
-    __VA_ARGS__                                                                                         \
-  )
-
-#define SEMANTIC_ERROR(file, line, column, ...)                                                             \
-  ERROR_BOILERPLATE(                                                                                        \
-    SEMANTIC_ERROR_CODE, "[SEMANTIC_ERROR]" M_S FILE_LINE_COLUMN_FORMAT COMMA file COMMA line COMMA column, \
-    __VA_ARGS__                                                                                             \
-  )
-
-#define RUNTIME_ERROR(file, line, ...)                                                            \
-  ERROR_BOILERPLATE(                                                                              \
-    RUNTIME_ERROR_CODE, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT COMMA file COMMA line, __VA_ARGS__ \
-  )
 
 #endif // ERROR_H

@@ -48,6 +48,10 @@ static void vm_run(void) {
     STACK_TOP_FRAME(&vm.stack, values) = STACK_TOP_FRAME(&vm.stack, values) operator right_operand; \
   } while (0)
 
+#ifdef DEBUG_VM
+  puts("\n== DEBUG_VM ==");
+#endif
+
   for (;;) {
 #ifdef DEBUG_VM
     printf("[ ");
@@ -60,7 +64,7 @@ static void vm_run(void) {
 #endif
     uint8_t const opcode = READ_BYTE();
 
-    static_assert(OP_OPCODE_COUNT == 8, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 9, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
         value_print(vm_stack_pop());
@@ -79,6 +83,10 @@ static void vm_run(void) {
         Value const constant = vm.chunk->constants.values[constant_index];
 
         vm_stack_push(constant);
+        break;
+      }
+      case OP_NEGATE: {
+        STACK_TOP_FRAME(&vm.stack, values) = -STACK_TOP_FRAME(&vm.stack, values);
         break;
       }
       case OP_ADD: {

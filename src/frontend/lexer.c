@@ -16,6 +16,10 @@ static struct {
 void lexer_init(char const *const source_code) {
   assert(source_code != NULL);
 
+#ifdef DEBUG_LEXER
+  puts("== DEBUG_LEXER ==");
+#endif
+
   lexer.lexeme = source_code;
   lexer.char_cursor = source_code;
   lexer.line = 1;
