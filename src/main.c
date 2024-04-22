@@ -65,11 +65,10 @@ static void enter_repl(void) {
 
     // execute input_line
     chunk_init(&chunk);
-    if (!compiler_compile(input_line, &chunk)) {
+    if (!compiler_compile(input_line, &chunk) || !vm_interpret(&chunk)) {
       chunk_free(&chunk);
       continue;
     }
-    vm_interpret(&chunk);
   }
 
   // clean up
@@ -89,7 +88,7 @@ static void run_file(char const *const filepath) {
     main_exit_code = COMPILATION_ERROR_CODE;
     goto clean_up;
   }
-  vm_interpret(&chunk);
+  if (!vm_interpret(&chunk)) main_exit_code = RUNTIME_ERROR_CODE;
 
 clean_up:
   chunk_free(&chunk);

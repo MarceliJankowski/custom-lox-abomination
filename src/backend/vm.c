@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,7 @@
 
 #include "backend/value.h"
 #include "backend/vm.h"
+#include "global.h"
 #include "util/debug.h"
 #include "util/error.h"
 #include "util/memory.h"
@@ -38,8 +40,17 @@ Value vm_stack_pop(void) {
   return popped_value;
 }
 
-/**@desc run virtual machine; execute all vm.chunk instructions*/
-static void vm_run(void) {
+/**@desc report runtime error at `instruction_offset` with `message`*/
+static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *const message) {
+  long const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
+  fprintf(
+    stderr, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message
+  );
+}
+
+/**@desc run virtual machine; execute all vm.chunk instructions
+@return true if execution succeeded, false otherwise*/
+static bool vm_run(void) {
 #define READ_BYTE() (*vm.ip++)
 #define BINARY_OP(operator)                                                                         \
   do {                                                                                              \
@@ -69,7 +80,7 @@ static void vm_run(void) {
       case OP_RETURN: {
         value_print(vm_stack_pop());
         printf("\n");
-        return;
+        return true;
       }
       case OP_CONSTANT: {
         Value constant = vm.chunk->constants.values[READ_BYTE()];
@@ -102,11 +113,19 @@ static void vm_run(void) {
         break;
       }
       case OP_DIVIDE: {
+        if (STACK_TOP_FRAME(&vm.stack, values) == 0) {
+          vm_report_error_at(vm.ip - vm.chunk->code - 1, "Illegal division by zero");
+          return false;
+        }
         BINARY_OP(/);
         break;
       }
       case OP_MODULO: {
         Value const divisor = vm_stack_pop();
+        if (divisor == 0) {
+          vm_report_error_at(vm.ip - vm.chunk->code - 1, "Illegal modulo by zero");
+          return false;
+        }
         assert(vm.stack.count > 0 && "Attempt to access nonexistent stack frame");
         STACK_TOP_FRAME(&vm.stack, values) = fmod(STACK_TOP_FRAME(&vm.stack, values), divisor);
         break;
@@ -117,13 +136,20 @@ static void vm_run(void) {
 
 #undef BINARY_OP
 #undef READ_BYTE
+
+  // successful execution
+  return true;
 }
 
-/**@desc interpret bytecode `chunk`*/
-void vm_interpret(Chunk *const chunk) {
+/**@desc interpret bytecode `chunk`
+@return true if interpretation succeeded, false otherwise*/
+bool vm_interpret(Chunk *const chunk) {
   assert(chunk != NULL);
 
+  // reset vm
   vm.chunk = chunk;
   vm.ip = chunk->code;
-  vm_run();
+
+  // interpret chunk
+  return vm_run();
 }

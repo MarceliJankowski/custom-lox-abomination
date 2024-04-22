@@ -1,6 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "chunk.h"
@@ -19,8 +20,8 @@ typedef struct {
 
 void vm_init(void);
 void vm_free(void);
-void vm_interpret(Chunk *chunk);
 void vm_stack_push(Value value);
 Value vm_stack_pop(void);
+bool vm_interpret(Chunk *chunk);
 
 #endif // VM_H
