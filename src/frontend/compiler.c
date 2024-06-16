@@ -12,9 +12,11 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
+typedef enum { PARSER_OK, PARSER_PANIC, PARSER_UNEXPECTED_EOF } ParserState;
+
 typedef enum { ERROR_LEXICAL, ERROR_SYNTAX, ERROR_SEMANTIC, ERROR_TYPE_COUNT } ErrorType;
 
-/**@desc token precedence (lowest to highest)*/
+/**@desc token precedence*/
 typedef enum {
   PRECEDENCE_NONE,
   PRECEDENCE_ASSIGNMENT, // right-associative
@@ -107,7 +109,8 @@ static Chunk *current_chunk; // TEMP
 
 static struct {
   Token previous, current;
-  bool had_error, panic_mode;
+  ParserState state;
+  bool had_error;
 } parser;
 
 // *---------------------------------------------*
@@ -126,35 +129,35 @@ static void compiler_error_at(
   assert(token != NULL);
   assert(message != NULL);
 
-  // suppress error reporting when parser is in panic mode
-  if (parser.panic_mode == true) return;
+  if (parser.state != PARSER_OK) return;
 
-  // go into panic mode and record parser encountering error
-  parser.panic_mode = true;
+  // record error
+  parser.state = token->type == TOKEN_EOF ? PARSER_UNEXPECTED_EOF : PARSER_PANIC;
   parser.had_error = true;
 
-  // print error_type
+  // print error
   static_assert(ERROR_TYPE_COUNT == 3, "Exhaustive ErrorType handling");
   switch (error_type) {
     case ERROR_LEXICAL: {
-      fprintf(stderr, "[LEXICAL_ERROR]");
+      fprintf(g_static_err_stream, "[LEXICAL_ERROR]");
       break;
     }
     case ERROR_SYNTAX: {
-      fprintf(stderr, "[SYNTAX_ERROR]");
+      fprintf(g_static_err_stream, "[SYNTAX_ERROR]");
       break;
     }
     case ERROR_SEMANTIC: {
-      fprintf(stderr, "[SEMANTIC_ERROR]");
+      fprintf(g_static_err_stream, "[SEMANTIC_ERROR]");
       break;
     }
     default: INTERNAL_ERROR("Unknown error_type '%d'", error_type);
   }
-
-  // print error location, message, and possibly token lexeme
-  fprintf(stderr, M_S FILE_LINE_COLUMN_FORMAT M_S "%s", g_source_file, token->line, token->column, message);
-  if (token->type == TOKEN_ERROR || token->type == TOKEN_EOF) fprintf(stderr, "\n");
-  else fprintf(stderr, " at '%.*s'\n", token->lexeme_length, token->lexeme);
+  fprintf(
+    g_static_err_stream, M_S FILE_LINE_COLUMN_FORMAT M_S "%s", g_source_file, token->line, token->column,
+    message
+  );
+  if (token->type == TOKEN_ERROR || token->type == TOKEN_EOF) fprintf(g_static_err_stream, "\n");
+  else fprintf(g_static_err_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);
 }
 
 /**@desc handle `error_type` error at parser.previous token with `message`*/
@@ -287,13 +290,13 @@ static void compiler_numeric_literal(void) {
 
 /**@desc compile `source_code` into bytecode instructions and append them to `chunk`
 @return true if compilation succeeded, false otherwise*/
-bool compiler_compile(char const *const source_code, Chunk *const chunk) {
+CompilationStatus compiler_compile(char const *const source_code, Chunk *const chunk) {
   assert(source_code != NULL);
   assert(chunk != NULL);
 
   // reset compiler
   lexer_init(source_code);
-  parser.panic_mode = false;
+  parser.state = PARSER_OK;
   parser.had_error = false;
   current_chunk = chunk; // TEMP
 
@@ -307,5 +310,7 @@ bool compiler_compile(char const *const source_code, Chunk *const chunk) {
   if (!parser.had_error) debug_disassemble_chunk(chunk, "DEBUG_COMPILER");
 #endif
 
-  return !parser.had_error;
+  if (!parser.had_error) return COMPILATION_SUCCESS;
+  if (parser.state == PARSER_UNEXPECTED_EOF) return COMPILATION_UNEXPECTED_EOF;
+  return COMPILATION_FAILURE;
 }

@@ -5,6 +5,8 @@
 
 #include "backend/vm.h"
 
-bool compiler_compile(char const *source_code, Chunk *chunk);
+typedef enum { COMPILATION_SUCCESS, COMPILATION_FAILURE, COMPILATION_UNEXPECTED_EOF } CompilationStatus;
+
+CompilationStatus compiler_compile(char const *source_code, Chunk *chunk);
 
 #endif // COMPILER_H

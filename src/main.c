@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,6 +6,7 @@
 #include "backend/vm.h"
 #include "frontend/compiler.h"
 #include "global.h"
+#include "util/darray.h"
 #include "util/error.h"
 #include "util/io.h"
 
@@ -47,44 +49,88 @@ static void print_manual(void) {
 }
 
 static void enter_repl(void) {
-  char input_line[1024];
   g_source_file = "repl";
+  g_static_err_stream = tmpfile();
+  if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+
   Chunk chunk;
+  chunk_init(&chunk);
 
-  // TODO: support multiline input
+  struct {
+    char *buffer;
+    long capacity, count;
+  } input = {0};
+
+  printf("> ");
   for (;;) {
+    // get line from stdin and append it to input.buffer
+    for (;;) {
+      int const character = getchar();
+      if (character == EOF) {
+        if (ferror(stdin)) IO_ERROR("Failed to read character from stdin");
+
+        // stdin EOF indicator was set
+        printf("\n");
+        goto clean_up;
+      }
+
+      DARRAY_APPEND(&input, buffer, character);
+      if (character == '\n') break;
+    }
+    DARRAY_APPEND(&input, buffer, '\0');
+
+    // execute input.buffer
+    CompilationStatus const compilation_status = compiler_compile(input.buffer, &chunk);
+    if (compilation_status == COMPILATION_SUCCESS) vm_interpret(&chunk);
+    else {
+      if (compilation_status == COMPILATION_FAILURE) {
+        if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
+        char *const static_errors = read_binary_stream(g_static_err_stream);
+
+        fprintf(stderr, "%s", static_errors);
+        free(static_errors);
+      }
+
+      // clear static errors
+      g_static_err_stream = freopen(NULL, "w+b", g_static_err_stream);
+      if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+
+      if (compilation_status == COMPILATION_UNEXPECTED_EOF) {
+        chunk_free(&chunk);
+
+        // decrement count so that next input character overwrites current NUL terminator
+        assert(input.count > 0);
+        input.count--;
+
+        // continue logical line
+        printf("... ");
+        continue;
+      }
+    }
+
+    // new logical line
+    input.count = 0;
+    chunk_free(&chunk);
     printf("> ");
-
-    if (fgets(input_line, sizeof(input_line), stdin) == NULL) {
-      if (ferror(stdin)) IO_ERROR("Failed to read a line from stdin");
-
-      // EOF reached
-      printf("\n");
-      break;
-    }
-
-    // execute input_line
-    chunk_init(&chunk);
-    if (!compiler_compile(input_line, &chunk) || !vm_interpret(&chunk)) {
-      chunk_free(&chunk);
-      continue;
-    }
   }
 
-  // clean up
+clean_up:
+  free(input.buffer);
   chunk_free(&chunk);
+  if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 }
 
 static void run_file(char const *const filepath) {
   assert(filepath != NULL);
 
-  char *const source_code = read_file(filepath);
+  g_static_err_stream = stderr;
   g_source_file = filepath;
+  char *const source_code = read_file(filepath);
 
   // execute source_code
   Chunk chunk;
   chunk_init(&chunk);
-  if (!compiler_compile(source_code, &chunk)) {
+  if (compiler_compile(source_code, &chunk) != COMPILATION_SUCCESS) {
     main_exit_code = COMPILATION_ERROR_CODE;
     goto clean_up;
   }
