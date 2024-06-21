@@ -3,7 +3,7 @@
 
 #include "util/memory.h"
 
-extern uint8_t get_byte(unsigned long object, int index);
+uint8_t get_byte(unsigned long object, int index);
 
 /**@desc detect architecture endianness
 @return LITTLE_ENDIAN or BIG_ENDIAN*/
