@@ -28,7 +28,7 @@ void chunk_free(Chunk *const chunk) {
 }
 
 /**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
-static inline void chunk_create_and_append_line_count(Chunk *const chunk, long const line) {
+static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
   assert(chunk != NULL);
   assert(line >= 1 && "Expected lines to begin at 1");
 
@@ -37,7 +37,7 @@ static inline void chunk_create_and_append_line_count(Chunk *const chunk, long c
 }
 
 /**@desc append instruction `opcode` and corresponding `line` to `chunk`*/
-void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, long const line) {
+void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t const line) {
   assert(chunk != NULL);
 
   GC_DARRAY_APPEND(chunk, code, opcode);
@@ -83,7 +83,7 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
 
 /**@desc append `value` to `chunk` constant pool
 @return index of appended constant*/
-static inline long chunk_append_constant(Chunk *const chunk, Value const value) {
+static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
   assert(chunk != NULL);
 
   value_array_append(&chunk->constants, value);
@@ -91,10 +91,10 @@ static inline long chunk_append_constant(Chunk *const chunk, Value const value) 
 }
 
 /**@desc append `value` constant and corresponding instruction along with its `line` to `chunk`*/
-void chunk_append_constant_instruction(Chunk *const chunk, Value const value, long const line) {
+void chunk_append_constant_instruction(Chunk *const chunk, Value const value, int32_t const line) {
   assert(chunk != NULL);
 
-  unsigned long const constant_index = chunk_append_constant(chunk, value);
+  uint32_t const constant_index = chunk_append_constant(chunk, value);
 
   if (constant_index > 0xFFFFul)
     MEMORY_ERROR(FILE_LINE_FORMAT M_S "Exceeded chunk constant pool limit", g_source_file, line);
@@ -111,15 +111,15 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, lo
 
 /**@desc get line corresponding to `chunk` instruction located at byte `offset`
 @return line corresponding to `offset` instruction*/
-long chunk_get_instruction_line(Chunk *const chunk, long const offset) {
+int32_t chunk_get_instruction_line(Chunk *const chunk, int32_t const offset) {
   assert(chunk != NULL);
   assert(chunk->lines.count > 0 && "Expected chunk to contain at least one line");
   assert(offset >= 0 && "Expected offset to be nonnegative");
   assert(offset < chunk->count && "Expected offset to fit within chunk code (out of bounds)");
 
   // find index of instruction located at offset
-  long instruction_index = 0;
-  long loop_offset = 0;
+  int32_t instruction_index = 0;
+  int32_t loop_offset = 0;
 
   static_assert(OP_OPCODE_COUNT == 9, "Exhaustive opcode handling");
   while (loop_offset < offset) {
@@ -150,8 +150,8 @@ long chunk_get_instruction_line(Chunk *const chunk, long const offset) {
   assert(loop_offset == offset && "Expected offset to an instruction; got offset to an instruction operand");
 
   // retrieve line corresponding to instruction_index
-  long instruction_count = 0;
-  for (long i = 0; i < chunk->lines.count; i++) {
+  int32_t instruction_count = 0;
+  for (int32_t i = 0; i < chunk->lines.count; i++) {
     instruction_count += chunk->lines.line_counts[i].count;
     if (instruction_count > instruction_index) return chunk->lines.line_counts[i].line;
   }

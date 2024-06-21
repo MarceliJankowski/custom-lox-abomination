@@ -58,7 +58,7 @@ static void enter_repl(void) {
 
   struct {
     char *buffer;
-    long capacity, count;
+    int32_t capacity, count;
   } input = {0};
 
   printf("> ");

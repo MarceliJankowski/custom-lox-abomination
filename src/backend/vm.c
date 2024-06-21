@@ -42,7 +42,7 @@ Value vm_stack_pop(void) {
 
 /**@desc report runtime error at `instruction_offset` with `message`*/
 static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *const message) {
-  long const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
+  int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
   fprintf(
     stderr, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message
   );
@@ -66,7 +66,7 @@ static bool vm_run(void) {
   for (;;) {
 #ifdef DEBUG_VM
     printf("[ ");
-    for (long i = 0; i < vm.stack.count;) {
+    for (int32_t i = 0; i < vm.stack.count;) {
       value_print(vm.stack.values[i]);
       if (++i < vm.stack.count) printf(", ");
     }
@@ -90,7 +90,7 @@ static bool vm_run(void) {
       case OP_CONSTANT_2B: {
         uint8_t const constant_index_LSB = READ_BYTE();
         uint8_t const constant_index_MSB = READ_BYTE();
-        long const constant_index = concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
+        uint32_t const constant_index = concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
         Value const constant = vm.chunk->constants.values[constant_index];
 
         vm_stack_push(constant);

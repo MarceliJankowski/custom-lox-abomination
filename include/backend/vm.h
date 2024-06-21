@@ -14,7 +14,7 @@ typedef struct {
   uint8_t *ip;
   struct {
     Value *values;
-    long capacity, count;
+    int32_t capacity, count;
   } stack;
 } VirtualMachine;
 

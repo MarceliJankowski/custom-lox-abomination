@@ -37,7 +37,7 @@ static_assert(
 
 /**@desc `count` of bytecode chunk instructions at a given `line`*/
 typedef struct {
-  long line;
+  int32_t line;
   int count;
 } ChunkLineCount;
 
@@ -45,21 +45,21 @@ typedef struct {
 typedef struct {
   ValueArray constants;
   struct {
-    long capacity, count;
+    int32_t capacity, count;
     ChunkLineCount *line_counts;
   } lines;
   /**@desc array of Chunk instructions and their operands.
   Each instruction is encoded as 1 byte long OpCode.*/
   uint8_t *code;
-  long capacity, count;
+  int32_t capacity, count;
 } Chunk;
 
 void chunk_init(Chunk *chunk);
 void chunk_free(Chunk *chunk);
-void chunk_append_instruction(Chunk *chunk, uint8_t opcode, long line);
+void chunk_append_instruction(Chunk *chunk, uint8_t opcode, int32_t line);
 void chunk_append_operand(Chunk *chunk, uint8_t operand);
 void chunk_append_multibyte_operand(Chunk *chunk, int byte_count, ...);
-void chunk_append_constant_instruction(Chunk *chunk, Value value, long line);
-long chunk_get_instruction_line(Chunk *const chunk, long const offset);
+void chunk_append_constant_instruction(Chunk *chunk, Value value, int32_t line);
+int32_t chunk_get_instruction_line(Chunk *const chunk, int32_t const offset);
 
 #endif // CHUNK_H

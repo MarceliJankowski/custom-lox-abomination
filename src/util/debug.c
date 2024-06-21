@@ -96,12 +96,12 @@ void debug_disassemble_chunk(Chunk *const chunk, char const *const name) {
   assert(name != NULL);
 
   printf("\n== %s ==\n", name);
-  for (long offset = 0; offset < chunk->count;) offset = debug_disassemble_instruction(chunk, offset);
+  for (int32_t offset = 0; offset < chunk->count;) offset = debug_disassemble_instruction(chunk, offset);
 }
 
 /**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
-static inline long debug_simple_instruction(uint8_t const opcode, long const offset) {
+static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
   static_assert(OP_SIMPLE_OPCODE_COUNT == 7, "Exhaustive simple opcode handling");
   switch (opcode) {
     case OP_RETURN: PUTS_BREAK("OP_RETURN");
@@ -120,7 +120,9 @@ static inline long debug_simple_instruction(uint8_t const opcode, long const off
 
 /**@desc print `chunk` constant instruction encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
-static long debug_constant_instruction(Chunk const *const chunk, uint8_t const opcode, long const offset) {
+static int32_t debug_constant_instruction(
+  Chunk const *const chunk, uint8_t const opcode, int32_t const offset
+) {
   assert(chunk != NULL);
 
   if (opcode == OP_CONSTANT) {
@@ -148,7 +150,7 @@ static long debug_constant_instruction(Chunk const *const chunk, uint8_t const o
 
 /**@desc disassemble and print `chunk` instruction located at `offset`
 @return offset to next instruction*/
-long debug_disassemble_instruction(Chunk *const chunk, long const offset) {
+int32_t debug_disassemble_instruction(Chunk *const chunk, int32_t const offset) {
   assert(chunk != NULL);
   assert(offset >= 0 && "Expected offset to be nonnegative");
 

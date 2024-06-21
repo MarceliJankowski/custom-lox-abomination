@@ -77,7 +77,7 @@ static_assert(TOKEN_TYPE_COUNT <= UCHAR_MAX, "Too many TokenTypes defined; Token
 /**@desc lexeme bundled up with metadata about itself; smallest meaningful language unit*/
 typedef struct {
   char const *lexeme;
-  long line;
+  int32_t line;
   int column, lexeme_length;
   uint8_t type;
 } Token;

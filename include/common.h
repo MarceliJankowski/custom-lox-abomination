@@ -5,7 +5,7 @@
 #define STRINGIZE(token) STRINGIZE_HELPER(token)
 
 #define FILE_FORMAT "%s"
-#define LINE_FORMAT "%ld"
+#define LINE_FORMAT "%d"
 #define COLUMN_FORMAT "%d"
 #define LINE_COLUMN_FORMAT LINE_FORMAT ":" COLUMN_FORMAT
 #define FILE_LINE_FORMAT FILE_FORMAT ":" LINE_FORMAT

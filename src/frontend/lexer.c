@@ -8,7 +8,7 @@
 static struct {
   char const *char_cursor;
   char const *lexeme;
-  long line;
+  int32_t line;
   int column, lexeme_start_column;
 } lexer;
 

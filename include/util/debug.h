@@ -1,6 +1,8 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#include <stdint.h>
+
 #include "backend/chunk.h"
 #include "frontend/lexer.h"
 
@@ -13,6 +15,6 @@
 
 void debug_token(Token const *token);
 void debug_disassemble_chunk(Chunk *chunk, char const *name);
-long debug_disassemble_instruction(Chunk *chunk, long offset);
+int32_t debug_disassemble_instruction(Chunk *chunk, int32_t offset);
 
 #endif // DEBUG_H
