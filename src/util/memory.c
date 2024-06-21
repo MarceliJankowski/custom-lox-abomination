@@ -28,7 +28,9 @@ Endianness detect_endianness(void) {
 @return unsigned long formed from `bytes` concatenation*/
 unsigned long concatenate_bytes(int byte_count, ...) {
   assert(byte_count >= 2 && "Expected at least 2 bytes to concatenate");
-  assert((size_t)byte_count < sizeof(long) && "Exceeded maximum number of bytes that can be concatenated");
+  assert(
+    (size_t)byte_count <= sizeof(long) && "Exceeded number of bytes that can be concatenated without overflow"
+  );
 
   va_list bytes;
   va_start(bytes, byte_count);
