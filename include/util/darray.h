@@ -21,15 +21,14 @@
     (darray_ptr)->array_name = realloc((darray_ptr)->array_name, (element_size) * (darray_ptr)->capacity); \
   } while (0)
 
-#define DARRAY_APPEND_BOILERPLATE(darray_ptr, array_name, element, darray_resize_macro) \
-  do {                                                                                  \
-    /* check if dynamic array needs resizing */                                         \
-    if ((darray_ptr)->count == (darray_ptr)->capacity)                                  \
-      darray_resize_macro(darray_ptr, array_name, sizeof(element));                     \
-                                                                                        \
-    /* append element */                                                                \
-    (darray_ptr)->array_name[(darray_ptr)->count] = element;                            \
-    (darray_ptr)->count++;                                                              \
+#define DARRAY_APPEND_BOILERPLATE(darray_ptr, array_name, element, darray_resize_macro)                              \
+  do {                                                                                                               \
+    /* check if dynamic array needs resizing */                                                                      \
+    if ((darray_ptr)->count == (darray_ptr)->capacity) darray_resize_macro(darray_ptr, array_name, sizeof(element)); \
+                                                                                                                     \
+    /* append element */                                                                                             \
+    (darray_ptr)->array_name[(darray_ptr)->count] = element;                                                         \
+    (darray_ptr)->count++;                                                                                           \
   } while (0)
 
 #define DARRAY_APPEND(darray_ptr, array_name, element) \

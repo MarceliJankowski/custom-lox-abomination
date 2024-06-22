@@ -31,9 +31,7 @@ typedef enum {
   OP_COMPLEX_OPCODE_COUNT = OP_COMPLEX_OPCODE_END - OP_SIMPLE_OPCODE_END - 1,
 } OpCode;
 
-static_assert(
-  OP_OPCODE_COUNT <= UCHAR_MAX, "Too many OpCodes defined; bytecode instruction can't fit all of them"
-);
+static_assert(OP_OPCODE_COUNT <= UCHAR_MAX, "Too many OpCodes defined; bytecode instruction can't fit all of them");
 
 /**@desc `count` of bytecode chunk instructions at a given `line`*/
 typedef struct {

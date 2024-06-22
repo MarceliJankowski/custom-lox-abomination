@@ -123,9 +123,7 @@ static inline Chunk *compiler_current_chunk(void) {
 }
 
 /**@desc handle `error_type` error at `token` with `message`*/
-static void compiler_error_at(
-  ErrorType const error_type, Token const *const token, char const *const message
-) {
+static void compiler_error_at(ErrorType const error_type, Token const *const token, char const *const message) {
   assert(token != NULL);
   assert(message != NULL);
 
@@ -153,8 +151,7 @@ static void compiler_error_at(
     default: INTERNAL_ERROR("Unknown error_type '%d'", error_type);
   }
   fprintf(
-    g_static_err_stream, M_S FILE_LINE_COLUMN_FORMAT M_S "%s", g_source_file, token->line, token->column,
-    message
+    g_static_err_stream, M_S FILE_LINE_COLUMN_FORMAT M_S "%s", g_source_file, token->line, token->column, message
   );
   if (token->type == TOKEN_ERROR || token->type == TOKEN_EOF) fprintf(g_static_err_stream, "\n");
   else fprintf(g_static_err_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);

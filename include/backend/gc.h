@@ -19,8 +19,7 @@
 #define GC_DARRAY_APPEND(darray_ptr, array_name, element) \
   DARRAY_APPEND_BOILERPLATE(darray_ptr, array_name, element, GC_DARRAY_RESIZE)
 
-#define GC_FREE_ARRAY(element_type, array_ptr, length) \
-  gc_manage_memory(array_ptr, sizeof(element_type) * (length), 0)
+#define GC_FREE_ARRAY(element_type, array_ptr, length) gc_manage_memory(array_ptr, sizeof(element_type) * (length), 0)
 
 void *gc_manage_memory(void *object, size_t old_size, size_t new_size);
 

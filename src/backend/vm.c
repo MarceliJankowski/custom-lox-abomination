@@ -43,9 +43,7 @@ Value vm_stack_pop(void) {
 /**@desc report runtime error at `instruction_offset` with `message`*/
 static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *const message) {
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
-  fprintf(
-    stderr, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message
-  );
+  fprintf(stderr, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message);
 }
 
 /**@desc run virtual machine; execute all vm.chunk instructions

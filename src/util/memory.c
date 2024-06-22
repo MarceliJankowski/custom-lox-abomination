@@ -30,7 +30,7 @@ uint32_t concatenate_bytes(int byte_count, ...) {
   assert(byte_count >= 2 && "Expected at least 2 bytes to concatenate");
   assert(
     (size_t)byte_count <= sizeof(uint32_t) &&
-    "Exceeded number of bytes that can be concatenated without overflow"
+    "Exceeded number of bytes that can be concatenated without causing overflow"
   );
 
   va_list bytes;

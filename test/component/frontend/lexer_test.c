@@ -30,8 +30,7 @@ static inline void assert_position(Token const token, int const expected_line, i
 }
 
 static Token scan_assert_all(
-  TokenType const expected_type, char const *const expected_lexeme, int const expected_line,
-  int const expected_column
+  TokenType const expected_type, char const *const expected_lexeme, int const expected_line, int const expected_column
 ) {
   Token const token = scan_assert(expected_type, expected_lexeme);
   assert_position(token, expected_line, expected_column);

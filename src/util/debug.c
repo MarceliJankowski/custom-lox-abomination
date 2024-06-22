@@ -120,26 +120,24 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
 
 /**@desc print `chunk` constant instruction encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
-static int32_t debug_constant_instruction(
-  Chunk const *const chunk, uint8_t const opcode, int32_t const offset
-) {
+static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t const opcode, int32_t const offset) {
   assert(chunk != NULL);
 
   if (opcode == OP_CONSTANT) {
-    uint8_t const constant = chunk->code[offset + 1];
+    uint8_t const constant_index = chunk->code[offset + 1];
 
-    printf("OP_CONSTANT %d '", constant);
-    value_print(chunk->constants.values[constant]);
+    printf("OP_CONSTANT %d '", constant_index);
+    value_print(chunk->constants.values[constant_index]);
     printf("'\n");
 
     return offset + 2;
   }
 
   if (opcode == OP_CONSTANT_2B) {
-    unsigned int const constant = concatenate_bytes(2, chunk->code[offset + 2], chunk->code[offset + 1]);
+    unsigned int const constant_index = concatenate_bytes(2, chunk->code[offset + 2], chunk->code[offset + 1]);
 
-    printf("OP_CONSTANT_2B %d '", constant);
-    value_print(chunk->constants.values[constant]);
+    printf("OP_CONSTANT_2B %d '", constant_index);
+    value_print(chunk->constants.values[constant_index]);
     printf("'\n");
 
     return offset + 3;

@@ -19,8 +19,7 @@ void *gc_manage_memory(void *const object, size_t const old_size, size_t const n
   (void)old_size; // TEMP
 
   assert(
-    !(object == NULL && old_size > 0 && new_size != 0) &&
-    "Invalid operation; can't allocate object with existing size"
+    !(object == NULL && old_size > 0 && new_size != 0) && "Invalid operation; can't allocate object with existing size"
   );
   assert(
     !(object != NULL && old_size == new_size && new_size != 0) &&
