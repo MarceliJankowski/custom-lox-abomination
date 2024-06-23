@@ -10,7 +10,7 @@
 /**@desc operation code representing bytecode instruction.
 Instruction operands are stored in little-endian order.*/
 typedef enum {
-  // simple opcodes (without operands)
+  // simple-instruction opcodes (without operands)
   OP_RETURN,
   OP_NEGATE,
   OP_ADD,
@@ -20,7 +20,7 @@ typedef enum {
   OP_MODULO,
   OP_SIMPLE_OPCODE_END, // assertion utility
 
-  // complex opcodes (with operands)
+  // complex-instruction opcodes (with operands)
   OP_CONSTANT,
   OP_CONSTANT_2B,
   OP_COMPLEX_OPCODE_END, // assertion utility
