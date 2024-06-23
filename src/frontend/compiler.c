@@ -46,7 +46,7 @@ typedef struct {
 
 static void compiler_binary_expr(void);
 static void compiler_unary_expr(void);
-static void compiler_groupping_expr(void);
+static void compiler_grouping_expr(void);
 static void compiler_numeric_literal(void);
 
 // *---------------------------------------------*
@@ -75,7 +75,7 @@ static ParseRule const parse_rules[] = {
   [TOKEN_COLON] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_SEMICOLON] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_QUESTION] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_OPEN_PAREN] = {compiler_groupping_expr, NULL, PRECEDENCE_NONE},
+  [TOKEN_OPEN_PAREN] = {compiler_grouping_expr, NULL, PRECEDENCE_NONE},
   [TOKEN_CLOSE_PAREN] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_OPEN_CURLY_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_CLOSE_CURLY_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
@@ -266,10 +266,10 @@ static void compiler_unary_expr(void) {
   }
 }
 
-/**@desc compile '(...)' groupping expression*/
-static void compiler_groupping_expr(void) {
+/**@desc compile '(...)' grouping expression*/
+static void compiler_grouping_expr(void) {
   compiler_expr();
-  compiler_consume(TOKEN_CLOSE_PAREN, "Missing ')' closing groupping expression");
+  compiler_consume(TOKEN_CLOSE_PAREN, "Missing ')' closing grouping expression");
 }
 
 /**@desc compile numeric literal*/
