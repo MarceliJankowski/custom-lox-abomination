@@ -195,7 +195,7 @@ run_test_executables() {
 	local test_executable_output # hide test_executable output unless it failed or VERBOSE_MODE is on
 	local did_test_executable_failure_occur=$FALSE
 	for test_file in $test_files; do
-		local -r test_executable="./bin/test/${test_type}/${test_file::-2}" # remove '.c' extension
+		local test_executable="./bin/test/${test_type}/${test_file::-2}" # remove '.c' extension
 
 		[[ $VERBOSE_MODE -eq $TRUE ]] && $test_executable || test_executable_output=$($test_executable 2>&1)
 		if [[ $? -ne 0 ]]; then
