@@ -54,8 +54,6 @@ static void enter_repl(void) {
   if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   Chunk chunk;
-  chunk_init(&chunk);
-
   struct {
     char *buffer;
     int32_t capacity, count;
@@ -63,6 +61,8 @@ static void enter_repl(void) {
 
   printf("> ");
   for (;;) {
+    chunk_init(&chunk);
+
     // get line from stdin and append it to input.buffer
     for (;;) {
       int const character = getchar();
@@ -168,7 +168,7 @@ static inline void process_flag_component(char const *flag_component) {
   }
 }
 
-int main(int const argc, char const *argv[]) {
+int main(int const argc, char const *const argv[]) {
   vm_init();
 
   char const *lox_filepath_arg = NULL;

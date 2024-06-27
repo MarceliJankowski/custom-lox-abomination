@@ -11,12 +11,11 @@ void value_array_init(ValueArray *const value_array) {
   GC_DARRAY_INIT(value_array, values);
 }
 
-/**@desc free `value_array` and restore it to its initial state*/
+/**@desc free `value_array`*/
 void value_array_free(ValueArray *const value_array) {
   assert(value_array != NULL);
 
   GC_FREE_ARRAY(ValueArray, value_array->values, value_array->capacity);
-  value_array_init(value_array);
 }
 
 /**@desc append `value` to `value_array`*/

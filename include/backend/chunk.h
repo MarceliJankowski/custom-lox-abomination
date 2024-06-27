@@ -60,4 +60,10 @@ void chunk_append_multibyte_operand(Chunk *chunk, int byte_count, ...);
 void chunk_append_constant_instruction(Chunk *chunk, Value value, int32_t line);
 int32_t chunk_get_instruction_line(Chunk *const chunk, int32_t const offset);
 
+#define chunk_reset(chunk_ptr) \
+  do {                         \
+    chunk_free(chunk_ptr);     \
+    chunk_init(chunk_ptr);     \
+  } while (0)
+
 #endif // CHUNK_H

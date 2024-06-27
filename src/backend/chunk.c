@@ -17,14 +17,13 @@ void chunk_init(Chunk *const chunk) {
   value_array_init(&chunk->constants);
 }
 
-/**@desc free `chunk` and restore it to its initial state*/
+/**@desc free `chunk`*/
 void chunk_free(Chunk *const chunk) {
   assert(chunk != NULL);
 
   GC_FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
   GC_FREE_ARRAY(ChunkLineCount, chunk->lines.line_counts, chunk->lines.capacity);
   value_array_free(&chunk->constants);
-  chunk_init(chunk);
 }
 
 /**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
