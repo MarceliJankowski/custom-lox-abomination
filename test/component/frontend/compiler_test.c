@@ -106,9 +106,17 @@ static void test_numeric_literal(void **const state) {
   assert_constant_instruction(55);
   assert_opcode(OP_RETURN);
 
+  compile_assert_success("-55");
+  assert_constant_instruction(55);
+  assert_opcodes(OP_NEGATE, OP_RETURN);
+
   compile_assert_success("10.25");
   assert_constant_instruction(10.25);
   assert_opcode(OP_RETURN);
+
+  compile_assert_success("-10.25");
+  assert_constant_instruction(10.25);
+  assert_opcodes(OP_NEGATE, OP_RETURN);
 }
 
 static void test_arithmetic_operators(void **const state) {

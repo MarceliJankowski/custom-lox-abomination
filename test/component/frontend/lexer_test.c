@@ -48,7 +48,8 @@ static inline void init_scan_assert(char const *const lexeme, TokenType const ex
 }
 
 static inline void init_scan_assert_eof(char const *const lexeme) {
-  lexer_init(lexeme), scan_assert_eof();
+  lexer_init(lexeme);
+  scan_assert_eof();
 }
 
 static inline void init_scan_assert_error(char const *const source_code, char const *const error_lexeme) {
@@ -134,6 +135,16 @@ static void test_numeric_literal(void **const state) {
 
   init_scan_assert("55", TOKEN_NUMBER);
   init_scan_assert("10.25", TOKEN_NUMBER);
+
+  lexer_init("-55");
+  scan_assert(TOKEN_MINUS, "-");
+  scan_assert(TOKEN_NUMBER, "55");
+  scan_assert_eof();
+
+  lexer_init("-10.25");
+  scan_assert(TOKEN_MINUS, "-");
+  scan_assert(TOKEN_NUMBER, "10.25");
+  scan_assert_eof();
 
   lexer_init("4.");
   scan_assert(TOKEN_NUMBER, "4");
