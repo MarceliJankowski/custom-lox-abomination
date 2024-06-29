@@ -12,6 +12,7 @@ TEST_DIR := test
 TEST_LIBS := cmocka
 
 FIND ?= find
+ECHO ?= echo
 MKDIR := mkdir -p
 RM := rm -r
 
@@ -120,7 +121,7 @@ endef
 ##################################################
 
 .DELETE_ON_ERROR:
-.PHONY: all ${clean_targets} ${BUILDS}
+.PHONY: all ${BUILDS} ${clean_targets} help
 
 all: ${BUILDS}
 
@@ -152,6 +153,15 @@ $(foreach build,${BUILDS}, \
 
 clean:
 	${RM} ${BUILD_DIR} ${BIN_DIR}
+
+help:
+	@ ${ECHO} "Targets:"
+	@ ${ECHO} "    * release -- make release build (default)"
+	@ ${ECHO} "    * test -- make test build"
+	@ ${ECHO} "    * debug -- make debug build"
+	@ ${ECHO} "    * all -- make all builds"
+	@ ${ECHO} "    * clean -- clean all builds"
+	@ ${ECHO} "    * clean-{build} -- clean specified {build}"
 
 ##################################################
 #                    INCLUDES                    #
