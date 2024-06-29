@@ -43,61 +43,61 @@ VERBOSE_MODE=$FALSE
 
 readonly MANUAL="
 NAME
-      $SCRIPT_NAME - run clox tests
+       $SCRIPT_NAME - run clox tests
 
 SYNOPSIS
-      $SCRIPT_NAME [-h] [-v] [-f] [-k] [test_type]...
+       $SCRIPT_NAME [-h] [-v] [-f] [-k] [test_type]...
 
 DESCRIPTION
-      Test clox release build.
+       Test clox release build.
 
-      Tests are divided into target categories based on their type.
-      Available test types: $(sed 's/ /, /g' <<<${ALL_TEST_TYPES[*]}).
+       Tests are divided into target categories based on their type.
+       Available test types: $(sed 's/ /, /g' <<<${ALL_TEST_TYPES[*]}).
 
-      All available test types are executed by default.
-      User can override this behaviour by supplying test_type arguments (casing doesn't matter).
-      In such case, only supplied test types will be executed; execution order mimics argument order.
+       All available test types are executed by default.
+       User can override this behaviour by supplying test_type arguments (casing doesn't matter).
+       In such case, only supplied test types will be executed; execution order mimics argument order.
 
-      Upon test file failure, execution continues until the entire test type has been executed.
-      At that point, execution is aborted (this behaviour can be altered with '-f' and '-k' flags).
+       Upon test file failure, execution continues until the entire test type has been executed.
+       At that point, execution is aborted (this behaviour can be altered with '-f' and '-k' flags).
 
 OPTIONS
-      -h
-          Get help, print out the manual and exit.
+       -h
+           Get help, print out the manual and exit.
 
-      -v
-          Turn on VERBOSE_MODE (increases output).
+       -v
+           Turn on VERBOSE_MODE (increases output).
 
-      -f
-          Turn on FAIL_FAST_MODE (exits immediately after first test file failure).
+       -f
+           Turn on FAIL_FAST_MODE (exits immediately after first test file failure).
 
-          This option is mutually exclusive with '-k'.
+           This option is mutually exclusive with '-k'.
 
-      -k
-          Turn on KEEP_GOING_MODE (keeps going after test type failure).
-          Failed test types will be summarized at the end.
+       -k
+           Turn on KEEP_GOING_MODE (keeps going after test type failure).
+           Failed test types will be summarized at the end.
 
-          This option is mutually exclusive with '-f'.
+           This option is mutually exclusive with '-f'.
 
 EXIT CODES
-      Exit code indicates whether $SCRIPT_NAME successfully executed, or failed for some reason.
-      Different exit codes indicate different failure causes:
+       Exit code indicates whether $SCRIPT_NAME successfully executed, or failed for some reason.
+       Different exit codes indicate different failure causes:
 
-      0  $SCRIPT_NAME successfully run, without raising any exceptions.
+       0  $SCRIPT_NAME successfully run, without raising any exceptions.
 
-      $INVALID_FLAG_ERROR_CODE  Invalid flag supplied.
+       $INVALID_FLAG_ERROR_CODE  Invalid flag supplied.
 
-      $INVALID_ARG_ERROR_CODE  Invalid argument supplied.
+       $INVALID_ARG_ERROR_CODE  Invalid argument supplied.
 
-      $MISSING_ARG_ERROR_CODE  Missing mandatory argument.
+       $MISSING_ARG_ERROR_CODE  Missing mandatory argument.
 
-      $TOO_MANY_ARGS_ERROR_CODE  Too many arguments supplied (max number: ${MAX_ARG_COUNT}).
+       $TOO_MANY_ARGS_ERROR_CODE  Too many arguments supplied (max number: ${MAX_ARG_COUNT}).
 
-      $MAKE_FAILURE_ERROR_CODE  Make failure occoured.
+       $MAKE_FAILURE_ERROR_CODE  Make failure occoured.
 
-      $TEST_FAILURE_ERROR_CODE  Test failure occurred.
+       $TEST_FAILURE_ERROR_CODE  Test failure occurred.
 
-      $INTERNAL_ERROR_CODE  Developer fuc**d up, blame him!
+       $INTERNAL_ERROR_CODE  Developer fuc**d up, blame him!
 "
 
 ##################################################
