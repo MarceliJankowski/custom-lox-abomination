@@ -12,8 +12,7 @@
 // *                 TEST CASES                  *
 // *---------------------------------------------*
 
-static void get_byte__retrieves_bytes_in_LSB_to_MSB_order(void **const state) {
-  (void)state; // unused
+static void get_byte__retrieves_bytes_in_LSB_to_MSB_order(void **const _) {
   uint8_t const MSB = 1;
   uint8_t const LSB = 0;
   uint32_t const object = ((0u | MSB) << CHAR_BIT) | LSB;
@@ -25,8 +24,7 @@ static void get_byte__retrieves_bytes_in_LSB_to_MSB_order(void **const state) {
   assert_int_equal(retrieved_second_byte, MSB);
 }
 
-static void concatenate_bytes__concatenates_bytes_in_MSB_to_LSB_order(void **const state) {
-  (void)state; // unused
+static void concatenate_bytes__concatenates_bytes_in_MSB_to_LSB_order(void **const _) {
   uint32_t const object = 0x010203;
   uint8_t const LSB = (uint8_t)object;
   uint8_t const middle_byte = (uint8_t)(object >> CHAR_BIT);

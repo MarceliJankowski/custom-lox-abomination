@@ -78,17 +78,13 @@ static void assert_constant_instruction(Value const expected_constant) {
 // *---------------------------------------------*
 static_assert(OP_OPCODE_COUNT == 9, "Exhaustive OpCode handling");
 
-static void test_unexpected_eof(void **const state) {
-  (void)state; // unused
-
+static void test_unexpected_eof(void **const _) {
   compile_assert_unexpected_eof("");
   compile_assert_unexpected_eof("(");
   compile_assert_unexpected_eof("1 + ");
 }
 
-static void test_line_tracking(void **const state) {
-  (void)state; // unused
-
+static void test_line_tracking(void **const _) {
   compile_assert_success("1");
   assert_instruction_line(1);
 
@@ -99,9 +95,7 @@ static void test_line_tracking(void **const state) {
   assert_instruction_line(3);
 }
 
-static void test_numeric_literal(void **const state) {
-  (void)state; // unused
-
+static void test_numeric_literal(void **const _) {
   compile_assert_success("55");
   assert_constant_instruction(55);
   assert_opcode(OP_RETURN);
@@ -119,9 +113,7 @@ static void test_numeric_literal(void **const state) {
   assert_opcodes(OP_NEGATE, OP_RETURN);
 }
 
-static void test_arithmetic_operators(void **const state) {
-  (void)state; // unused
-
+static void test_arithmetic_operators(void **const _) {
   compile_assert_success("1 + 2");
   assert_constant_instructions(1, 2);
   assert_opcodes(OP_ADD, OP_RETURN);
@@ -143,9 +135,7 @@ static void test_arithmetic_operators(void **const state) {
   assert_opcodes(OP_MODULO, OP_RETURN);
 }
 
-static void test_arithmetic_operator_associativity(void **const state) {
-  (void)state; // unused
-
+static void test_arithmetic_operator_associativity(void **const _) {
   compile_assert_success("1 + 2 + 3");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_ADD);
@@ -177,9 +167,7 @@ static void test_arithmetic_operator_associativity(void **const state) {
   assert_opcodes(OP_MODULO, OP_RETURN);
 }
 
-static void test_arithmetic_operator_precedence(void **const state) {
-  (void)state; // unused
-
+static void test_arithmetic_operator_precedence(void **const _) {
   compile_assert_success("1 + 2 - 3");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_ADD);
@@ -221,9 +209,7 @@ static void test_arithmetic_operator_precedence(void **const state) {
   assert_opcodes(OP_MULTIPLY, OP_ADD, OP_RETURN);
 }
 
-static void test_grouping_expr(void **const state) {
-  (void)state; // unused
-
+static void test_grouping_expr(void **const _) {
   compile_assert_success("(1)");
   assert_constant_instruction(1);
   assert_opcode(OP_RETURN);

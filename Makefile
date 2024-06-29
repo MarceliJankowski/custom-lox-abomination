@@ -21,8 +21,9 @@ CPPFLAGS ?=
 TARGET_ARCH ?=
 LDFLAGS ?=
 
-BUILDS += release debug test
+BUILDS += release test debug
 RELEASE_CFLAGS ?= -O3 -flto -march=native
+TEST_CFLAGS ?= -Wno-unused-parameter
 
 # no optimizations; I've seen them interfere with UBSAN (-Og included)
 DEBUG_CFLAGS ?= -ggdb -fno-omit-frame-pointer -fsanitize=address,undefined
@@ -77,6 +78,7 @@ release: compile_cflags += ${RELEASE_CFLAGS}
 release: link_flags += ${RELEASE_LDFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
+test_executables: compile_cflags += ${TEST_CFLAGS}
 test_executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
 # fix clang failing to link test executables (this happens when some but not all objects are compiled with '-flto' flag)

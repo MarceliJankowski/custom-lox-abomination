@@ -62,17 +62,14 @@ static inline void init_scan_assert_error(char const *const source_code, char co
 // *                 TEST CASES                  *
 // *---------------------------------------------*
 
-static void test_eof_token(void **const state) {
-  (void)state; // unused
+static void test_eof_token(void **const _) {
   lexer_init("");
 
   // continually returns EOF token upon reaching NUL byte
   for (int i = 0; i < 3; i++) scan_assert_eof();
 }
 
-static void test_whitespace(void **const state) {
-  (void)state; // unused
-
+static void test_whitespace(void **const _) {
   // skips whitespace
   init_scan_assert_eof(" ");
   init_scan_assert_eof("\t");
@@ -81,9 +78,7 @@ static void test_whitespace(void **const state) {
   init_scan_assert_eof(" \t \r \n ");
 }
 
-static void test_unexpected_char(void **const state) {
-  (void)state; // unused
-
+static void test_unexpected_char(void **const _) {
   init_scan_assert_error("`", "Unexpected character");
   init_scan_assert_error("~", "Unexpected character");
   init_scan_assert_error("@", "Unexpected character");
@@ -97,9 +92,7 @@ static void test_unexpected_char(void **const state) {
   init_scan_assert_error("'", "Unexpected character");
 }
 
-static void test_position_tracking(void **const state) {
-  (void)state; // unused
-
+static void test_position_tracking(void **const _) {
   // line
   lexer_init(""), assert_int_equal(lexer_scan().line, 1);
   lexer_init("\n"), assert_int_equal(lexer_scan().line, 2);
@@ -119,9 +112,7 @@ static void test_position_tracking(void **const state) {
   lexer_init("1 \n 2"), assert_position(lexer_scan(), 1, 1), assert_position(lexer_scan(), 2, 2);
 }
 
-static void test_string_literal(void **const state) {
-  (void)state; // unused
-
+static void test_string_literal(void **const _) {
   init_scan_assert("\"abc\"", TOKEN_STRING);
   init_scan_assert_error("\"abc", "Unterminated string literal");
 
@@ -130,9 +121,7 @@ static void test_string_literal(void **const state) {
   init_scan_assert_error("\"abc\ndef", "Unterminated string literal");
 }
 
-static void test_numeric_literal(void **const state) {
-  (void)state; // unused
-
+static void test_numeric_literal(void **const _) {
   init_scan_assert("55", TOKEN_NUMBER);
   init_scan_assert("10.25", TOKEN_NUMBER);
 
@@ -157,9 +146,7 @@ static void test_numeric_literal(void **const state) {
   scan_assert_eof();
 }
 
-static void test_identifier_literal(void **const state) {
-  (void)state; // unused
-
+static void test_identifier_literal(void **const _) {
   init_scan_assert("_", TOKEN_IDENTIFIER);
   init_scan_assert("_name", TOKEN_IDENTIFIER);
   init_scan_assert("name_123", TOKEN_IDENTIFIER);
@@ -167,9 +154,7 @@ static void test_identifier_literal(void **const state) {
   init_scan_assert("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_", TOKEN_IDENTIFIER);
 }
 
-static void test_single_char_tokens(void **const state) {
-  (void)state; // unused
-
+static void test_single_char_tokens(void **const _) {
   static_assert(TOKEN_SINGLE_CHAR_COUNT == 18, "Exhaustive single-character token handling");
   init_scan_assert("+", TOKEN_PLUS);
   init_scan_assert("-", TOKEN_MINUS);
@@ -191,9 +176,7 @@ static void test_single_char_tokens(void **const state) {
   init_scan_assert("}", TOKEN_CLOSE_CURLY_BRACE);
 }
 
-static void test_multi_char_tokens(void **const state) {
-  (void)state; // unused
-
+static void test_multi_char_tokens(void **const _) {
   static_assert(TOKEN_MULTI_CHAR_COUNT == 4, "Exhaustive multi-character token handling");
   init_scan_assert("!=", TOKEN_BANG_EQUAL);
   init_scan_assert("<=", TOKEN_LESS_EQUAL);
@@ -201,9 +184,7 @@ static void test_multi_char_tokens(void **const state) {
   init_scan_assert(">=", TOKEN_GREATER_EQUAL);
 }
 
-static void test_keyword_tokens(void **const state) {
-  (void)state; // unused
-
+static void test_keyword_tokens(void **const _) {
   static_assert(TOKEN_KEYWORD_COUNT == 16, "Exhaustive keyword token handling");
   init_scan_assert("true", TOKEN_TRUE);
   init_scan_assert("false", TOKEN_FALSE);
@@ -223,16 +204,13 @@ static void test_keyword_tokens(void **const state) {
   init_scan_assert("print", TOKEN_PRINT);
 }
 
-static void test_comment(void **const state) {
-  (void)state; // unused
-
+static void test_comment(void **const _) {
   init_scan_assert_eof("# comment");
   init_scan_assert_eof("# comment... # continues...");
   lexer_init("# comment spans single line\n +"), scan_assert(TOKEN_PLUS, "+");
 }
 
-static void test_input_source_code_1(void **const state) {
-  (void)state; // unused
+static void test_input_source_code_1(void **const _) {
   lexer_init("(-1 + 2) * 3 - -4");
 
   scan_assert_all(TOKEN_OPEN_PAREN, "(", 1, 1);
@@ -249,8 +227,7 @@ static void test_input_source_code_1(void **const state) {
   scan_assert_all_eof(1, 18);
 }
 
-static void test_input_source_code_2(void **const state) {
-  (void)state; // unused
+static void test_input_source_code_2(void **const _) {
   lexer_init("var x = 5;\n"
              "var y = 10;\n"
              "print x + y;");
@@ -273,8 +250,7 @@ static void test_input_source_code_2(void **const state) {
   scan_assert_all_eof(3, 13);
 }
 
-static void test_input_source_code_3(void **const state) {
-  (void)state; // unused
+static void test_input_source_code_3(void **const _) {
   lexer_init("fun add(a, b) {\n"
              "  return a + b;\n"
              "}\n"
