@@ -3,7 +3,7 @@
 ##################################################
 # meant to provide simple layer of customizability
 
-CLOX_EXEC_NAME ?= clox
+LOX_EXEC_NAME ?= clox
 SRC_DIR := src
 INCLUDE_DIR := include
 BUILD_DIR := build
@@ -55,8 +55,8 @@ unit_test_executables := $(patsubst %.c,${BIN_DIR}/test/unit/%,${unit_tests})
 component_tests := $(shell ${FIND} ${TEST_DIR}/component -type f -name '*.c')
 component_test_executables := $(patsubst %.c,${BIN_DIR}/test/component/%,${component_tests})
 
-# objects that component tests depend on; 'main.o' is excluded because each test file defines its own entry point
-component_test_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
+# release objects that component tests depend on; 'main.o' is excluded because each test file defines its own entry point
+component_test_release_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
 
 unit_test_makefiles := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.mk')
 unit_test_mk_target_prefix := ${BIN_DIR}/test/unit/${TEST_DIR}/unit
@@ -68,6 +68,16 @@ dependency_makefiles += $(patsubst %.c,${BUILD_DIR}/test/%.d,${unit_tests} ${com
 
 clean_build_targets := $(foreach build,${BUILDS},clean-${build})
 clean_targets := clean ${clean_build_targets}
+
+##################################################
+#           TARGET-SPECIFIC VARIABLES            #
+##################################################
+
+release: compile_cflags += ${RELEASE_CFLAGS}
+release: link_flags += ${RELEASE_LDFLAGS}
+debug: compile_cppflags += ${DEBUG_CPPFLAGS}
+debug: compile_cflags += ${DEBUG_CFLAGS}
+test_executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
 ##################################################
 #                   FUNCTIONS                    #
@@ -105,27 +115,24 @@ endef
 .DELETE_ON_ERROR:
 .PHONY: all ${clean_targets} ${BUILDS}
 
-# "build" specific variables
-release: compile_cflags += ${RELEASE_CFLAGS}
-debug: compile_cppflags += ${DEBUG_CPPFLAGS}
-debug: compile_cflags += ${DEBUG_CFLAGS}
-test: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
-
 all: ${BUILDS}
 
 # make build
-${non_test_builds}: %: ${BIN_DIR}/%/${CLOX_EXEC_NAME}
-test: ${unit_test_executables} ${component_test_executables}
+${non_test_builds}: %: ${BIN_DIR}/%/${LOX_EXEC_NAME}
+
+# make test build (split into 2 targets to avoid release/test specific variables being applied simultaneously)
+test: release test_executables
+test_executables: ${unit_test_executables} ${component_test_executables}
 
 # make build executable
-${BIN_DIR}/%/${CLOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
+${BIN_DIR}/%/${LOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make test build executables
 ${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o
 	${make_target_dir_and_link_prerequisites_into_target}
 
-${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_objects}
+${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_release_objects}
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make build objects
