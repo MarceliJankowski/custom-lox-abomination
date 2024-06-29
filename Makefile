@@ -79,6 +79,11 @@ debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
 test_executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
+# fix clang failing to link test executables (this happens when some but not all objects are compiled with '-flto' flag)
+ifeq "${CC}" "clang"
+  test_executables: link_flags += -fuse-ld=lld
+endif
+
 ##################################################
 #                   FUNCTIONS                    #
 ##################################################
