@@ -9,7 +9,7 @@ INCLUDE_DIR := include
 BUILD_DIR := build
 BIN_DIR := bin
 TEST_DIR := test
-TEST_INCLUDE_DIR := ${TEST_DIR}/include
+TEST_COMMON_DIR := ${TEST_DIR}/common
 TEST_LIBS := cmocka
 
 FIND ?= find
@@ -54,6 +54,8 @@ source_objects := $(patsubst %.c,%.o,${sources})
 unit_tests := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.c')
 unit_test_executables := $(patsubst %.c,${BIN_DIR}/test/unit/%,${unit_tests})
 
+test_common_files := $(shell ${FIND} ${TEST_COMMON_DIR} -type f -name '*.c')
+
 component_tests := $(shell ${FIND} ${TEST_DIR}/component -type f -name '*.c')
 component_test_executables := $(patsubst %.c,${BIN_DIR}/test/component/%,${component_tests})
 
@@ -79,7 +81,7 @@ release: compile_cflags += ${RELEASE_CFLAGS}
 release: link_flags += ${RELEASE_LDFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
-test_executables: compile_cppflags += -I ${TEST_INCLUDE_DIR}
+test_executables: compile_cppflags += -I ${TEST_COMMON_DIR}
 test_executables: compile_cflags += -Wno-unused-parameter
 test_executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
@@ -138,10 +140,10 @@ ${BIN_DIR}/%/${LOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make test build executables
-${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o
+${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o ${test_common_files}
 	${make_target_dir_and_link_prerequisites_into_target}
 
-${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_release_objects}
+${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_release_objects} ${test_common_files}
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make build objects
