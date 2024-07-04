@@ -12,7 +12,7 @@
 
 static struct {
   unsigned int help : 1;
-} execution_options;
+} cli_options;
 
 static int main_exit_code = EXIT_SUCCESS;
 
@@ -25,7 +25,7 @@ static void print_manual(void) {
     "       clox [-h|--help] [path]\n"
     "\nUSAGE\n"
     "       Lox code can be supplied via source file path, or directly through built-in REPL.\n"
-    "       REPL is the default execution mode, entered unless path argument is supplied.\n"
+    "       REPL is the default interaction mode, entered unless path argument is supplied.\n"
     "\nOPTIONS\n"
     "       -h, --help\n"
     "           Get help; print out this manual and exit.\n"
@@ -43,7 +43,7 @@ static void print_manual(void) {
     "\n"
     "       %d  Error occurred during compilation.\n"
     "\n"
-    "       %d  Error occurred during execution.\n",
+    "       %d  Error occurred during bytecode execution.\n",
     INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, COMPILATION_ERROR_CODE, RUNTIME_ERROR_CODE
   );
 }
@@ -79,7 +79,7 @@ static void enter_repl(void) {
     }
     DARRAY_APPEND(&input, buffer, '\0');
 
-    // execute input.buffer
+    // interpret input.buffer
     CompilationStatus const compilation_status = compiler_compile(input.buffer, &chunk);
     if (compilation_status == COMPILATION_SUCCESS) vm_interpret(&chunk);
     else {
@@ -120,16 +120,15 @@ clean_up:
   if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 }
 
-static void run_file(char const *const filepath) {
+static void interpret_lox_file(char const *const filepath) {
   assert(filepath != NULL);
 
-  g_static_err_stream = stderr;
   g_source_file = filepath;
   char *const source_code = read_file(filepath);
-
-  // execute source_code
   Chunk chunk;
   chunk_init(&chunk);
+
+  // interpret source_code
   if (compiler_compile(source_code, &chunk) != COMPILATION_SUCCESS) {
     main_exit_code = COMPILATION_ERROR_CODE;
     goto clean_up;
@@ -152,7 +151,7 @@ static inline void process_flag_component(char const *flag_component) {
   if (*flag_component == '-') {
     char const *long_flag = ++flag_component;
 
-    if (strcmp(long_flag, "help") == 0) execution_options.help = true;
+    if (strcmp(long_flag, "help") == 0) cli_options.help = true;
     else INVALID_ARG_ERROR("Invalid command-line flag supplied: '--%s'", long_flag);
     return;
   }
@@ -160,7 +159,7 @@ static inline void process_flag_component(char const *flag_component) {
   while (*flag_component) {
     switch (*flag_component++) {
       case 'h': {
-        execution_options.help = true;
+        cli_options.help = true;
         break;
       }
       default: INVALID_ARG_ERROR("Invalid command-line flag supplied: '%c'", flag_component[-1]);
@@ -169,8 +168,7 @@ static inline void process_flag_component(char const *flag_component) {
 }
 
 int main(int const argc, char const *const argv[]) {
-  vm_init();
-
+  g_static_err_stream = stderr;
   char const *lox_filepath_arg = NULL;
 
   // process command-line arguments
@@ -182,17 +180,17 @@ int main(int const argc, char const *const argv[]) {
     }
   }
 
-  // handle execution options
-  if (execution_options.help) {
+  // handle cli_options
+  if (cli_options.help) {
     print_manual();
-    goto clean_up;
+    return main_exit_code;
   }
 
-  // begin execution
+  // run the damn thing!
+  vm_init();
   if (lox_filepath_arg == NULL) enter_repl();
-  else run_file(lox_filepath_arg);
-
-clean_up:
+  else interpret_lox_file(lox_filepath_arg);
   vm_free();
+
   return main_exit_code;
 }
