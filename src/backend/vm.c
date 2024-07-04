@@ -1,10 +1,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "backend/value.h"
 #include "backend/vm.h"
@@ -43,12 +40,14 @@ Value vm_stack_pop(void) {
 /**@desc report runtime error at `instruction_offset` with `message`*/
 static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *const message) {
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
-  fprintf(stderr, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message);
+  fprintf(
+    g_execution_err_stream, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message
+  );
 }
 
-/**@desc run virtual machine; execute all vm.chunk instructions
+/**@desc execute vm.chunk instructions
 @return true if execution succeeded, false otherwise*/
-static bool vm_run(void) {
+bool vm_execute(void) {
 #define READ_BYTE() (*vm.ip++)
 #define BINARY_OP(operator)                                                                         \
   do {                                                                                              \
@@ -71,12 +70,13 @@ static bool vm_run(void) {
     puts(" ]");
     debug_disassemble_instruction(vm.chunk, vm.ip - vm.chunk->code);
 #endif
+    assert(vm.ip < vm.chunk->code + vm.chunk->count && "Instruction pointer out of bounds");
     uint8_t const opcode = READ_BYTE();
 
     static_assert(OP_OPCODE_COUNT == 9, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
-        value_print(vm_stack_pop());
+        value_print(STACK_TOP_FRAME(&vm.stack, values));
         printf("\n");
         return true;
       }
@@ -139,15 +139,15 @@ static bool vm_run(void) {
   return true;
 }
 
-/**@desc interpret bytecode `chunk`
-@return true if interpretation succeeded, false otherwise*/
-bool vm_interpret(Chunk *const chunk) {
+/**@desc run virtual machine; execute bytecode `chunk`
+@return true if execution succeeded, false otherwise*/
+bool vm_run(Chunk *const chunk) {
   assert(chunk != NULL);
 
   // reset vm
   vm.chunk = chunk;
   vm.ip = chunk->code;
 
-  // interpret chunk
-  return vm_run();
+  // execute chunk
+  return vm_execute();
 }

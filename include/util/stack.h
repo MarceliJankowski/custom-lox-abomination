@@ -34,11 +34,11 @@
     (stack_ptr)->count++;                                                                                \
   } while (0)
 
-#define STACK_POP(stack_ptr, array_name, object_ptr)                              \
-  do {                                                                            \
-    assert((stack_ptr)->count > 0 && "Attempt to pop frame from an empty stack"); \
-    (stack_ptr)->count--;                                                         \
-    *(object_ptr) = (stack_ptr)->array_name[(stack_ptr)->count];                  \
+#define STACK_POP(stack_ptr, array_name, object_ptr)                             \
+  do {                                                                           \
+    assert((stack_ptr)->count > 0 && "Attempt to pop frame off an empty stack"); \
+    (stack_ptr)->count--;                                                        \
+    *(object_ptr) = (stack_ptr)->array_name[(stack_ptr)->count];                 \
   } while (0)
 
 #define STACK_TOP_FRAME(stack_ptr, array_name) (stack_ptr)->array_name[(stack_ptr)->count - 1]

@@ -4,3 +4,4 @@
 extern char const *g_source_file;
 
 extern FILE *g_static_err_stream;
+extern FILE *g_execution_err_stream;

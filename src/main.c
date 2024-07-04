@@ -81,7 +81,7 @@ static void enter_repl(void) {
 
     // interpret input.buffer
     CompilationStatus const compilation_status = compiler_compile(input.buffer, &chunk);
-    if (compilation_status == COMPILATION_SUCCESS) vm_interpret(&chunk);
+    if (compilation_status == COMPILATION_SUCCESS) vm_run(&chunk);
     else {
       if (compilation_status == COMPILATION_FAILURE) {
         if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
@@ -133,7 +133,7 @@ static void interpret_lox_file(char const *const filepath) {
     main_exit_code = COMPILATION_ERROR_CODE;
     goto clean_up;
   }
-  if (!vm_interpret(&chunk)) main_exit_code = RUNTIME_ERROR_CODE;
+  if (!vm_run(&chunk)) main_exit_code = RUNTIME_ERROR_CODE;
 
 clean_up:
   chunk_free(&chunk);
@@ -169,6 +169,7 @@ static inline void process_flag_component(char const *flag_component) {
 
 int main(int const argc, char const *const argv[]) {
   g_static_err_stream = stderr;
+  g_execution_err_stream = stderr;
   char const *lox_filepath_arg = NULL;
 
   // process command-line arguments
