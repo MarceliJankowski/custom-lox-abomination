@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "backend/chunk.h"
 #include "frontend/compiler.h"
 #include "global.h"
@@ -61,10 +63,15 @@ static void assert_constant_instruction(Value const expected_constant) {
 
 int group_setup(void **const _) {
   g_source_file = "compiler_test";
-  g_static_err_stream = tmpfile();
-  if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+  g_static_err_stream = open_throwaway_stream();
 
   chunk_init(&chunk);
+
+  return 0;
+}
+
+int group_teardown(void **const _) {
+  if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 
   return 0;
 }
@@ -238,5 +245,5 @@ int main(void) {
     cmocka_unit_test(test_grouping_expr),
   };
 
-  return cmocka_run_group_tests(tests, group_setup, NULL);
+  return cmocka_run_group_tests(tests, group_setup, group_teardown);
 }

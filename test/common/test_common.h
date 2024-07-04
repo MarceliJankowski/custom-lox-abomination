@@ -1,6 +1,8 @@
 #ifndef TEST_COMMON_H
 #define TEST_COMMON_H
 
+#include <stdio.h>
+
 // clang-format off
 #include <setjmp.h>
 #include <stdarg.h>
@@ -14,5 +16,7 @@
     arg_type const args[] = {__VA_ARGS__};                                   \
     for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); i++) fn(args[i]); \
   } while (0)
+
+FILE *open_throwaway_stream(void);
 
 #endif // TEST_COMMON_H
