@@ -20,20 +20,20 @@ static void print_manual(void) {
   static_assert(ERROR_CODE_COUNT == 5, "Exhaustive error code handling");
   printf(
     "NAME\n"
-    "       clox - Lox interpreter written in C\n"
+    "       cla - Custom Lox Abomination interpreter written in C\n"
     "\nSYNOPSIS\n"
-    "       clox [-h|--help] [path]\n"
+    "       cla [-h|--help] [path]\n"
     "\nUSAGE\n"
-    "       Lox code can be supplied via source file path, or directly through built-in REPL.\n"
+    "       CLA code can be supplied via source file path, or directly through built-in REPL.\n"
     "       REPL is the default interaction mode, entered unless path argument is supplied.\n"
     "\nOPTIONS\n"
     "       -h, --help\n"
     "           Get help; print out this manual and exit.\n"
     "\nEXIT CODES\n"
-    "       Exit code indicates whether clox successfully run, or failed for some reason.\n"
+    "       Exit code indicates whether cla successfully run, or failed for some reason.\n"
     "       Different exit codes indicate different failure causes:\n"
     "\n"
-    "       0  clox successfully run, no errors occurred.\n"
+    "       0  cla successfully run, no errors occurred.\n"
     "\n"
     "       %d  Invalid command-line argument supplied.\n"
     "\n"
@@ -120,7 +120,7 @@ clean_up:
   if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 }
 
-static void interpret_lox_file(char const *const filepath) {
+static void interpret_cla_file(char const *const filepath) {
   assert(filepath != NULL);
 
   g_source_file = filepath;
@@ -170,14 +170,14 @@ static inline void process_flag_component(char const *flag_component) {
 int main(int const argc, char const *const argv[]) {
   g_static_err_stream = stderr;
   g_execution_err_stream = stderr;
-  char const *lox_filepath_arg = NULL;
+  char const *cla_filepath_arg = NULL;
 
   // process command-line arguments
   for (int i = 1; i < argc; i++) {
     if (*argv[i] == '-') process_flag_component(argv[i]);
     else {
-      if (lox_filepath_arg != NULL) INVALID_ARG_ERROR("Excessive Lox file path supplied: '%s'", argv[i]);
-      lox_filepath_arg = argv[i];
+      if (cla_filepath_arg != NULL) INVALID_ARG_ERROR("Excessive CLA filepath supplied: '%s'", argv[i]);
+      cla_filepath_arg = argv[i];
     }
   }
 
@@ -189,8 +189,8 @@ int main(int const argc, char const *const argv[]) {
 
   // run the damn thing!
   vm_init();
-  if (lox_filepath_arg == NULL) enter_repl();
-  else interpret_lox_file(lox_filepath_arg);
+  if (cla_filepath_arg == NULL) enter_repl();
+  else interpret_cla_file(cla_filepath_arg);
   vm_free();
 
   return main_exit_code;

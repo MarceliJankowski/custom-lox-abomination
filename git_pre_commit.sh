@@ -4,7 +4,7 @@ set -o nounset
 set -o pipefail
 set -o errexit
 
-echo "Building all clox builds..."
+echo "Making all cla builds..."
 make all 1>/dev/null
 
 echo "Testing release build..."

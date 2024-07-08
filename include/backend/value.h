@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-/**@desc clox value*/
+/**@desc CLA value*/
 typedef double Value;
 
-/**@desc dynamic array used for storing clox values*/
+/**@desc dynamic array used for storing CLA values*/
 typedef struct {
   Value *values;
   int32_t capacity, count;

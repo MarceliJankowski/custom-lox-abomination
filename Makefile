@@ -3,7 +3,7 @@
 ##################################################
 # meant to provide simple layer of customizability
 
-LOX_EXEC_NAME ?= clox
+LANG_EXEC_NAME ?= cla
 SRC_DIR := src
 INCLUDE_DIR := include
 BUILD_DIR := build
@@ -129,14 +129,14 @@ endef
 all: ${BUILDS}
 
 # make build
-${non_test_builds}: %: ${BIN_DIR}/%/${LOX_EXEC_NAME}
+${non_test_builds}: %: ${BIN_DIR}/%/${LANG_EXEC_NAME}
 
 # make test build (split into 2 targets to avoid release/test specific variables being applied simultaneously)
 test: release test_executables
 test_executables: ${unit_test_executables} ${component_test_executables}
 
 # make build executable
-${BIN_DIR}/%/${LOX_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
+${BIN_DIR}/%/${LANG_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make test build executables

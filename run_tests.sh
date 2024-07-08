@@ -43,13 +43,13 @@ VERBOSE_MODE=$FALSE
 
 readonly MANUAL="
 NAME
-       $SCRIPT_NAME - run clox tests
+       $SCRIPT_NAME - run cla tests
 
 SYNOPSIS
        $SCRIPT_NAME [-h] [-v] [-f] [-k] [test_type]...
 
 DESCRIPTION
-       Test clox release build.
+       Test cla release build.
 
        Tests are divided into target categories based on their type.
        Available test types: $(sed 's/ /, /g' <<<${ALL_TEST_TYPES[*]}).
