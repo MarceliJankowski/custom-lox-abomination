@@ -15,7 +15,7 @@ TEST_LIBS := cmocka
 FIND ?= find
 ECHO ?= echo
 MKDIR := mkdir -p
-RM := rm -r
+RM := rm -rf
 
 CC ?=
 CFLAGS ?=
