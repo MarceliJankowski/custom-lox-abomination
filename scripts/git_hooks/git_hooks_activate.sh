@@ -40,6 +40,7 @@ symlink_git_hook() {
 #                    SYMLINKS                    #
 ##################################################
 
+log_action "Symlinking git_pre_commit.sh hook"
 symlink_git_hook git_pre_commit.sh pre-commit
 
 exit 0

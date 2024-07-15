@@ -20,7 +20,7 @@ readonly SCRIPTS_DIR=${REPO_ROOT_DIR}/scripts
 #                   UTILITIES                    #
 ##################################################
 
-# @desc log `message` to stderr and exit with INTERNAL_ERROR_CODE
+# @desc log internal error `message` to stderr and exit with INTERNAL_ERROR_CODE
 throw_internal_error() {
   local message="$1"
 
@@ -31,7 +31,7 @@ throw_internal_error() {
   exit $INTERNAL_ERROR_CODE
 }
 
-# @desc log `message` to stderr and exit with `exit_code`
+# @desc log error `message` to stderr and exit with `exit_code`
 throw_error() {
   [[ $# -ne 2 ]] && throw_internal_error "throw_error() expects 'message' and 'exit_code' arguments"
 
@@ -40,6 +40,15 @@ throw_error() {
 
   echo -e "[ERROR] - $message" 1>&2
   exit $exit_code
+}
+
+# @desc log action `message` to stdout
+log_action() {
+  [[ $# -ne 1 ]] && throw_internal_error "log_action() expects 'message' argument"
+
+  local -r message="$1"
+
+  echo -e "[ACTION] - ${message}..."
 }
 
 ##################################################

@@ -108,7 +108,7 @@ print_manual() {
   echo "$MANUAL" | sed -e '1d' -e '$d'
 }
 
-# @desc log `message` to stdout if VERBOSE_MODE is on
+# @desc log verbose `message` to stdout if VERBOSE_MODE is on
 log_if_verbose() {
   [[ $# -ne 1 ]] && throw_internal_error "log_if_verbose() expects 'message' argument"
 
