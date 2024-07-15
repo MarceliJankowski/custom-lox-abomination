@@ -7,15 +7,14 @@ set -o pipefail
 #                GLOBAL VARIABLES                #
 ##################################################
 
+readonly TRUE=0
+readonly FALSE=1
+
 readonly GENERIC_ERROR_CODE=1
-readonly GIT_ERROR_CODE=2
-readonly INTERNAL_ERROR_CODE=255 # indicates that developer fucked up
+readonly INTERNAL_ERROR_CODE=255
 
-readonly REPO_ROOT_DIR=$(git rev-parse --show-toplevel || exit $GIT_ERROR_CODE)
-readonly GIT_HOOKS_DIR=${REPO_ROOT_DIR}/git_hooks
-
-readonly UNSTAGED_FILES=$(git diff --name-only || exit $GIT_ERROR_CODE)
-readonly STAGED_FILES=$(git diff --staged --name-only || exit $GIT_ERROR_CODE)
+readonly REPO_ROOT_DIR=$(git rev-parse --show-toplevel || exit $GENERIC_ERROR_CODE)
+readonly SCRIPTS_DIR=${REPO_ROOT_DIR}/scripts
 
 ##################################################
 #                   UTILITIES                    #
@@ -40,7 +39,6 @@ throw_error() {
   local -r exit_code="$2"
 
   echo -e "[ERROR] - $message" 1>&2
-
   exit $exit_code
 }
 
@@ -48,9 +46,9 @@ throw_error() {
 #                 MISCELLANEOUS                  #
 ##################################################
 
-# validate constant paths
-[[ ! -d "$REPO_ROOT_DIR" ]] && throw_internal_error "REPO_ROOT_DIR '$REPO_ROOT_DIR' is not a directory"
-[[ ! -d "$GIT_HOOKS_DIR" ]] && throw_internal_error "GIT_HOOKS_DIR '$GIT_HOOKS_DIR' is not a directory"
+# validate path constants
+[[ ! -d "$REPO_ROOT_DIR" ]] && throw_internal_error "REPO_ROOT_DIR '${REPO_ROOT_DIR}' is not a directory"
+[[ ! -d "$SCRIPTS_DIR" ]] && throw_internal_error "SCRIPTS_DIR '${SCRIPTS_DIR}' is not a directory"
 
 cd "$REPO_ROOT_DIR" ||
   throw_error "Failed to navigate into '$REPO_ROOT_DIR'" $GENERIC_ERROR_CODE

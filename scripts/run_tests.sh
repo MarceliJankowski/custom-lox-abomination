@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-set -o nounset
-set -o pipefail
+source "$(dirname "$0")/scripts_common.sh"
 
 # to get info on this script run it with '-h' flag
 
@@ -10,20 +9,16 @@ set -o pipefail
 ##################################################
 
 readonly SCRIPT_NAME=$(basename "$0")
-readonly PROJECT_ROOT_DIR=$(dirname "$0")
+
 readonly TEST_DIR='test'
 readonly BIN_DIR='bin'
 
-readonly TRUE=0
-readonly FALSE=1
-
-readonly INVALID_FLAG_ERROR_CODE=1
-readonly INVALID_ARG_ERROR_CODE=2
-readonly MISSING_ARG_ERROR_CODE=3
-readonly TOO_MANY_ARGS_ERROR_CODE=4
-readonly MAKE_FAILURE_ERROR_CODE=5
-readonly TEST_FAILURE_ERROR_CODE=6
-readonly INTERNAL_ERROR_CODE=255
+readonly INVALID_FLAG_ERROR_CODE=2
+readonly INVALID_ARG_ERROR_CODE=3
+readonly MISSING_ARG_ERROR_CODE=4
+readonly TOO_MANY_ARGS_ERROR_CODE=5
+readonly MAKE_FAILURE_ERROR_CODE=6
+readonly TEST_FAILURE_ERROR_CODE=7
 
 # test types must be in lowercase
 readonly UNIT_TEST_TYPE='unit'
@@ -85,6 +80,8 @@ EXIT CODES
 
        0  $SCRIPT_NAME successfully run, without raising any exceptions.
 
+       $GENERIC_ERROR_CODE  Generic (unspecified on this list) failure occurred.
+
        $INVALID_FLAG_ERROR_CODE  Invalid flag supplied.
 
        $INVALID_ARG_ERROR_CODE  Invalid argument supplied.
@@ -93,7 +90,7 @@ EXIT CODES
 
        $TOO_MANY_ARGS_ERROR_CODE  Too many arguments supplied (max number: ${MAX_ARG_COUNT}).
 
-       $MAKE_FAILURE_ERROR_CODE  Make failure occoured.
+       $MAKE_FAILURE_ERROR_CODE  Make failure occurred.
 
        $TEST_FAILURE_ERROR_CODE  Test failure occurred.
 
@@ -103,28 +100,6 @@ EXIT CODES
 ##################################################
 #               UTILITY FUNCTIONS                #
 ##################################################
-
-# @desc log `message` to stderr and exit with INTERNAL_ERROR_CODE
-throw_internal_error() {
-  local message="$1"
-
-  [[ $# -ne 1 ]] && message="throw_internal_error() expects 'message' argument"
-
-  echo -e "[INTERNAL_ERROR] - $message" 1>&2
-
-  exit $INTERNAL_ERROR_CODE
-}
-
-# @desc log `message` to stderr and exit with `exit_code`
-throw_error() {
-  [[ $# -ne 2 ]] && throw_internal_error "throw_error() expects 'message' and 'exit_code' arguments"
-
-  local -r message="$1"
-  local -r exit_code="$2"
-
-  echo -e "[ERROR] - $message" 1>&2
-  exit "$exit_code"
-}
 
 # @desc print global MANUAL variable
 print_manual() {
@@ -274,10 +249,6 @@ for SCRIPT_ARG in "$@"; do
 done
 
 [[ ${#TEST_TYPES_TO_RUN[@]} -eq 0 ]] && TEST_TYPES_TO_RUN=("${ALL_TEST_TYPES[@]}")
-
-# navigate into project root directory so that user can execute this script from anywhere
-cd "$PROJECT_ROOT_DIR"
-[[ -d .git ]] || throw_internal_error "Expected $SCRIPT_NAME to be located in project root directory"
 
 # make builds required for testing
 log_if_verbose "Making builds required for testing..."

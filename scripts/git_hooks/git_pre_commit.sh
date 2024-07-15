@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
-source "$(dirname $(readlink -e "$0"))/git_hooks_common.sh"
+source "$(dirname $(readlink -e "$0"))/../scripts_common.sh"
 
 ##################################################
 #                GLOBAL VARIABLES                #
 ##################################################
+
+readonly UNSTAGED_FILES=$(git diff --name-only || exit $GENERIC_ERROR_CODE)
+readonly STAGED_FILES=$(git diff --staged --name-only || exit $GENERIC_ERROR_CODE)
 
 readonly STAGED_C_FILES=$(grep '\.c$' <<<"$STAGED_FILES")
 readonly STAGED_HEADER_FILES=$(grep '\.h$' <<<"$STAGED_FILES")
@@ -28,7 +31,7 @@ pop_stashed_unstaged_changes() {
 
   log_hook_action "Popping stashed unstaged changes"
   git stash pop 1>/dev/null ||
-    throw_error "Failed to pop stashed unstaged changes" $GIT_ERROR_CODE
+    throw_error "Failed to pop stashed unstaged changes" $GENERIC_ERROR_CODE
 
   return 0
 }
@@ -48,7 +51,7 @@ abort_action_pipeline() {
 
 log_hook_action "Stashing unstaged changes"
 git stash save --keep-index --include-untracked 'git-pre-commit-unstaged-changes' 1>/dev/null ||
-  throw_error "Failed to stash unstaged changes" $GIT_ERROR_CODE
+  throw_error "Failed to stash unstaged changes" $GENERIC_ERROR_CODE
 
 log_hook_action "Checking formatting of staged files"
 if [[ -n "$STAGED_C_FILES" || -n "$STAGED_HEADER_FILES" ]]; then
@@ -64,7 +67,7 @@ log_hook_action "Making all cla builds"
 make all 1>/dev/null || abort_action_pipeline
 
 log_hook_action "Testing release build"
-./run_tests.sh || abort_action_pipeline
+${SCRIPTS_DIR}/run_tests.sh || abort_action_pipeline
 
 pop_stashed_unstaged_changes
 exit 0

@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
-source "$(dirname $0)/git_hooks_common.sh"
+source "$(dirname "$0")/../scripts_common.sh"
+
+##################################################
+#                GLOBAL VARIABLES                #
+##################################################
+
+readonly GIT_HOOKS_DIR=${SCRIPTS_DIR}/git_hooks
+[[ ! -d "$GIT_HOOKS_DIR" ]] && throw_internal_error "GIT_HOOKS_DIR '${GIT_HOOKS_DIR}' is not a directory"
 
 ##################################################
 #                   UTILITIES                    #
