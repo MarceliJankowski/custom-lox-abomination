@@ -13,8 +13,8 @@ readonly FALSE=1
 readonly GENERIC_ERROR_CODE=1
 readonly INTERNAL_ERROR_CODE=255
 
-readonly REPO_ROOT_DIR=$(git rev-parse --show-toplevel || exit $GENERIC_ERROR_CODE)
-readonly SCRIPTS_DIR=${REPO_ROOT_DIR}/scripts
+readonly WORKING_TREE_ROOT_DIR=$(git rev-parse --show-toplevel || exit $GENERIC_ERROR_CODE)
+readonly SCRIPTS_DIR=${WORKING_TREE_ROOT_DIR}/scripts
 
 ##################################################
 #                   UTILITIES                    #
@@ -56,8 +56,8 @@ log_action() {
 ##################################################
 
 # validate path constants
-[[ ! -d "$REPO_ROOT_DIR" ]] && throw_internal_error "REPO_ROOT_DIR '${REPO_ROOT_DIR}' is not a directory"
+[[ ! -d "$WORKING_TREE_ROOT_DIR" ]] && throw_internal_error "WORKING_TREE_ROOT_DIR '${WORKING_TREE_ROOT_DIR}' is not a directory"
 [[ ! -d "$SCRIPTS_DIR" ]] && throw_internal_error "SCRIPTS_DIR '${SCRIPTS_DIR}' is not a directory"
 
-cd "$REPO_ROOT_DIR" ||
-  throw_error "Failed to navigate into '$REPO_ROOT_DIR'" $GENERIC_ERROR_CODE
+cd "$WORKING_TREE_ROOT_DIR" ||
+  throw_error "Failed to navigate into '$WORKING_TREE_ROOT_DIR'" $GENERIC_ERROR_CODE

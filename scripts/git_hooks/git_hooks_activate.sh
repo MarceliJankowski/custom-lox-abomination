@@ -6,7 +6,9 @@ source "$(dirname "$0")/../scripts_common.sh"
 #                GLOBAL VARIABLES                #
 ##################################################
 
+readonly REPO_GIT_DIR=$(git rev-parse --git-common-dir || exit $GENERIC_ERROR_CODE)
 readonly GIT_HOOKS_DIR=${SCRIPTS_DIR}/git_hooks
+
 [[ ! -d "$GIT_HOOKS_DIR" ]] && throw_internal_error "GIT_HOOKS_DIR '${GIT_HOOKS_DIR}' is not a directory"
 
 ##################################################
@@ -18,7 +20,7 @@ symlink_git_hook() {
   [[ $# -ne 2 ]] && throw_internal_error "symlink_git_hook() expects 'target_path' and 'link_path' arguments"
 
   local -r target_path="${GIT_HOOKS_DIR}/${1}"
-  local -r link_path="${REPO_ROOT_DIR}/.git/hooks/${2}"
+  local -r link_path="${REPO_GIT_DIR}/hooks/${2}"
 
   [[ ! -e "$target_path" ]] && throw_internal_error "target_path '${target_path}' doesn't exist!"
 
