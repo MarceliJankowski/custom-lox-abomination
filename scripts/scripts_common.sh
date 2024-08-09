@@ -39,6 +39,7 @@ throw_error() {
   local -r exit_code="$2"
 
   echo -e "[ERROR] - $message" 1>&2
+
   exit $exit_code
 }
 
