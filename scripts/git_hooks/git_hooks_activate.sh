@@ -22,10 +22,11 @@ symlink_git_hook() {
   local -r target_path="${GIT_HOOKS_DIR}/${1}"
   local -r link_path="${REPO_GIT_DIR}/hooks/${2}"
 
-  [[ ! -e "$target_path" ]] && internal_error "target_path '${target_path}' doesn't exist!"
+  [[ ! -f "$target_path" ]] && internal_error "target_path '${target_path}' is not a file"
+  [[ ! -x "$target_path" ]] && warning "Git hook '${target_path}' is not executable by '$(whoami)' user"
 
   [[ -e "$link_path" && ! -L "$link_path" ]] &&
-    error "link_path '$link_path' already exists and is not a symbolic link (manual intervention required)" $GENERIC_ERROR_CODE
+    error "Git hook '$link_path' already exists and is not a symbolic link (manual intervention required)" $GENERIC_ERROR_CODE
 
   if [[ -L "$link_path" ]]; then
     rm "$link_path" ||

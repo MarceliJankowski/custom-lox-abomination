@@ -43,6 +43,15 @@ error() {
   exit $exit_code
 }
 
+# @desc log warning `message` to stdout
+warning() {
+  [[ $# -ne 1 ]] && internal_error "warning() expects 'message' argument"
+
+  local -r message="$1"
+
+  echo -e "[WARNING] - $message"
+}
+
 # @desc log action `message` to stdout
 log_action() {
   [[ $# -ne 1 ]] && internal_error "log_action() expects 'message' argument"
