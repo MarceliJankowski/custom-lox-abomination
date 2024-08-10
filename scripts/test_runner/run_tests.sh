@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/scripts_common.sh"
+source "$(dirname "$0")/../scripts_common.sh"
 
 # to get info on this script run it with '-h' flag
 
@@ -10,6 +10,11 @@ source "$(dirname "$0")/scripts_common.sh"
 
 readonly SCRIPT_NAME=$(basename "$0")
 
+readonly RUN_E2E_TEST_ASSERTIONS="${SCRIPTS_DIR}/test_runner/run_e2e_test_assertions.lua"
+[[ ! -f "$RUN_E2E_TEST_ASSERTIONS" ]] &&
+  internal_error "RUN_E2E_TEST_ASSERTIONS '${RUN_E2E_TEST_ASSERTIONS}' is not a file"
+
+readonly LANG_EXEC_NAME='cla'
 readonly TEST_DIR='test'
 readonly BIN_DIR='bin'
 
@@ -137,13 +142,13 @@ array_contains() {
   return 1
 }
 
-# @desc make `build`
-make_build() {
-  [[ $# -ne 1 ]] && internal_error "make_build() expects 'build' argument"
+# @desc make `target`
+make_target() {
+  [[ $# -ne 1 ]] && internal_error "make_target() expects 'target' argument"
 
-  local -r build="$1"
+  local -r target="$1"
 
-  [[ $VERBOSE_MODE -eq $TRUE ]] && make "$build" || make "$build" 1>/dev/null
+  [[ $VERBOSE_MODE -eq $TRUE ]] && make "$target" || make "$target" 1>/dev/null
   [[ $? -ne 0 ]] && exit $MAKE_FAILURE_ERROR_CODE
 }
 
@@ -157,21 +162,22 @@ handle_test_type_fail() {
   FAILED_TEST_TYPES+=("$test_type")
 }
 
-# @desc run test executables corresponding to `test_type` `test_files`
+# @desc run test executables corresponding to `test_type` `test_filepaths`
 run_test_executables() {
-  [[ $# -ne 2 ]] && internal_error "run_test_executables() expects 'test_type' and 'test_files' arguments"
+  [[ $# -ne 2 ]] && internal_error "run_test_executables() expects 'test_type' and 'test_filepaths' arguments"
 
   local -r test_type="$1"
-  local -r test_files="$2"
+  local -r test_filepaths="$2"
 
   log_if_verbose "Running $test_type tests..."
 
-  local test_file
-  local test_executable_output # hide test_executable output unless it failed or VERBOSE_MODE is on
+  local test_filepath
+  local test_executable_output
   local did_test_executable_failure_occur=$FALSE
-  for test_file in $test_files; do
-    local test_executable="./bin/test/${test_type}/${test_file::-2}" # remove '.c' extension
+  for test_filepath in $test_filepaths; do
+    local test_executable="./bin/test/${test_type}/${test_filepath::-2}" # remove '.c' extension
 
+    # run test_executable; hide its output unless it failed or VERBOSE_MODE is on
     [[ $VERBOSE_MODE -eq $TRUE ]] && $test_executable || test_executable_output=$($test_executable 2>&1)
     if [[ $? -ne 0 ]]; then
       did_test_executable_failure_occur=$TRUE
@@ -184,30 +190,64 @@ run_test_executables() {
 }
 
 ##################################################
-#                 RUN FUNCTIONS                  #
+#              RUN-TESTS FUNCTIONS               #
 ##################################################
 
 run_unit_tests() {
   [[ $# -ne 0 ]] && internal_error "run_unit_tests() expects no arguments"
 
-  local -r unit_test_files=$(find ${TEST_DIR}/unit -type f -name '*_spec.c')
+  local -r unit_test_filepaths=$(find ${TEST_DIR}/unit -type f -name '*_spec.c')
 
-  run_test_executables "$UNIT_TEST_TYPE" "$unit_test_files"
+  run_test_executables "$UNIT_TEST_TYPE" "$unit_test_filepaths"
 }
 
 run_component_tests() {
   [[ $# -ne 0 ]] && internal_error "run_component_tests() expects no arguments"
 
-  local -r component_test_files=$(find ${TEST_DIR}/component -type f -name '*_test.c')
+  local -r component_test_filepaths=$(find ${TEST_DIR}/component -type f -name '*_test.c')
 
-  run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_files"
+  run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_filepaths"
 }
 
 run_e2e_tests() {
   [[ $# -ne 0 ]] && internal_error "run_e2e_tests() expects no arguments"
 
+  # https://unix.stackexchange.com/questions/614808/why-is-there-no-mktemp-command-in-posix
+  local -r e2e_test_stderr_tmpfile=$(
+    echo 'mkstemp(template)' |
+      m4 -D template="${TMPDIR:-/tmp}/cla-e2e-test-stderr.XXXXXX"
+  ) || error "Failed to create tmpfile" $GENERIC_ERROR_CODE
+
+  local did_e2e_test_failure_occur=$FALSE
+  local -r sorted_e2e_test_filepaths=$(find ${TEST_DIR}/e2e -type f -name '*_test.cla' | sort -n)
+
   log_if_verbose "Running E2E tests..."
-  # nothing to run yet...
+
+  local e2e_test_filepath
+  for e2e_test_filepath in $sorted_e2e_test_filepaths; do
+    log_if_verbose "$e2e_test_filepath - Running..."
+
+    # run E2E test and collect output data
+    local e2e_test_stdout
+    e2e_test_stdout=$("${BIN_DIR}/release/${LANG_EXEC_NAME}" "$e2e_test_filepath" 2>"$e2e_test_stderr_tmpfile")
+    local -r e2e_test_exit_code=$?
+    local -r e2e_test_stdout
+    local -r e2e_test_stderr=$(cat "$e2e_test_stderr_tmpfile")
+
+    # run E2E test assertions against collected output data
+    if "$RUN_E2E_TEST_ASSERTIONS" "$e2e_test_filepath" "$e2e_test_stdout" "$e2e_test_stderr" "$e2e_test_exit_code"; then
+      log_if_verbose "$e2e_test_filepath - Success"
+    else
+      log_if_verbose "$e2e_test_filepath - Failure"
+      did_e2e_test_failure_occur=$TRUE
+      [[ $FAIL_FAST_MODE -eq $TRUE ]] && break
+    fi
+  done
+
+  rm "$e2e_test_stderr_tmpfile" ||
+    error "Failed to remove '${e2e_test_stderr_tmpfile}' tmpfile" $GENERIC_ERROR_CODE
+
+  [[ $did_e2e_test_failure_occur -eq $TRUE ]] && handle_test_type_fail "$E2E_TEST_TYPE"
 }
 
 ##################################################
@@ -252,8 +292,8 @@ done
 
 # make builds required for testing
 log_if_verbose "Making builds required for testing..."
-array_contains "${TEST_TYPES_TO_RUN[*]}" "$E2E_TEST_TYPE" && make_build release
-array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" && make_build test
+array_contains "${TEST_TYPES_TO_RUN[*]}" "$E2E_TEST_TYPE" && make_target release
+array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" && make_target test
 
 # run test types in specified order
 for ((i = 0; i < ${#TEST_TYPES_TO_RUN[@]}; i++)); do
@@ -264,6 +304,6 @@ done
 
 # exit
 [[ $KEEP_GOING_MODE -eq $TRUE && ${#FAILED_TEST_TYPES[@]} -gt 0 ]] &&
-  error "Failed test types: $(sed 's/ /, /g' <<<${FAILED_TEST_TYPES[*]})." $TEST_FAILURE_ERROR_CODE
+  error "Failed test types: $(sed 's/ /, /g' <<<${FAILED_TEST_TYPES[*]})" $TEST_FAILURE_ERROR_CODE
 
 exit 0
