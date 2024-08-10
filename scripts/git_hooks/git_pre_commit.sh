@@ -13,6 +13,7 @@ readonly UNTRACKED_FILES=$(git ls-files --others --exclude-standard || exit $GEN
 readonly UNSTAGED_FILES=$(git diff --name-only || exit $GENERIC_ERROR_CODE)
 readonly STAGED_FILES=$(git diff --staged --name-only || exit $GENERIC_ERROR_CODE)
 
+readonly STAGED_LUA_FILES=$(grep '\.lua$' <<<"$STAGED_FILES")
 readonly STAGED_C_FILES=$(grep '\.c$' <<<"$STAGED_FILES")
 readonly STAGED_HEADER_FILES=$(grep '\.h$' <<<"$STAGED_FILES")
 
@@ -59,6 +60,9 @@ fi
 log_action "Checking formatting of staged changes"
 if [[ -n "$STAGED_C_FILES" || -n "$STAGED_HEADER_FILES" ]]; then
   clang-format --dry-run -Werror $STAGED_C_FILES $STAGED_HEADER_FILES || abort_action_pipeline
+fi
+if [[ -n "$STAGED_LUA_FILES" ]]; then
+  stylua --check $STAGED_LUA_FILES 1>&2 || abort_action_pipeline
 fi
 
 if [[ "$UNSTAGED_FILES $STAGED_FILES" = *'Makefile'* ]]; then
