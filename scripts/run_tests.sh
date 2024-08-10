@@ -103,14 +103,14 @@ EXIT CODES
 
 # @desc print global MANUAL variable
 print_manual() {
-  [[ $# -ne 0 ]] && throw_internal_error "print_manual() expects no arguments"
+  [[ $# -ne 0 ]] && internal_error "print_manual() expects no arguments"
 
   echo "$MANUAL" | sed -e '1d' -e '$d'
 }
 
 # @desc log verbose `message` to stdout if VERBOSE_MODE is on
 log_if_verbose() {
-  [[ $# -ne 1 ]] && throw_internal_error "log_if_verbose() expects 'message' argument"
+  [[ $# -ne 1 ]] && internal_error "log_if_verbose() expects 'message' argument"
 
   local -r message="$1"
 
@@ -120,7 +120,7 @@ log_if_verbose() {
 # @desc check if `array` contains at least one element from `search_elements` arguments
 # @return 0 if it does, 1 otherwise
 array_contains() {
-  [[ $# -lt 2 ]] && throw_internal_error "array_contains() expects 'array' and 'search_elements' arguments"
+  [[ $# -lt 2 ]] && internal_error "array_contains() expects 'array' and 'search_elements' arguments"
 
   local -r array="$1"
   shift
@@ -139,7 +139,7 @@ array_contains() {
 
 # @desc make `build`
 make_build() {
-  [[ $# -ne 1 ]] && throw_internal_error "make_build() expects 'build' argument"
+  [[ $# -ne 1 ]] && internal_error "make_build() expects 'build' argument"
 
   local -r build="$1"
 
@@ -149,7 +149,7 @@ make_build() {
 
 # @desc handle `test_type` failure
 handle_test_type_fail() {
-  [[ $# -ne 1 ]] && throw_internal_error "handle_test_type_fail() expects 'test_type' argument"
+  [[ $# -ne 1 ]] && internal_error "handle_test_type_fail() expects 'test_type' argument"
 
   local -r test_type="$1"
 
@@ -159,7 +159,7 @@ handle_test_type_fail() {
 
 # @desc run test executables corresponding to `test_type` `test_files`
 run_test_executables() {
-  [[ $# -ne 2 ]] && throw_internal_error "run_test_executables() expects 'test_type' and 'test_files' arguments"
+  [[ $# -ne 2 ]] && internal_error "run_test_executables() expects 'test_type' and 'test_files' arguments"
 
   local -r test_type="$1"
   local -r test_files="$2"
@@ -188,7 +188,7 @@ run_test_executables() {
 ##################################################
 
 run_unit_tests() {
-  [[ $# -ne 0 ]] && throw_internal_error "run_unit_tests() expects no arguments"
+  [[ $# -ne 0 ]] && internal_error "run_unit_tests() expects no arguments"
 
   local -r unit_test_files=$(find ${TEST_DIR}/unit -type f -name '*_spec.c')
 
@@ -196,7 +196,7 @@ run_unit_tests() {
 }
 
 run_component_tests() {
-  [[ $# -ne 0 ]] && throw_internal_error "run_component_tests() expects no arguments"
+  [[ $# -ne 0 ]] && internal_error "run_component_tests() expects no arguments"
 
   local -r component_test_files=$(find ${TEST_DIR}/component -type f -name '*_test.c')
 
@@ -204,7 +204,7 @@ run_component_tests() {
 }
 
 run_e2e_tests() {
-  [[ $# -ne 0 ]] && throw_internal_error "run_e2e_tests() expects no arguments"
+  [[ $# -ne 0 ]] && internal_error "run_e2e_tests() expects no arguments"
 
   log_if_verbose "Running E2E tests..."
   # nothing to run yet...
@@ -221,13 +221,13 @@ while getopts ':hvfk' FLAG; do
   v) VERBOSE_MODE=$TRUE ;;
   f) FAIL_FAST_MODE=$TRUE ;;
   k) KEEP_GOING_MODE=$TRUE ;;
-  :) throw_error "Flag '-${OPTARG}' requires argument" $MISSING_ARG_ERROR_CODE ;;
-  ?) throw_error "Invalid flag '-${OPTARG}' supplied" $INVALID_FLAG_ERROR_CODE ;;
+  :) error "Flag '-${OPTARG}' requires argument" $MISSING_ARG_ERROR_CODE ;;
+  ?) error "Invalid flag '-${OPTARG}' supplied" $INVALID_FLAG_ERROR_CODE ;;
   esac
 done
 
 [[ $FAIL_FAST_MODE -eq $TRUE && $KEEP_GOING_MODE -eq $TRUE ]] &&
-  throw_error "Mutually exclusive '-f' and '-k' flags supplied" $INVALID_FLAG_ERROR_CODE
+  error "Mutually exclusive '-f' and '-k' flags supplied" $INVALID_FLAG_ERROR_CODE
 
 # turn options into constants
 readonly VERBOSE_MODE
@@ -239,11 +239,11 @@ shift $((OPTIND - 1))
 
 # handle script arguments
 [[ $# -gt $MAX_ARG_COUNT ]] &&
-  throw_error "Too many arguments supplied (max number: ${MAX_ARG_COUNT})" $TOO_MANY_ARGS_ERROR_CODE
+  error "Too many arguments supplied (max number: ${MAX_ARG_COUNT})" $TOO_MANY_ARGS_ERROR_CODE
 
 for SCRIPT_ARG in "$@"; do
   array_contains "${ALL_TEST_TYPES[*]}" "${SCRIPT_ARG,,}" ||
-    throw_error "Invalid test_type argument supplied '$SCRIPT_ARG'" $INVALID_ARG_ERROR_CODE
+    error "Invalid test_type argument supplied '$SCRIPT_ARG'" $INVALID_ARG_ERROR_CODE
 
   TEST_TYPES_TO_RUN+=("${SCRIPT_ARG,,}")
 done
@@ -264,6 +264,6 @@ done
 
 # exit
 [[ $KEEP_GOING_MODE -eq $TRUE && ${#FAILED_TEST_TYPES[@]} -gt 0 ]] &&
-  throw_error "Failed test types: $(sed 's/ /, /g' <<<${FAILED_TEST_TYPES[*]})." $TEST_FAILURE_ERROR_CODE
+  error "Failed test types: $(sed 's/ /, /g' <<<${FAILED_TEST_TYPES[*]})." $TEST_FAILURE_ERROR_CODE
 
 exit 0

@@ -25,18 +25,18 @@ fi
 
 # @desc pop git stash frame
 pop_stash_frame() {
-  [[ $# -ne 0 ]] && throw_internal_error "pop_stash_frame() expects no arguments"
+  [[ $# -ne 0 ]] && internal_error "pop_stash_frame() expects no arguments"
 
   log_action "Popping stash frame"
   git stash pop 1>/dev/null ||
-    throw_error "Failed to pop stash frame" $GENERIC_ERROR_CODE
+    error "Failed to pop stash frame" $GENERIC_ERROR_CODE
 
   return 0
 }
 
 # @desc terminate action pipeline and exit with GENERIC_ERROR_CODE
 abort_action_pipeline() {
-  [[ $# -ne 0 ]] && throw_internal_error "abort_action_pipeline() expects no arguments"
+  [[ $# -ne 0 ]] && internal_error "abort_action_pipeline() expects no arguments"
 
   [[ $RUN_STASH_ACTION -eq $TRUE ]] && pop_stash_frame
 
@@ -50,7 +50,7 @@ abort_action_pipeline() {
 if [[ $RUN_STASH_ACTION -eq $TRUE ]]; then
   log_action "Stashing unstaged changes and untracked files"
   git stash save --keep-index --include-untracked 'git-pre-commit-frame' 1>/dev/null ||
-    throw_error "Failed to stash unstaged changes and untracked files" $GENERIC_ERROR_CODE
+    error "Failed to stash unstaged changes and untracked files" $GENERIC_ERROR_CODE
 fi
 
 log_action "Checking formatting of staged changes"

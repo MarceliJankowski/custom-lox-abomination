@@ -21,10 +21,10 @@ readonly SCRIPTS_DIR=${WORKING_TREE_ROOT_DIR}/scripts
 ##################################################
 
 # @desc log internal error `message` to stderr and exit with INTERNAL_ERROR_CODE
-throw_internal_error() {
+internal_error() {
   local message="$1"
 
-  [[ $# -ne 1 ]] && message="throw_internal_error() expects 'message' argument"
+  [[ $# -ne 1 ]] && message="internal_error() expects 'message' argument"
 
   echo -e "[INTERNAL_ERROR] - $message" 1>&2
 
@@ -32,8 +32,8 @@ throw_internal_error() {
 }
 
 # @desc log error `message` to stderr and exit with `exit_code`
-throw_error() {
-  [[ $# -ne 2 ]] && throw_internal_error "throw_error() expects 'message' and 'exit_code' arguments"
+error() {
+  [[ $# -ne 2 ]] && internal_error "error() expects 'message' and 'exit_code' arguments"
 
   local -r message="$1"
   local -r exit_code="$2"
@@ -45,7 +45,7 @@ throw_error() {
 
 # @desc log action `message` to stdout
 log_action() {
-  [[ $# -ne 1 ]] && throw_internal_error "log_action() expects 'message' argument"
+  [[ $# -ne 1 ]] && internal_error "log_action() expects 'message' argument"
 
   local -r message="$1"
 
@@ -57,8 +57,8 @@ log_action() {
 ##################################################
 
 # validate path constants
-[[ ! -d "$WORKING_TREE_ROOT_DIR" ]] && throw_internal_error "WORKING_TREE_ROOT_DIR '${WORKING_TREE_ROOT_DIR}' is not a directory"
-[[ ! -d "$SCRIPTS_DIR" ]] && throw_internal_error "SCRIPTS_DIR '${SCRIPTS_DIR}' is not a directory"
+[[ ! -d "$WORKING_TREE_ROOT_DIR" ]] && internal_error "WORKING_TREE_ROOT_DIR '${WORKING_TREE_ROOT_DIR}' is not a directory"
+[[ ! -d "$SCRIPTS_DIR" ]] && internal_error "SCRIPTS_DIR '${SCRIPTS_DIR}' is not a directory"
 
 cd "$WORKING_TREE_ROOT_DIR" ||
-  throw_error "Failed to navigate into '$WORKING_TREE_ROOT_DIR'" $GENERIC_ERROR_CODE
+  error "Failed to navigate into '$WORKING_TREE_ROOT_DIR'" $GENERIC_ERROR_CODE
