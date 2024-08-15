@@ -5,6 +5,7 @@
 
 LANG_EXEC_NAME ?= cla
 SRC_DIR := src
+SCRIPTS_DIR := scripts
 INCLUDE_DIR := include
 BUILD_DIR := build
 BIN_DIR := bin
@@ -124,7 +125,7 @@ endef
 ##################################################
 
 .DELETE_ON_ERROR:
-.PHONY: all ${BUILDS} ${clean_targets} help
+.PHONY: all ${BUILDS} ${clean_targets} compilation-database help
 
 all: ${BUILDS}
 
@@ -157,6 +158,9 @@ $(foreach build,${BUILDS}, \
 clean:
 	${RM} ${BUILD_DIR} ${BIN_DIR}
 
+compilation-database:
+	@ ${SCRIPTS_DIR}/generate_compilation_database.sh
+
 help:
 	@ ${ECHO} "Targets:"
 	@ ${ECHO} "    * release -- make release build (default)"
@@ -165,6 +169,7 @@ help:
 	@ ${ECHO} "    * all -- make all builds"
 	@ ${ECHO} "    * clean -- clean all builds"
 	@ ${ECHO} "    * clean-{build} -- clean specified {build}"
+	@ ${ECHO} "    * compilation-database -- make compile_commands.json"
 
 ##################################################
 #                    INCLUDES                    #
