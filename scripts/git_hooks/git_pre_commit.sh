@@ -59,7 +59,7 @@ fi
 
 log_action "Checking formatting of staged changes"
 if [[ -n "$STAGED_C_FILES" || -n "$STAGED_HEADER_FILES" ]]; then
-  clang-format --dry-run -Werror $STAGED_C_FILES $STAGED_HEADER_FILES || abort_action_pipeline
+  clang-format --style=file --dry-run -Werror $STAGED_C_FILES $STAGED_HEADER_FILES || abort_action_pipeline
 fi
 if [[ -n "$STAGED_LUA_FILES" ]]; then
   stylua --check $STAGED_LUA_FILES 1>&2 || abort_action_pipeline
