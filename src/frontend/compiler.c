@@ -185,6 +185,14 @@ static inline void compiler_consume(TokenType const type, char const *const mess
   compiler_advance();
 }
 
+/**@desc advance compiler if parser.current.type matches `type`
+@return true if it does, false otherwise*/
+static inline bool compiler_match(TokenType const type) {
+  if (parser.current.type != type) return false;
+  compiler_advance();
+  return true;
+}
+
 /**@desc generate `opcode` bytecode instruction and append it to current_chunk*/
 static inline void compiler_emit_instruction(OpCode const opcode) {
   chunk_append_instruction(compiler_current_chunk(), opcode, parser.previous.line);
@@ -293,15 +301,15 @@ CompilationStatus compiler_compile(char const *const source_code, Chunk *const c
   assert(chunk != NULL);
 
   // reset compiler
-  lexer_init(source_code);
   parser.state = PARSER_OK;
   parser.had_error = false;
   current_chunk = chunk; // TEMP
+  lexer_init(source_code);
+  compiler_advance();
 
   // compile source_code
-  compiler_advance();
-  compiler_expr();
-  compiler_consume(TOKEN_EOF, "Expected EOF");
+  while (!compiler_match(TOKEN_EOF)) compiler_expr();
+
   compiler_emit_instruction(OP_RETURN); // TEMP
 
 #ifdef DEBUG_COMPILER
