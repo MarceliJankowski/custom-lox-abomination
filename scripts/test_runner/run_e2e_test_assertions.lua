@@ -219,4 +219,4 @@ if e2e_test_exit_code ~= expected_exit_code then
   assertion_failure("Exit code '" .. e2e_test_exit_code .. "' doesn't equal expected '" .. expected_exit_code .. "'")
 end
 
-assert(assert(e2e_test_filehandle):close(), "Failed to close '" .. e2e_test_filehandle .. "'")
+assert(assert(e2e_test_filehandle):close(), "Failed to close '" .. e2e_test_filepath .. "'")
