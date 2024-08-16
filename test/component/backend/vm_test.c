@@ -1,11 +1,12 @@
-#include <stdio.h>
+#include "backend/vm.h"
 
 #include "backend/chunk.h"
 #include "backend/value.h"
-#include "backend/vm.h"
 #include "global.h"
 #include "test_common.h"
 #include "util/error.h"
+
+#include <stdio.h>
 
 // *---------------------------------------------*
 // *               STATIC OBJECTS                *

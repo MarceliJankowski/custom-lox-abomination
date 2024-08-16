@@ -1,7 +1,7 @@
+#include "util/memory.h"
+
 #include <stdarg.h>
 #include <stdbool.h>
-
-#include "util/memory.h"
 
 uint8_t get_byte(uint32_t object, int index);
 

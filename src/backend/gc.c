@@ -1,10 +1,11 @@
+#include "backend/gc.h"
+
+#include "util/error.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "backend/gc.h"
-#include "util/error.h"
 
 /**@desc manage `object` memory with garbage collector.
 Memory of objects tracked by garbage collector must be managed exclusively by this function (from the get-go).

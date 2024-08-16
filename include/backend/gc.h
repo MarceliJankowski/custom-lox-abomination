@@ -1,9 +1,9 @@
 #ifndef GC_H
 #define GC_H
 
-#include <stddef.h>
-
 #include "util/darray.h"
+
+#include <stddef.h>
 
 #define GC_DARRAY_INIT DARRAY_INIT
 

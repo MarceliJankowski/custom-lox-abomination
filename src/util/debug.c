@@ -1,13 +1,14 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "util/debug.h"
 
 #include "backend/value.h"
 #include "common.h"
 #include "global.h"
-#include "util/debug.h"
 #include "util/error.h"
 #include "util/memory.h"
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // *---------------------------------------------*
 // *                  UTILITIES                  *

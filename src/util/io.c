@@ -1,11 +1,11 @@
+#include "frontend/lexer.h"
+#include "util/darray.h"
+#include "util/error.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <string.h>
-
-#include "frontend/lexer.h"
-#include "util/darray.h"
-#include "util/error.h"
 
 /**@desc read `binary_stream` file into dynamically allocated buffer
 @return pointer to NUL terminated buffer with `binary_stream` file content*/

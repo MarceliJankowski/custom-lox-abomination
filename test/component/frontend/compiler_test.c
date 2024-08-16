@@ -1,11 +1,12 @@
-#include <stdio.h>
+#include "frontend/compiler.h"
 
 #include "backend/chunk.h"
-#include "frontend/compiler.h"
 #include "global.h"
 #include "test_common.h"
 #include "util/error.h"
 #include "util/memory.h"
+
+#include <stdio.h>
 
 // *---------------------------------------------*
 // *               STATIC OBJECTS                *

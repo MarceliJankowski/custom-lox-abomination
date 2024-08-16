@@ -1,11 +1,11 @@
 #ifndef VM_H
 #define VM_H
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include "chunk.h"
 #include "value.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 
 #define VM_STACK_INITIAL_CAPACITY 256
 

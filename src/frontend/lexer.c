@@ -1,9 +1,10 @@
+#include "frontend/lexer.h"
+
+#include "util/debug.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "frontend/lexer.h"
-#include "util/debug.h"
 
 static struct {
   char const *char_cursor;
