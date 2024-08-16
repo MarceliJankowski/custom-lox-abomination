@@ -6,9 +6,6 @@ source "$(dirname $(readlink -e "$0"))/../scripts_common.sh"
 #                GLOBAL VARIABLES                #
 ##################################################
 
-readonly RUN_TESTS="${SCRIPTS_DIR}/test_runner/run_tests.sh"
-[[ ! -f "$RUN_TESTS" ]] && internal_error "RUN_TESTS '${RUN_TESTS}' is not a file"
-
 readonly UNTRACKED_FILES=$(git ls-files --others --exclude-standard || exit $GENERIC_ERROR_CODE)
 readonly UNSTAGED_FILES=$(git diff --name-only || exit $GENERIC_ERROR_CODE)
 readonly STAGED_FILES=$(git diff --staged --name-only || exit $GENERIC_ERROR_CODE)
@@ -74,7 +71,7 @@ log_action "Making all cla builds"
 make all 1>/dev/null || abort_action_pipeline
 
 log_action "Testing release build"
-"$RUN_TESTS" || abort_action_pipeline
+make run-tests || abort_action_pipeline
 
 [[ $RUN_STASH_ACTION -eq $TRUE ]] && pop_stash_frame
 exit 0

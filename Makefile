@@ -17,6 +17,8 @@ FIND ?= find
 ECHO ?= echo
 MKDIR := mkdir -p
 RM := rm -rf
+GENERATE_COMPILATION_DATABASE := ${SCRIPTS_DIR}/generate_compilation_database.sh
+RUN_SCRIPTS := ${SCRIPTS_DIR}/test_runner/run_scripts.sh
 
 CC ?=
 CFLAGS ?=
@@ -125,7 +127,7 @@ endef
 ##################################################
 
 .DELETE_ON_ERROR:
-.PHONY: all ${BUILDS} ${clean_targets} compilation-database help
+.PHONY: all ${BUILDS} ${clean_targets} run-tests compilation-database help
 
 all: ${BUILDS}
 
@@ -158,8 +160,11 @@ $(foreach build,${BUILDS}, \
 clean:
 	${RM} ${BUILD_DIR} ${BIN_DIR}
 
+run-tests:
+	@ ${RUN_TESTS}
+
 compilation-database:
-	@ ${SCRIPTS_DIR}/generate_compilation_database.sh
+	@ ${GENERATE_COMPILATION_DATABASE}
 
 help:
 	@ ${ECHO} "Targets:"
@@ -169,6 +174,7 @@ help:
 	@ ${ECHO} "    * all -- make all builds"
 	@ ${ECHO} "    * clean -- clean all builds"
 	@ ${ECHO} "    * clean-{build} -- clean specified {build}"
+	@ ${ECHO} "    * run-tests -- run all cla tests"
 	@ ${ECHO} "    * compilation-database -- make compile_commands.json"
 
 ##################################################
