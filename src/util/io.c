@@ -1,3 +1,5 @@
+#include "util/io.h"
+
 #include "frontend/lexer.h"
 #include "util/darray.h"
 #include "util/error.h"
