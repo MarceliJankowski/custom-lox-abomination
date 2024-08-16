@@ -1,12 +1,13 @@
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "frontend/compiler.h"
+
 #include "frontend/lexer.h"
 #include "global.h"
 #include "util/debug.h"
 #include "util/error.h"
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // *---------------------------------------------*
 // *              TYPE DEFINITIONS               *

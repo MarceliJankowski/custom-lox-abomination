@@ -1,12 +1,12 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#include "common.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "common.h"
 
 #define INVALID_ARG_ERROR_CODE 1
 #define MEMORY_ERROR_CODE 2

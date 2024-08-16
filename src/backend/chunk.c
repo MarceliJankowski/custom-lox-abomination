@@ -1,12 +1,13 @@
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "backend/chunk.h"
+
 #include "backend/gc.h"
 #include "global.h"
 #include "util/error.h"
 #include "util/memory.h"
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /**@desc initialize bytecode `chunk`*/
 void chunk_init(Chunk *const chunk) {

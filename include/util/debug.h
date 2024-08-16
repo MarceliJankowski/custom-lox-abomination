@@ -1,10 +1,10 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include <stdint.h>
-
 #include "backend/chunk.h"
 #include "frontend/lexer.h"
+
+#include <stdint.h>
 
 #ifdef DEBUG
 // enable all supported debug features

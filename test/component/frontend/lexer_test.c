@@ -1,7 +1,8 @@
-#include <string.h>
-
 #include "frontend/lexer.h"
+
 #include "test_common.h"
+
+#include <string.h>
 
 // *---------------------------------------------*
 // *                  UTILITIES                  *

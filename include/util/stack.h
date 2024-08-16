@@ -1,12 +1,12 @@
 #ifndef STACK_H
 #define STACK_H
 
+#include "error.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "error.h"
 
 #define STACK_INIT(frame_type, stack_ptr, array_name, initial_capacity)        \
   do {                                                                         \

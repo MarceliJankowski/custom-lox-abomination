@@ -1,14 +1,14 @@
-#include <errno.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "backend/vm.h"
 #include "frontend/compiler.h"
 #include "global.h"
 #include "util/darray.h"
 #include "util/error.h"
 #include "util/io.h"
+
+#include <errno.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 static struct {
   unsigned int help : 1;

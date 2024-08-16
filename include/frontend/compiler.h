@@ -1,9 +1,9 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include <stdbool.h>
-
 #include "backend/vm.h"
+
+#include <stdbool.h>
 
 typedef enum { COMPILATION_SUCCESS, COMPILATION_FAILURE, COMPILATION_UNEXPECTED_EOF } CompilationStatus;
 

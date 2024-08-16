@@ -1,11 +1,11 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
+#include "value.h"
+
 #include <assert.h>
 #include <limits.h>
 #include <stdint.h>
-
-#include "value.h"
 
 /**@desc operation code representing bytecode instruction.
 Instruction operands are stored in little-endian order.*/

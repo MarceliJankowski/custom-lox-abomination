@@ -1,15 +1,16 @@
-#include <assert.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdio.h>
+#include "backend/vm.h"
 
 #include "backend/value.h"
-#include "backend/vm.h"
 #include "global.h"
 #include "util/debug.h"
 #include "util/error.h"
 #include "util/memory.h"
 #include "util/stack.h"
+
+#include <assert.h>
+#include <math.h>
+#include <stddef.h>
+#include <stdio.h>
 
 static VirtualMachine vm;
 
