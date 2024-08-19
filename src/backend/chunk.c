@@ -111,7 +111,7 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, in
 
 /**@desc get line corresponding to `chunk` instruction located at byte `offset`
 @return line corresponding to `offset` instruction*/
-int32_t chunk_get_instruction_line(Chunk *const chunk, int32_t const offset) {
+int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offset) {
   assert(chunk != NULL);
   assert(chunk->lines.count > 0 && "Expected chunk to contain at least one line");
   assert(offset >= 0 && "Expected offset to be nonnegative");

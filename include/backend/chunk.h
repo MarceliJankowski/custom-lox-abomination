@@ -58,7 +58,7 @@ void chunk_append_instruction(Chunk *chunk, uint8_t opcode, int32_t line);
 void chunk_append_operand(Chunk *chunk, uint8_t operand);
 void chunk_append_multibyte_operand(Chunk *chunk, int byte_count, ...);
 void chunk_append_constant_instruction(Chunk *chunk, Value value, int32_t line);
-int32_t chunk_get_instruction_line(Chunk *const chunk, int32_t const offset);
+int32_t chunk_get_instruction_line(Chunk const *chunk, int32_t offset);
 
 #define chunk_reset(chunk_ptr) \
   do {                         \

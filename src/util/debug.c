@@ -92,7 +92,7 @@ void debug_token(Token const *const token) {
 }
 
 /**@desc disassemble and print `chunk` annotated with `name`*/
-void debug_disassemble_chunk(Chunk *const chunk, char const *const name) {
+void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
   assert(chunk != NULL);
   assert(name != NULL);
 
@@ -149,7 +149,7 @@ static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t cons
 
 /**@desc disassemble and print `chunk` instruction located at `offset`
 @return offset to next instruction*/
-int32_t debug_disassemble_instruction(Chunk *const chunk, int32_t const offset) {
+int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const offset) {
   assert(chunk != NULL);
   assert(offset >= 0 && "Expected offset to be nonnegative");
 

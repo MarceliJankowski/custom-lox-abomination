@@ -14,7 +14,7 @@
 #endif
 
 void debug_token(Token const *token);
-void debug_disassemble_chunk(Chunk *chunk, char const *name);
-int32_t debug_disassemble_instruction(Chunk *chunk, int32_t offset);
+void debug_disassemble_chunk(Chunk const *chunk, char const *name);
+int32_t debug_disassemble_instruction(Chunk const *chunk, int32_t offset);
 
 #endif // DEBUG_H

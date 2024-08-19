@@ -142,7 +142,7 @@ bool vm_execute(void) {
 
 /**@desc run virtual machine; execute bytecode `chunk`
 @return true if execution succeeded, false otherwise*/
-bool vm_run(Chunk *const chunk) {
+bool vm_run(Chunk const *const chunk) {
   assert(chunk != NULL);
 
   // reset vm
