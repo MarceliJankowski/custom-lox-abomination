@@ -46,7 +46,7 @@ int group_setup(void **const _) {
 }
 
 int group_teardown(void **const _) {
-  if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
+  if (fclose(g_execution_err_stream)) IO_ERROR("%s", strerror(errno));
 
   return 0;
 }
