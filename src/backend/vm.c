@@ -14,6 +14,9 @@
 
 static VirtualMachine vm;
 
+/**@desc exposes vm.stack.count (meant soly for automated tests)*/
+int32_t const *const t_vm_stack_count = &vm.stack.count;
+
 /**@desc initialize virtual machine*/
 void vm_init(void) {
   STACK_INIT(Value, &vm.stack, values, VM_STACK_INITIAL_CAPACITY);

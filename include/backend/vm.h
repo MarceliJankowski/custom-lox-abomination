@@ -18,6 +18,8 @@ typedef struct {
   } stack;
 } VirtualMachine;
 
+extern int32_t const *const t_vm_stack_count;
+
 void vm_init(void);
 void vm_free(void);
 void vm_stack_push(Value value);

@@ -26,6 +26,7 @@ static void reset_test_case_env(void) {
 #define run_assert_success() assert_true(vm_run(&chunk))
 #define run_assert_failure() assert_false(vm_run(&chunk))
 
+#define assert_empty_stack() assert_int_equal(*t_vm_stack_count, 0)
 #define stack_pop_assert(expected_value) assert_int_equal(vm_stack_pop(), expected_value)
 
 #define append_constant_instruction(constant) chunk_append_constant_instruction(&chunk, constant, 1)
@@ -75,6 +76,7 @@ static void test_OP_CONSTANT(void **const _) {
   append_instruction(OP_RETURN);
   run_assert_success();
   stack_pop_assert(3), stack_pop_assert(2), stack_pop_assert(1);
+  assert_empty_stack();
 }
 
 static void test_OP_CONSTANT_2B(void **const _) {
@@ -85,6 +87,7 @@ static void test_OP_CONSTANT_2B(void **const _) {
   append_instruction(OP_RETURN);
   run_assert_success();
   stack_pop_assert(3), stack_pop_assert(2), stack_pop_assert(1);
+  assert_empty_stack();
 }
 
 static void test_OP_NEGATE(void **const _) {
@@ -92,6 +95,7 @@ static void test_OP_NEGATE(void **const _) {
   append_instructions(OP_NEGATE, OP_RETURN);
   run_assert_success();
   stack_pop_assert(-1);
+  assert_empty_stack();
 }
 
 static void test_OP_ADD(void **const _) {
@@ -99,6 +103,7 @@ static void test_OP_ADD(void **const _) {
   append_instructions(OP_ADD, OP_RETURN);
   run_assert_success();
   stack_pop_assert(3);
+  assert_empty_stack();
 }
 
 static void test_OP_SUBTRACT(void **const _) {
@@ -106,6 +111,7 @@ static void test_OP_SUBTRACT(void **const _) {
   append_instructions(OP_SUBTRACT, OP_RETURN);
   run_assert_success();
   stack_pop_assert(1);
+  assert_empty_stack();
 }
 
 static void test_OP_MULTIPLY(void **const _) {
@@ -113,6 +119,7 @@ static void test_OP_MULTIPLY(void **const _) {
   append_instructions(OP_MULTIPLY, OP_RETURN);
   run_assert_success();
   stack_pop_assert(12);
+  assert_empty_stack();
 }
 
 static void test_OP_DIVIDE(void **const _) {
@@ -120,6 +127,7 @@ static void test_OP_DIVIDE(void **const _) {
   append_instructions(OP_DIVIDE, OP_RETURN);
   run_assert_success();
   stack_pop_assert(2);
+  assert_empty_stack();
 
   reset_test_case_env();
   append_constant_instructions(1, 0);
@@ -132,12 +140,14 @@ static void test_OP_MODULO(void **const _) {
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_success();
   stack_pop_assert(0);
+  assert_empty_stack();
 
   reset_test_case_env();
   append_constant_instructions(9, 2);
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_success();
   stack_pop_assert(1);
+  assert_empty_stack();
 
   reset_test_case_env();
   append_constant_instructions(8, 0);
