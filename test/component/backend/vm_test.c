@@ -18,7 +18,7 @@ static Chunk chunk;
 // *                  UTILITIES                  *
 // *---------------------------------------------*
 
-void reset(void) {
+static void reset_test_case_env(void) {
   vm_reset();
   chunk_reset(&chunk);
 }
@@ -38,27 +38,27 @@ void reset(void) {
 // *                  FIXTURES                   *
 // *---------------------------------------------*
 
-int group_setup(void **const _) {
+static int setup_test_group_env(void **const _) {
   g_source_file = "vm_test";
   g_execution_err_stream = open_throwaway_stream();
 
   return 0;
 }
 
-int group_teardown(void **const _) {
+static int teardown_test_group_env(void **const _) {
   if (fclose(g_execution_err_stream)) IO_ERROR("%s", strerror(errno));
 
   return 0;
 }
 
-int test_setup(void **const _) {
+static int setup_test_case_env(void **const _) {
   vm_init();
   chunk_init(&chunk);
 
   return 0;
 }
 
-int test_teardown(void **const _) {
+static int teardown_test_case_env(void **const _) {
   vm_free();
   chunk_free(&chunk);
 
@@ -70,14 +70,14 @@ int test_teardown(void **const _) {
 // *---------------------------------------------*
 static_assert(OP_OPCODE_COUNT == 9, "Exhaustive OpCode handling");
 
-void test_OP_CONSTANT(void **const _) {
+static void test_OP_CONSTANT(void **const _) {
   append_constant_instructions(1, 2, 3);
   append_instruction(OP_RETURN);
   run_assert_success();
   stack_pop_assert(3), stack_pop_assert(2), stack_pop_assert(1);
 }
 
-void test_OP_CONSTANT_2B(void **const _) {
+static void test_OP_CONSTANT_2B(void **const _) {
   // force OP_CONSTANT_2B usage
   for (int i = 0; i < UCHAR_MAX; i++) value_array_append(&chunk.constants, i);
 
@@ -87,59 +87,59 @@ void test_OP_CONSTANT_2B(void **const _) {
   stack_pop_assert(3), stack_pop_assert(2), stack_pop_assert(1);
 }
 
-void test_OP_NEGATE(void **const _) {
+static void test_OP_NEGATE(void **const _) {
   append_constant_instruction(1);
   append_instructions(OP_NEGATE, OP_RETURN);
   run_assert_success();
   stack_pop_assert(-1);
 }
 
-void test_OP_ADD(void **const _) {
+static void test_OP_ADD(void **const _) {
   append_constant_instructions(1, 2);
   append_instructions(OP_ADD, OP_RETURN);
   run_assert_success();
   stack_pop_assert(3);
 }
 
-void test_OP_SUBTRACT(void **const _) {
+static void test_OP_SUBTRACT(void **const _) {
   append_constant_instructions(2, 1);
   append_instructions(OP_SUBTRACT, OP_RETURN);
   run_assert_success();
   stack_pop_assert(1);
 }
 
-void test_OP_MULTIPLY(void **const _) {
+static void test_OP_MULTIPLY(void **const _) {
   append_constant_instructions(3, 4);
   append_instructions(OP_MULTIPLY, OP_RETURN);
   run_assert_success();
   stack_pop_assert(12);
 }
 
-void test_OP_DIVIDE(void **const _) {
+static void test_OP_DIVIDE(void **const _) {
   append_constant_instructions(8, 4);
   append_instructions(OP_DIVIDE, OP_RETURN);
   run_assert_success();
   stack_pop_assert(2);
 
-  reset();
+  reset_test_case_env();
   append_constant_instructions(1, 0);
   append_instructions(OP_DIVIDE, OP_RETURN);
   run_assert_failure();
 }
 
-void test_OP_MODULO(void **const _) {
+static void test_OP_MODULO(void **const _) {
   append_constant_instructions(8, 2);
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_success();
   stack_pop_assert(0);
 
-  reset();
+  reset_test_case_env();
   append_constant_instructions(9, 2);
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_success();
   stack_pop_assert(1);
 
-  reset();
+  reset_test_case_env();
   append_constant_instructions(8, 0);
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_failure();
@@ -149,15 +149,15 @@ int main(void) {
   // OP_RETURN test is missing as it's not yet properly implemented
 
   struct CMUnitTest const tests[] = {
-    cmocka_unit_test_setup_teardown(test_OP_CONSTANT, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_CONSTANT_2B, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_NEGATE, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_ADD, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_SUBTRACT, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_MULTIPLY, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_DIVIDE, test_setup, test_teardown),
-    cmocka_unit_test_setup_teardown(test_OP_MODULO, test_setup, test_teardown),
+    cmocka_unit_test_setup_teardown(test_OP_CONSTANT, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_CONSTANT_2B, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_NEGATE, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_ADD, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_SUBTRACT, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_MULTIPLY, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_DIVIDE, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_MODULO, setup_test_case_env, teardown_test_case_env),
   };
 
-  return cmocka_run_group_tests(tests, group_setup, group_teardown);
+  return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);
 }

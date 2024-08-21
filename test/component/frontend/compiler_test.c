@@ -62,7 +62,7 @@ static void assert_constant_instruction(Value const expected_constant) {
 // *                  FIXTURES                   *
 // *---------------------------------------------*
 
-int group_setup(void **const _) {
+static int setup_test_group_env(void **const _) {
   g_source_file = "compiler_test";
   g_static_err_stream = open_throwaway_stream();
 
@@ -71,7 +71,7 @@ int group_setup(void **const _) {
   return 0;
 }
 
-int group_teardown(void **const _) {
+static int teardown_test_group_env(void **const _) {
   if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 
   return 0;
@@ -245,5 +245,5 @@ int main(void) {
     cmocka_unit_test(test_grouping_expr),
   };
 
-  return cmocka_run_group_tests(tests, group_setup, group_teardown);
+  return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);
 }
