@@ -12,10 +12,18 @@
 #include <stddef.h>
 #include <stdio.h>
 
+// *---------------------------------------------*
+// *               STATIC OBJECTS                *
+// *---------------------------------------------*
+
 static VirtualMachine vm;
 
 /**@desc exposes vm.stack.count (meant soly for automated tests)*/
 int32_t const *const t_vm_stack_count = &vm.stack.count;
+
+// *---------------------------------------------*
+// *                  UTILITIES                  *
+// *---------------------------------------------*
 
 /**@desc initialize virtual machine*/
 void vm_init(void) {
@@ -49,6 +57,10 @@ static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *c
   );
 }
 
+// *---------------------------------------------*
+// *        BYTECODE EXECUTION FUNCTIONS         *
+// *---------------------------------------------*
+
 /**@desc execute vm.chunk instructions
 @return true if execution succeeded, false otherwise*/
 bool vm_execute(void) {
@@ -79,10 +91,10 @@ bool vm_execute(void) {
 
     static_assert(OP_OPCODE_COUNT == 10, "Exhaustive opcode handling");
     switch (opcode) {
-      case OP_RETURN: {
+      case OP_RETURN: { // TEMP IMPLEMENTATION
         value_print(STACK_TOP_FRAME(&vm.stack, values));
         printf("\n");
-        return true;
+        return true; // successful chunk execution
       }
       case OP_POP: {
         vm_stack_pop();
@@ -103,6 +115,7 @@ bool vm_execute(void) {
         break;
       }
       case OP_NEGATE: {
+        assert(vm.stack.count > 0 && "Attempt to access nonexistent stack frame");
         STACK_TOP_FRAME(&vm.stack, values) = -STACK_TOP_FRAME(&vm.stack, values);
         break;
       }
@@ -140,11 +153,10 @@ bool vm_execute(void) {
     }
   }
 
+  INTERNAL_ERROR("Unreachable code executed; vm.chunk execution is expected to be terminated by OP_RETURN or error");
+
 #undef BINARY_OP
 #undef READ_BYTE
-
-  // successful execution
-  return true;
 }
 
 /**@desc run virtual machine; execute bytecode `chunk`
