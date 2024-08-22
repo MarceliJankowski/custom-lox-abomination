@@ -69,7 +69,7 @@ static int teardown_test_case_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 9, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
 
 static void test_OP_CONSTANT(void **const _) {
   append_constant_instructions(1, 2, 3);
@@ -87,6 +87,14 @@ static void test_OP_CONSTANT_2B(void **const _) {
   append_instruction(OP_RETURN);
   run_assert_success();
   stack_pop_assert(3), stack_pop_assert(2), stack_pop_assert(1);
+  assert_empty_stack();
+}
+
+static void test_OP_POP(void **const _) {
+  append_constant_instructions(1, 2);
+  append_instructions(OP_POP, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(1);
   assert_empty_stack();
 }
 
@@ -161,6 +169,7 @@ int main(void) {
   struct CMUnitTest const tests[] = {
     cmocka_unit_test_setup_teardown(test_OP_CONSTANT, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_CONSTANT_2B, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_POP, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_NEGATE, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_ADD, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_SUBTRACT, setup_test_case_env, teardown_test_case_env),

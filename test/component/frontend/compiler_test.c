@@ -80,7 +80,7 @@ static int teardown_test_group_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 9, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
 
 static void test_unexpected_eof(void **const _) {
   compile_assert_unexpected_eof("(");

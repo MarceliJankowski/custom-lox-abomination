@@ -77,12 +77,16 @@ bool vm_execute(void) {
     assert(vm.ip < vm.chunk->code + vm.chunk->count && "Instruction pointer out of bounds");
     uint8_t const opcode = READ_BYTE();
 
-    static_assert(OP_OPCODE_COUNT == 9, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 10, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
         value_print(STACK_TOP_FRAME(&vm.stack, values));
         printf("\n");
         return true;
+      }
+      case OP_POP: {
+        vm_stack_pop();
+        break;
       }
       case OP_CONSTANT: {
         Value constant = vm.chunk->constants.values[READ_BYTE()];
