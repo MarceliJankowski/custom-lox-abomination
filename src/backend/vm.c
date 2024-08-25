@@ -91,9 +91,7 @@ bool vm_execute(void) {
 
     static_assert(OP_OPCODE_COUNT == 10, "Exhaustive opcode handling");
     switch (opcode) {
-      case OP_RETURN: { // TEMP IMPLEMENTATION
-        value_print(STACK_TOP_FRAME(&vm.stack, values));
-        printf("\n");
+      case OP_RETURN: {
         return true; // successful chunk execution
       }
       case OP_POP: {

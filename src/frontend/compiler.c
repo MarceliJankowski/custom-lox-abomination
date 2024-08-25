@@ -278,7 +278,7 @@ static void compiler_unary_expr(void) {
 /**@desc compile '(...)' grouping expression*/
 static void compiler_grouping_expr(void) {
   compiler_expr();
-  compiler_consume(TOKEN_CLOSE_PAREN, "Missing ')' closing grouping expression");
+  compiler_consume(TOKEN_CLOSE_PAREN, "Expected ')' closing grouping expression");
 }
 
 /**@desc compile numeric literal*/
@@ -292,6 +292,18 @@ static void compiler_numeric_literal(void) {
     );
   }
   compiler_emit_constant_instruction(value);
+}
+
+/**@desc compile expression statement*/
+static void compiler_expr_stmt(void) {
+  compiler_expr();
+  compiler_consume(TOKEN_SEMICOLON, "Expected ';' terminating expression statement");
+  compiler_emit_instruction(OP_POP); // discard expression result
+}
+
+/**@desc compile statement*/
+static void compiler_stmt(void) {
+  compiler_expr_stmt();
 }
 
 /**@desc compile `source_code` into bytecode instructions and append them to `chunk`
@@ -308,7 +320,7 @@ CompilationStatus compiler_compile(char const *const source_code, Chunk *const c
   compiler_advance();
 
   // compile source_code
-  while (!compiler_match(TOKEN_EOF)) compiler_expr();
+  while (!compiler_match(TOKEN_EOF)) compiler_stmt();
 
   compiler_emit_instruction(OP_RETURN); // TEMP
 

@@ -83,155 +83,156 @@ static int teardown_test_group_env(void **const _) {
 static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
 
 static void test_unexpected_eof(void **const _) {
+  compile_assert_unexpected_eof("1");
   compile_assert_unexpected_eof("(");
   compile_assert_unexpected_eof("1 + ");
 }
 
 static void test_line_tracking(void **const _) {
-  compile_assert_success("1");
+  compile_assert_success("1;");
   assert_instruction_line(1);
 
-  compile_assert_success("\n2");
+  compile_assert_success("\n2;");
   assert_instruction_line(2);
 
-  compile_assert_success("\n\n3");
+  compile_assert_success("\n\n3;");
   assert_instruction_line(3);
 }
 
 static void test_numeric_literal(void **const _) {
-  compile_assert_success("55");
+  compile_assert_success("55;");
   assert_constant_instruction(55);
-  assert_opcode(OP_RETURN);
+  assert_opcodes(OP_POP, OP_RETURN);
 
-  compile_assert_success("-55");
+  compile_assert_success("-55;");
   assert_constant_instruction(55);
-  assert_opcodes(OP_NEGATE, OP_RETURN);
+  assert_opcodes(OP_NEGATE, OP_POP, OP_RETURN);
 
-  compile_assert_success("10.25");
+  compile_assert_success("10.25;");
   assert_constant_instruction(10.25);
-  assert_opcode(OP_RETURN);
+  assert_opcodes(OP_POP, OP_RETURN);
 
-  compile_assert_success("-10.25");
+  compile_assert_success("-10.25;");
   assert_constant_instruction(10.25);
-  assert_opcodes(OP_NEGATE, OP_RETURN);
+  assert_opcodes(OP_NEGATE, OP_POP, OP_RETURN);
 }
 
 static void test_arithmetic_operators(void **const _) {
-  compile_assert_success("1 + 2");
+  compile_assert_success("1 + 2;");
   assert_constant_instructions(1, 2);
-  assert_opcodes(OP_ADD, OP_RETURN);
+  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 - 2");
+  compile_assert_success("1 - 2;");
   assert_constant_instructions(1, 2);
-  assert_opcodes(OP_SUBTRACT, OP_RETURN);
+  assert_opcodes(OP_SUBTRACT, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 * 2");
+  compile_assert_success("1 * 2;");
   assert_constant_instructions(1, 2);
-  assert_opcodes(OP_MULTIPLY, OP_RETURN);
+  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 / 2");
+  compile_assert_success("1 / 2;");
   assert_constant_instructions(1, 2);
-  assert_opcodes(OP_DIVIDE, OP_RETURN);
+  assert_opcodes(OP_DIVIDE, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 % 2");
+  compile_assert_success("1 % 2;");
   assert_constant_instructions(1, 2);
-  assert_opcodes(OP_MODULO, OP_RETURN);
+  assert_opcodes(OP_MODULO, OP_POP, OP_RETURN);
 }
 
 static void test_arithmetic_operator_associativity(void **const _) {
-  compile_assert_success("1 + 2 + 3");
+  compile_assert_success("1 + 2 + 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_ADD);
   assert_constant_instruction(3);
-  assert_opcodes(OP_ADD, OP_RETURN);
+  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 - 2 - 3");
+  compile_assert_success("1 - 2 - 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_SUBTRACT);
   assert_constant_instruction(3);
-  assert_opcodes(OP_SUBTRACT, OP_RETURN);
+  assert_opcodes(OP_SUBTRACT, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 * 2 * 3");
+  compile_assert_success("1 * 2 * 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_MULTIPLY);
   assert_constant_instruction(3);
-  assert_opcodes(OP_MULTIPLY, OP_RETURN);
+  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 / 2 / 3");
+  compile_assert_success("1 / 2 / 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_DIVIDE);
   assert_constant_instruction(3);
-  assert_opcodes(OP_DIVIDE, OP_RETURN);
+  assert_opcodes(OP_DIVIDE, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 % 2 % 3");
+  compile_assert_success("1 % 2 % 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_MODULO);
   assert_constant_instruction(3);
-  assert_opcodes(OP_MODULO, OP_RETURN);
+  assert_opcodes(OP_MODULO, OP_POP, OP_RETURN);
 }
 
 static void test_arithmetic_operator_precedence(void **const _) {
-  compile_assert_success("1 + 2 - 3");
+  compile_assert_success("1 + 2 - 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_ADD);
   assert_constant_instruction(3);
-  assert_opcodes(OP_SUBTRACT, OP_RETURN);
+  assert_opcodes(OP_SUBTRACT, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 - 2 + 3");
+  compile_assert_success("1 - 2 + 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_SUBTRACT);
   assert_constant_instruction(3);
-  assert_opcodes(OP_ADD, OP_RETURN);
+  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 * 2 / 3 % 4");
+  compile_assert_success("1 * 2 / 3 % 4;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_MULTIPLY);
   assert_constant_instruction(3);
   assert_opcode(OP_DIVIDE);
   assert_constant_instruction(4);
-  assert_opcodes(OP_MODULO, OP_RETURN);
+  assert_opcodes(OP_MODULO, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 % 2 * 3 / 4");
+  compile_assert_success("1 % 2 * 3 / 4;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_MODULO);
   assert_constant_instruction(3);
   assert_opcode(OP_MULTIPLY);
   assert_constant_instruction(4);
-  assert_opcodes(OP_DIVIDE, OP_RETURN);
+  assert_opcodes(OP_DIVIDE, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 / 2 % 3 * 4");
+  compile_assert_success("1 / 2 % 3 * 4;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_DIVIDE);
   assert_constant_instruction(3);
   assert_opcode(OP_MODULO);
   assert_constant_instruction(4);
-  assert_opcodes(OP_MULTIPLY, OP_RETURN);
+  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
 
-  compile_assert_success("1 + 2 * 3");
+  compile_assert_success("1 + 2 * 3;");
   assert_constant_instructions(1, 2, 3);
-  assert_opcodes(OP_MULTIPLY, OP_ADD, OP_RETURN);
+  assert_opcodes(OP_MULTIPLY, OP_ADD, OP_POP, OP_RETURN);
 }
 
 static void test_grouping_expr(void **const _) {
-  compile_assert_success("(1)");
+  compile_assert_success("(1);");
   assert_constant_instruction(1);
-  assert_opcode(OP_RETURN);
+  assert_opcodes(OP_POP, OP_RETURN);
 
-  compile_assert_success("(1 + 2)");
+  compile_assert_success("(1 + 2);");
   assert_constant_instructions(1, 2);
-  assert_opcodes(OP_ADD, OP_RETURN);
+  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
 
-  compile_assert_success("(1 + 2) * 3");
+  compile_assert_success("(1 + 2) * 3;");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_ADD);
   assert_constant_instruction(3);
-  assert_opcodes(OP_MULTIPLY, OP_RETURN);
+  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
 
-  compile_assert_success("(1 + 2) * (3 / 4)");
+  compile_assert_success("(1 + 2) * (3 / 4);");
   assert_constant_instructions(1, 2);
   assert_opcode(OP_ADD);
   assert_constant_instructions(3, 4);
-  assert_opcodes(OP_DIVIDE, OP_MULTIPLY, OP_RETURN);
+  assert_opcodes(OP_DIVIDE, OP_MULTIPLY, OP_POP, OP_RETURN);
 }
 
 int main(void) {
