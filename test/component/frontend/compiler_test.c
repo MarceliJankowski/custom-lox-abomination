@@ -82,24 +82,9 @@ static int teardown_test_group_env(void **const _) {
 // *---------------------------------------------*
 static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
 
-static void test_unexpected_eof(void **const _) {
-  compile_assert_unexpected_eof("1");
-  compile_assert_unexpected_eof("(");
-  compile_assert_unexpected_eof("1 + ");
-}
-
-static void test_line_tracking(void **const _) {
-  compile_assert_success("1;");
-  assert_instruction_line(1);
-
-  compile_assert_success("\n2;");
-  assert_instruction_line(2);
-
-  compile_assert_success("\n\n3;");
-  assert_instruction_line(3);
-}
-
 static void test_numeric_literal(void **const _) {
+  compile_assert_unexpected_eof("1"); // ';' terminator is expected
+
   compile_assert_success("55;");
   assert_constant_instruction(55);
   assert_opcodes(OP_POP, OP_RETURN);
@@ -117,7 +102,24 @@ static void test_numeric_literal(void **const _) {
   assert_opcodes(OP_NEGATE, OP_POP, OP_RETURN);
 }
 
+static void test_line_tracking(void **const _) {
+  compile_assert_success("1;");
+  assert_instruction_line(1);
+
+  compile_assert_success("\n2;");
+  assert_instruction_line(2);
+
+  compile_assert_success("\n\n3;");
+  assert_instruction_line(3);
+}
+
 static void test_arithmetic_operators(void **const _) {
+  compile_assert_failure("+"), compile_assert_failure("*"), compile_assert_failure("/"), compile_assert_failure("%");
+  compile_assert_unexpected_eof("-"); // this symbol also denotes unary negation operator
+  compile_assert_unexpected_eof("1 + "), compile_assert_unexpected_eof("1 - ");
+  compile_assert_unexpected_eof("1 * "), compile_assert_unexpected_eof("1 / ");
+  compile_assert_unexpected_eof("1 % ");
+
   compile_assert_success("1 + 2;");
   assert_constant_instructions(1, 2);
   assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
@@ -214,6 +216,9 @@ static void test_arithmetic_operator_precedence(void **const _) {
 }
 
 static void test_grouping_expr(void **const _) {
+  compile_assert_failure(")");
+  compile_assert_unexpected_eof("(");
+
   compile_assert_success("(1);");
   assert_constant_instruction(1);
   assert_opcodes(OP_POP, OP_RETURN);
@@ -237,9 +242,8 @@ static void test_grouping_expr(void **const _) {
 
 int main(void) {
   struct CMUnitTest const tests[] = {
-    cmocka_unit_test(test_unexpected_eof),
-    cmocka_unit_test(test_line_tracking),
     cmocka_unit_test(test_numeric_literal),
+    cmocka_unit_test(test_line_tracking),
     cmocka_unit_test(test_arithmetic_operators),
     cmocka_unit_test(test_arithmetic_operator_associativity),
     cmocka_unit_test(test_arithmetic_operator_precedence),
