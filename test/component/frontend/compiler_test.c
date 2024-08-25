@@ -29,7 +29,11 @@ static CompilationStatus compile(char const *const source_code) {
 }
 
 #define compile_assert_success(source_code) assert_int_equal(compile(source_code), COMPILATION_SUCCESS)
+
 #define compile_assert_failure(source_code) assert_int_equal(compile(source_code), COMPILATION_FAILURE)
+#define compile_assert_failures(...) APPLY_TO_EACH_ARG(compile_assert_failure, char const *, __VA_ARGS__)
+
+#define compile_assert_unexpected_eofs(...) APPLY_TO_EACH_ARG(compile_assert_unexpected_eof, char const *, __VA_ARGS__)
 #define compile_assert_unexpected_eof(source_code) assert_int_equal(compile(source_code), COMPILATION_UNEXPECTED_EOF)
 
 #define next_chunk_code_byte() chunk.code[chunk_code_offset++]
@@ -114,11 +118,9 @@ static void test_line_tracking(void **const _) {
 }
 
 static void test_arithmetic_operators(void **const _) {
-  compile_assert_failure("+"), compile_assert_failure("*"), compile_assert_failure("/"), compile_assert_failure("%");
+  compile_assert_failures("+", "*", "/", "%");
   compile_assert_unexpected_eof("-"); // this symbol also denotes unary negation operator
-  compile_assert_unexpected_eof("1 + "), compile_assert_unexpected_eof("1 - ");
-  compile_assert_unexpected_eof("1 * "), compile_assert_unexpected_eof("1 / ");
-  compile_assert_unexpected_eof("1 % ");
+  compile_assert_unexpected_eofs("1 + ", "1 - ", "1 * ", "1 / ", "1 % ");
 
   compile_assert_success("1 + 2;");
   assert_constant_instructions(1, 2);
