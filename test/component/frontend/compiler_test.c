@@ -78,6 +78,8 @@ static int setup_test_group_env(void **const _) {
 static int teardown_test_group_env(void **const _) {
   if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 
+  chunk_free(&chunk);
+
   return 0;
 }
 
