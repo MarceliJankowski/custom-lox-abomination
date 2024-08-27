@@ -1,9 +1,11 @@
 #include "frontend/compiler.h"
 
 #include "backend/chunk.h"
+#include "common.h"
 #include "global.h"
 #include "test_common.h"
 #include "util/error.h"
+#include "util/io.h"
 #include "util/memory.h"
 
 #include <stdio.h>
@@ -25,15 +27,15 @@ static CompilationStatus compile(char const *const source_code) {
   chunk_code_offset = 0;
   chunk_constant_instruction_index = 0;
 
+  // clear static errors
+  g_static_err_stream = freopen(NULL, "w+b", g_static_err_stream);
+  if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+
   return compiler_compile(source_code, &chunk);
 }
 
 #define compile_assert_success(source_code) assert_int_equal(compile(source_code), COMPILATION_SUCCESS)
-
 #define compile_assert_failure(source_code) assert_int_equal(compile(source_code), COMPILATION_FAILURE)
-#define compile_assert_failures(...) APPLY_TO_EACH_ARG(compile_assert_failure, char const *, __VA_ARGS__)
-
-#define compile_assert_unexpected_eofs(...) APPLY_TO_EACH_ARG(compile_assert_unexpected_eof, char const *, __VA_ARGS__)
 #define compile_assert_unexpected_eof(source_code) assert_int_equal(compile(source_code), COMPILATION_UNEXPECTED_EOF)
 
 #define next_chunk_code_byte() chunk.code[chunk_code_offset++]
@@ -62,13 +64,31 @@ static void assert_constant_instruction(Value const expected_constant) {
 }
 #define assert_constant_instructions(...) APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
 
+static void assert_static_errors(char const *const expected_static_errors) {
+  if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
+
+  char *const static_errors = read_binary_stream(g_static_err_stream);
+
+  assert_string_equal(static_errors, expected_static_errors);
+
+  free(static_errors);
+}
+
+#define assert_static_error(error_type, line, column, expected_error_message) \
+  assert_static_errors(error_type M_S __FILE__ P_S #line P_S #column M_S expected_error_message "\n")
+
+#define assert_lexical_error(...) assert_static_error("[LEXICAL_ERROR]", __VA_ARGS__)
+#define assert_syntax_error(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
+#define assert_semantic_error(...) assert_static_error("[SEMANTIC_ERROR]", __VA_ARGS__)
+
 // *---------------------------------------------*
 // *                  FIXTURES                   *
 // *---------------------------------------------*
 
 static int setup_test_group_env(void **const _) {
   g_source_file = __FILE__;
-  g_static_err_stream = open_throwaway_stream();
+  g_static_err_stream = tmpfile();
+  if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   chunk_init(&chunk);
 
@@ -89,7 +109,8 @@ static int teardown_test_group_env(void **const _) {
 static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
 
 static void test_numeric_literal(void **const _) {
-  compile_assert_unexpected_eof("1"); // ';' terminator is expected
+  compile_assert_unexpected_eof("1");
+  assert_syntax_error(1, 2, "Expected ';' terminating expression statement");
 
   compile_assert_success("55;");
   assert_constant_instruction(55);
@@ -120,9 +141,27 @@ static void test_line_tracking(void **const _) {
 }
 
 static void test_arithmetic_operators(void **const _) {
-  compile_assert_failures("+", "*", "/", "%");
-  compile_assert_unexpected_eof("-"); // this symbol also denotes unary negation operator
-  compile_assert_unexpected_eofs("1 + ", "1 - ", "1 * ", "1 / ", "1 % ");
+  compile_assert_failure("+");
+  assert_syntax_error(1, 1, "Expected expression at '+'");
+  compile_assert_failure("*");
+  assert_syntax_error(1, 1, "Expected expression at '*'");
+  compile_assert_failure("/");
+  assert_syntax_error(1, 1, "Expected expression at '/'");
+  compile_assert_failure("%");
+  assert_syntax_error(1, 1, "Expected expression at '%'");
+
+  compile_assert_unexpected_eof("-"); // '-' symbol also denotes unary negation operator, hence unexpected_eof
+  assert_syntax_error(1, 2, "Expected expression");
+  compile_assert_unexpected_eof("1 +");
+  assert_syntax_error(1, 4, "Expected expression");
+  compile_assert_unexpected_eof("2 -");
+  assert_syntax_error(1, 4, "Expected expression");
+  compile_assert_unexpected_eof("3 *");
+  assert_syntax_error(1, 4, "Expected expression");
+  compile_assert_unexpected_eof("4 /");
+  assert_syntax_error(1, 4, "Expected expression");
+  compile_assert_unexpected_eof("5 %");
+  assert_syntax_error(1, 4, "Expected expression");
 
   compile_assert_success("1 + 2;");
   assert_constant_instructions(1, 2);
@@ -221,7 +260,10 @@ static void test_arithmetic_operator_precedence(void **const _) {
 
 static void test_grouping_expr(void **const _) {
   compile_assert_failure(")");
+  assert_syntax_error(1, 1, "Expected expression at ')'");
+
   compile_assert_unexpected_eof("(");
+  assert_syntax_error(1, 2, "Expected expression");
 
   compile_assert_success("(1);");
   assert_constant_instruction(1);
