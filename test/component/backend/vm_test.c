@@ -40,7 +40,7 @@ static void reset_test_case_env(void) {
 // *---------------------------------------------*
 
 static int setup_test_group_env(void **const _) {
-  g_source_file = "vm_test";
+  g_source_file = __FILE__;
   g_execution_err_stream = open_throwaway_stream();
 
   return 0;

@@ -67,7 +67,7 @@ static void assert_constant_instruction(Value const expected_constant) {
 // *---------------------------------------------*
 
 static int setup_test_group_env(void **const _) {
-  g_source_file = "compiler_test";
+  g_source_file = __FILE__;
   g_static_err_stream = open_throwaway_stream();
 
   chunk_init(&chunk);
