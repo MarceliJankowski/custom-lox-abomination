@@ -108,6 +108,14 @@ static int teardown_test_group_env(void **const _) {
 // *---------------------------------------------*
 static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
 
+static void test_lexical_error_reporting(void **const _) {
+  compile_assert_failure("\"abc");
+  assert_lexical_error(1, 1, "Unterminated string literal");
+
+  compile_assert_failure("@");
+  assert_lexical_error(1, 1, "Unexpected character");
+}
+
 static void test_numeric_literal(void **const _) {
   compile_assert_unexpected_eof("1");
   assert_syntax_error(1, 2, "Expected ';' terminating expression statement");
@@ -288,6 +296,7 @@ static void test_grouping_expr(void **const _) {
 
 int main(void) {
   struct CMUnitTest const tests[] = {
+    cmocka_unit_test(test_lexical_error_reporting),
     cmocka_unit_test(test_numeric_literal),
     cmocka_unit_test(test_line_tracking),
     cmocka_unit_test(test_arithmetic_operators),
