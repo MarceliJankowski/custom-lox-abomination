@@ -1,15 +1,9 @@
-#ifndef TEST_COMMON_H
-#define TEST_COMMON_H
+#ifndef COMPONENT_TEST_COMMON_H
+#define COMPONENT_TEST_COMMON_H
+
+#include "shared/test_common.h"
 
 #include <stdio.h>
-
-// clang-format off
-#include <setjmp.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <cmocka.h>
-// clang-format on
 
 #define APPLY_TO_EACH_ARG(fn, arg_type, ...)                                 \
   do {                                                                       \
@@ -19,4 +13,4 @@
 
 FILE *open_throwaway_stream(void);
 
-#endif // TEST_COMMON_H
+#endif // COMPONENT_TEST_COMMON_H

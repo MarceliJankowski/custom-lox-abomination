@@ -2,8 +2,8 @@
 
 #include "backend/chunk.h"
 #include "backend/value.h"
+#include "component/component_test_common.h"
 #include "global.h"
-#include "test_common.h"
 #include "util/error.h"
 
 #include <stdio.h>

@@ -1,8 +1,6 @@
-#include "test_common.h"
+#include "component_test_common.h"
 
 #include "util/error.h"
-
-#include <stdio.h>
 
 /**@desc open throwaway stream connected to OS dependent null file
 @return pointer to writable throwaway stream*/

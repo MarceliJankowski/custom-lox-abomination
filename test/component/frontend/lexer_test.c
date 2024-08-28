@@ -1,6 +1,6 @@
 #include "frontend/lexer.h"
 
-#include "test_common.h"
+#include "component/component_test_common.h"
 
 #include <string.h>
 

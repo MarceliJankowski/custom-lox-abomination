@@ -57,13 +57,15 @@ source_objects := $(patsubst %.c,%.o,${sources})
 unit_tests := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.c')
 unit_test_executables := $(patsubst %.c,${BIN_DIR}/test/unit/%,${unit_tests})
 
-test_common_files := $(shell ${FIND} ${TEST_COMMON_DIR} -type f -name '*.c')
-
 component_tests := $(shell ${FIND} ${TEST_DIR}/component -type f -name '*.c')
 component_test_executables := $(patsubst %.c,${BIN_DIR}/test/component/%,${component_tests})
 
 # release objects that component tests depend on; 'main.o' is excluded because each test file defines its own entry point
 component_test_release_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
+
+shared_test_commons := $(shell ${FIND} ${TEST_COMMON_DIR}/shared -type f -name '*.c')
+unit_test_commons := ${shared_test_commons} $(shell ${FIND} ${TEST_COMMON_DIR}/unit -type f -name '*.c')
+component_test_commons := ${shared_test_commons} $(shell ${FIND} ${TEST_COMMON_DIR}/component -type f -name '*.c')
 
 unit_test_makefiles := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.mk')
 unit_test_mk_target_prefix := ${BIN_DIR}/test/unit/${TEST_DIR}/unit
@@ -143,10 +145,10 @@ ${BIN_DIR}/%/${LANG_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make test build executables
-${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o ${test_common_files}
+${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o ${unit_test_commons}
 	${make_target_dir_and_link_prerequisites_into_target}
 
-${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_release_objects} ${test_common_files}
+${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_release_objects} ${component_test_commons}
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make build objects
