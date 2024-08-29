@@ -127,7 +127,7 @@ endef
 ##################################################
 
 .DELETE_ON_ERROR:
-.PHONY: all ${BUILDS} ${clean_targets} run-tests compilation-database help
+.PHONY: all ${BUILDS} test_executables ${clean_targets} run-tests compilation-database help
 
 all: ${BUILDS}
 
