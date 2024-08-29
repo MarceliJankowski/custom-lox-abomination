@@ -23,6 +23,8 @@ static int chunk_constant_instruction_index;
 // *---------------------------------------------*
 
 static CompilationStatus compile(char const *const source_code) {
+  assert(source_code != NULL);
+
   chunk_reset(&chunk);
   chunk_code_offset = 0;
   chunk_constant_instruction_index = 0;
