@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-char *read_binary_stream(FILE *binary_stream);
+void *read_binary_stream_resource_content(FILE *binary_stream);
 char *read_file(char const *filepath);
 
 #endif // IO_H

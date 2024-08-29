@@ -85,7 +85,7 @@ static void enter_repl(void) {
     else {
       if (compilation_status == COMPILATION_FAILURE) {
         if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
-        char *const static_errors = read_binary_stream(g_static_err_stream);
+        char *const static_errors = read_binary_stream_resource_content(g_static_err_stream);
 
         fprintf(stderr, "%s", static_errors);
         free(static_errors);

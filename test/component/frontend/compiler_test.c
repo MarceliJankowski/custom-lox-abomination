@@ -67,7 +67,7 @@ static void assert_constant_instruction(Value const expected_constant) {
 static void assert_static_errors(char const *const expected_static_errors) {
   if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
 
-  char *const static_errors = read_binary_stream(g_static_err_stream);
+  char *const static_errors = read_binary_stream_resource_content(g_static_err_stream);
 
   assert_string_equal(static_errors, expected_static_errors);
 
