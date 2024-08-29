@@ -64,18 +64,10 @@ static void assert_constant_instruction(Value const expected_constant) {
 }
 #define assert_constant_instructions(...) APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
 
-static void assert_static_errors(char const *const expected_static_errors) {
-  if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
-
-  char *const static_errors = read_binary_stream_resource_content(g_static_err_stream);
-
-  assert_string_equal(static_errors, expected_static_errors);
-
-  free(static_errors);
-}
-
-#define assert_static_error(error_type, line, column, expected_error_message) \
-  assert_static_errors(error_type M_S __FILE__ P_S #line P_S #column M_S expected_error_message "\n")
+#define assert_static_error(error_type, line, column, expected_error_message)                          \
+  assert_binary_stream_resource_content(                                                               \
+    g_static_err_stream, error_type M_S __FILE__ P_S #line P_S #column M_S expected_error_message "\n" \
+  )
 
 #define assert_lexical_error(...) assert_static_error("[LEXICAL_ERROR]", __VA_ARGS__)
 #define assert_syntax_error(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
@@ -87,7 +79,7 @@ static void assert_static_errors(char const *const expected_static_errors) {
 
 static int setup_test_group_env(void **const _) {
   g_source_file = __FILE__;
-  g_static_err_stream = tmpfile();
+  g_static_err_stream = tmpfile(); // assert_static_error expects this stream to be binary
   if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   chunk_init(&chunk);
