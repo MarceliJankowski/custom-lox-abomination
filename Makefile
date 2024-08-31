@@ -86,13 +86,13 @@ release: compile_cflags += ${RELEASE_CFLAGS}
 release: link_flags += ${RELEASE_LDFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
-test_executables: compile_cppflags += -I ${TEST_COMMON_DIR}
-test_executables: compile_cflags += -Wno-unused-parameter
-test_executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
+test-executables: compile_cppflags += -I ${TEST_COMMON_DIR}
+test-executables: compile_cflags += -Wno-unused-parameter
+test-executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
 # fix clang failing to link test executables (this happens when some but not all objects are compiled with '-flto' flag)
 ifeq "${CC}" "clang"
-  test_executables: link_flags += -fuse-ld=lld
+  test-executables: link_flags += -fuse-ld=lld
 endif
 
 ##################################################
@@ -129,7 +129,7 @@ endef
 ##################################################
 
 .DELETE_ON_ERROR:
-.PHONY: all ${BUILDS} test_executables ${clean_targets} run-tests compilation-database help
+.PHONY: all ${BUILDS} test-executables ${clean_targets} run-tests compilation-database help
 
 all: ${BUILDS}
 
@@ -137,8 +137,8 @@ all: ${BUILDS}
 ${non_test_builds}: %: ${BIN_DIR}/%/${LANG_EXEC_NAME}
 
 # make test build (split into 2 targets to avoid release/test specific variables being applied simultaneously)
-test: release test_executables
-test_executables: ${unit_test_executables} ${component_test_executables}
+test: release test-executables
+test-executables: ${unit_test_executables} ${component_test_executables}
 
 # make build executable
 ${BIN_DIR}/%/${LANG_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
