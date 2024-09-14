@@ -45,10 +45,10 @@ DEFAULT_TARGET ?= $(firstword ${BUILDS})
 non_test_builds := $(filter-out test,${BUILDS})
 
 compile_cflags := -Wall -Wextra -Werror -std=c17 -pedantic
-compile_cppflags := -I ${INCLUDE_DIR} -MMD -MP
+compile_cppflags := -I ${INCLUDE_DIR}
 link_flags := -lm
 
-compile = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${TARGET_ARCH} -c)
+compile = $(strip ${CC} -c -MMD -MP ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${TARGET_ARCH})
 link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${link_flags} ${LDFLAGS} ${TARGET_ARCH})
 
 sources := $(shell ${FIND} ${SRC_DIR} -type f -name '*.c')
