@@ -8,7 +8,7 @@ source "$(dirname $(readlink -e "$0"))/../scripts_common.sh"
 
 readonly UNTRACKED_FILES=$(git ls-files --others --exclude-standard || exit $GENERIC_ERROR_CODE)
 readonly UNSTAGED_FILES=$(git diff --name-only || exit $GENERIC_ERROR_CODE)
-readonly STAGED_FILES=$(git diff --staged --name-only || exit $GENERIC_ERROR_CODE)
+readonly STAGED_FILES=$(git diff --staged --diff-filter=d --name-only || exit $GENERIC_ERROR_CODE)
 
 readonly STAGED_LUA_FILES=$(grep '\.lua$' <<<"$STAGED_FILES")
 readonly STAGED_C_FILES=$(grep '\.c$' <<<"$STAGED_FILES")
