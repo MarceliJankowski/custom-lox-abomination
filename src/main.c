@@ -1,9 +1,9 @@
 #include "backend/vm.h"
 #include "frontend/compiler.h"
 #include "global.h"
-#include "util/darray.h"
-#include "util/error.h"
-#include "util/io.h"
+#include "utils/darray.h"
+#include "utils/error.h"
+#include "utils/io.h"
 
 #include <errno.h>
 #include <stdbool.h>

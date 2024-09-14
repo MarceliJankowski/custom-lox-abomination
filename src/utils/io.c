@@ -1,8 +1,8 @@
-#include "util/io.h"
+#include "utils/io.h"
 
 #include "frontend/lexer.h"
-#include "util/darray.h"
-#include "util/error.h"
+#include "utils/darray.h"
+#include "utils/error.h"
 
 #include <assert.h>
 #include <errno.h>

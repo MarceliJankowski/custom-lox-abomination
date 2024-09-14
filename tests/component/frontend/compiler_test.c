@@ -2,11 +2,11 @@
 
 #include "backend/chunk.h"
 #include "common.h"
-#include "component/component_test_common.h"
+#include "component/component_test_utils.h"
 #include "global.h"
-#include "util/error.h"
-#include "util/io.h"
-#include "util/memory.h"
+#include "utils/error.h"
+#include "utils/io.h"
+#include "utils/memory.h"
 
 #include <stdio.h>
 

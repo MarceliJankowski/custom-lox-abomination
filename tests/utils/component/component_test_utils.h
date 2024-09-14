@@ -1,7 +1,7 @@
-#ifndef COMPONENT_TEST_COMMON_H
-#define COMPONENT_TEST_COMMON_H
+#ifndef COMPONENT_TEST_UTILS_H
+#define COMPONENT_TEST_UTILS_H
 
-#include "shared/test_common.h"
+#include "common/common_test_utils.h"
 
 #include <stdio.h>
 
@@ -14,4 +14,4 @@
 FILE *open_throwaway_stream(void);
 void assert_binary_stream_resource_content(FILE *binary_stream, char const *expected_resource_content);
 
-#endif // COMPONENT_TEST_COMMON_H
+#endif // COMPONENT_TEST_UTILS_H

@@ -2,8 +2,8 @@
 
 #include "frontend/lexer.h"
 #include "global.h"
-#include "util/debug.h"
-#include "util/error.h"
+#include "utils/debug.h"
+#include "utils/error.h"
 
 #include <errno.h>
 #include <stdio.h>

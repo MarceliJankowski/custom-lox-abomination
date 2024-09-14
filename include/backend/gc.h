@@ -1,7 +1,7 @@
 #ifndef GC_H
 #define GC_H
 
-#include "util/darray.h"
+#include "utils/darray.h"
 
 #include <stddef.h>
 

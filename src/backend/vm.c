@@ -2,10 +2,10 @@
 
 #include "backend/value.h"
 #include "global.h"
-#include "util/debug.h"
-#include "util/error.h"
-#include "util/memory.h"
-#include "util/stack.h"
+#include "utils/debug.h"
+#include "utils/error.h"
+#include "utils/memory.h"
+#include "utils/stack.h"
 
 #include <assert.h>
 #include <math.h>

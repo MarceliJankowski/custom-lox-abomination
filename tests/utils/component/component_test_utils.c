@@ -1,7 +1,7 @@
-#include "component_test_common.h"
+#include "component_test_utils.h"
 
-#include "util/error.h"
-#include "util/io.h"
+#include "utils/error.h"
+#include "utils/io.h"
 
 #include <assert.h>
 

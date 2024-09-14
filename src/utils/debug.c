@@ -1,10 +1,10 @@
-#include "util/debug.h"
+#include "utils/debug.h"
 
 #include "backend/value.h"
 #include "common.h"
 #include "global.h"
-#include "util/error.h"
-#include "util/memory.h"
+#include "utils/error.h"
+#include "utils/memory.h"
 
 #include <assert.h>
 #include <stdio.h>

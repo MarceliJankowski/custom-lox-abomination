@@ -2,8 +2,8 @@
 
 #include "backend/gc.h"
 #include "global.h"
-#include "util/error.h"
-#include "util/memory.h"
+#include "utils/error.h"
+#include "utils/memory.h"
 
 #include <stdarg.h>
 #include <stdio.h>

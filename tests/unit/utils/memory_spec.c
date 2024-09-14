@@ -1,5 +1,5 @@
-#include "unit/unit_test_common.h"
-#include "util/memory.h"
+#include "unit/unit_test_utils.h"
+#include "utils/memory.h"
 
 // *---------------------------------------------*
 // *                 TEST CASES                  *

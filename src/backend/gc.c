@@ -1,6 +1,6 @@
 #include "backend/gc.h"
 
-#include "util/error.h"
+#include "utils/error.h"
 
 #include <assert.h>
 #include <errno.h>

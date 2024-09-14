@@ -3,14 +3,13 @@
 ##################################################
 # meant to provide simple layer of customizability
 
-LANG_EXEC_NAME ?= cla
+LANG_IMPL_EXEC_NAME ?= cla
 SRC_DIR := src
 SCRIPTS_DIR := scripts
 INCLUDE_DIR := include
 BUILD_DIR := build
 BIN_DIR := bin
-TEST_DIR := test
-TEST_COMMON_DIR := ${TEST_DIR}/common
+TESTS_DIR := tests
 TEST_LIBS := cmocka
 
 FIND ?= find
@@ -26,7 +25,9 @@ CPPFLAGS ?=
 TARGET_ARCH ?=
 LDFLAGS ?=
 
-BUILDS += release test debug
+LANG_IMPL_BUILDS += release debug
+BUILDS := ${LANG_IMPL_BUILDS} tests
+
 RELEASE_CFLAGS ?= -O3 -flto -march=native
 
 # no optimizations; I've seen them interfere with UBSAN (-Og included)
@@ -42,8 +43,6 @@ DEFAULT_TARGET ?= help
 #               INTERNAL VARIABLES               #
 ##################################################
 
-non_test_builds := $(filter-out test,${BUILDS})
-
 compile_cflags := -Wall -Wextra -Werror -std=c17 -pedantic
 compile_cppflags := -I ${INCLUDE_DIR}
 link_flags := -lm
@@ -54,26 +53,26 @@ link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS}
 sources := $(shell ${FIND} ${SRC_DIR} -type f -name '*.c')
 source_objects := $(patsubst %.c,%.o,${sources})
 
-unit_tests := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.c')
-unit_test_executables := $(patsubst %.c,${BIN_DIR}/test/unit/%,${unit_tests})
+unit_tests := $(shell ${FIND} ${TESTS_DIR}/unit -type f -name '*.c')
+unit_test_executables := $(patsubst %.c,${BIN_DIR}/tests/unit/%,${unit_tests})
 
-component_tests := $(shell ${FIND} ${TEST_DIR}/component -type f -name '*.c')
-component_test_executables := $(patsubst %.c,${BIN_DIR}/test/component/%,${component_tests})
+component_tests := $(shell ${FIND} ${TESTS_DIR}/component -type f -name '*.c')
+component_test_executables := $(patsubst %.c,${BIN_DIR}/tests/component/%,${component_tests})
 
 # release objects that component tests depend on; 'main.o' is excluded because each test file defines its own entry point
 component_test_release_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
 
-shared_test_commons := $(shell ${FIND} ${TEST_COMMON_DIR}/shared -type f -name '*.c')
-unit_test_commons := ${shared_test_commons} $(shell ${FIND} ${TEST_COMMON_DIR}/unit -type f -name '*.c')
-component_test_commons := ${shared_test_commons} $(shell ${FIND} ${TEST_COMMON_DIR}/component -type f -name '*.c')
+common_test_utils := $(shell ${FIND} ${TESTS_DIR}/utils/common -type f -name '*.c')
+unit_test_utils := ${shared_test_utils} $(shell ${FIND} ${TESTS_DIR}/utils/unit -type f -name '*.c')
+component_test_utils := ${shared_test_utils} $(shell ${FIND} ${TESTS_DIR}/utils/component -type f -name '*.c')
 
-unit_test_makefiles := $(shell ${FIND} ${TEST_DIR}/unit -type f -name '*.mk')
-unit_test_mk_target_prefix := ${BIN_DIR}/test/unit/${TEST_DIR}/unit
+unit_test_makefiles := $(shell ${FIND} ${TESTS_DIR}/unit -type f -name '*.mk')
+unit_test_mk_target_prefix := ${BIN_DIR}/tests/unit/${TESTS_DIR}/unit
 unit_test_mk_prerequisite_prefix := ${BUILD_DIR}/release/${SRC_DIR}
 
 # compiler generated makefiles tracking header dependencies
-dependency_makefiles := $(foreach build,${non_test_builds},$(patsubst %.o,${BUILD_DIR}/${build}/%.d,${source_objects}))
-dependency_makefiles += $(patsubst %.c,${BUILD_DIR}/test/%.d,${unit_tests} ${component_tests})
+dependency_makefiles := $(foreach build,${LANG_IMPL_BUILDS},$(patsubst %.o,${BUILD_DIR}/${build}/%.d,${source_objects}))
+dependency_makefiles += $(patsubst %.c,${BUILD_DIR}/tests/%.d,${unit_tests} ${component_tests})
 
 clean_build_targets := $(foreach build,${BUILDS},clean-${build})
 clean_targets := clean ${clean_build_targets}
@@ -86,7 +85,7 @@ release: compile_cflags += ${RELEASE_CFLAGS}
 release: link_flags += ${RELEASE_LDFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
-test-executables: compile_cppflags += -I ${TEST_COMMON_DIR}
+test-executables: compile_cppflags += -I ${TESTS_DIR}/utils
 test-executables: compile_cflags += -Wno-unused-parameter
 test-executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
@@ -133,22 +132,22 @@ endef
 
 all: ${BUILDS}
 
-# make build
-${non_test_builds}: %: ${BIN_DIR}/%/${LANG_EXEC_NAME}
+# make language implementation builds
+${LANG_IMPL_BUILDS}: %: ${BIN_DIR}/%/${LANG_IMPL_EXEC_NAME}
 
-# make test build (split into 2 targets to avoid release/test specific variables being applied simultaneously)
-test: release test-executables
+# make tests build (split into 2 targets to avoid release/tests specific variables being applied simultaneously)
+tests: release test-executables
 test-executables: ${unit_test_executables} ${component_test_executables}
 
-# make build executable
-${BIN_DIR}/%/${LANG_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
+# make language implementation executables
+${BIN_DIR}/%/${LANG_IMPL_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 	${make_target_dir_and_link_prerequisites_into_target}
 
-# make test build executables
-${BIN_DIR}/test/unit/%: ${BUILD_DIR}/test/%.o ${unit_test_commons}
+# make test executables
+${BIN_DIR}/tests/unit/%: ${BUILD_DIR}/tests/%.o ${unit_test_utils}
 	${make_target_dir_and_link_prerequisites_into_target}
 
-${BIN_DIR}/test/component/%: ${BUILD_DIR}/test/%.o ${component_test_release_objects} ${component_test_commons}
+${BIN_DIR}/tests/component/%: ${BUILD_DIR}/tests/%.o ${component_test_release_objects} ${component_test_utils}
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make build objects
@@ -171,8 +170,8 @@ compilation-database:
 help:
 	@ ${ECHO} "Targets:"
 	@ ${ECHO} "    * release -- make release build"
-	@ ${ECHO} "    * test -- make test build"
 	@ ${ECHO} "    * debug -- make debug build"
+	@ ${ECHO} "    * tests -- make tests build"
 	@ ${ECHO} "    * all -- make all builds"
 	@ ${ECHO} "    * clean -- clean all builds"
 	@ ${ECHO} "    * clean-{build} -- clean specified {build}"

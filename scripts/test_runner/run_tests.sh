@@ -15,7 +15,7 @@ readonly RUN_E2E_TEST_ASSERTIONS="${SCRIPTS_DIR}/test_runner/run_e2e_test_assert
   internal_error "RUN_E2E_TEST_ASSERTIONS '${RUN_E2E_TEST_ASSERTIONS}' is not a file"
 
 readonly LANG_EXEC_NAME='cla'
-readonly TEST_DIR='test'
+readonly TESTS_DIR='tests'
 readonly BIN_DIR='bin'
 
 readonly INVALID_FLAG_ERROR_CODE=2
@@ -175,7 +175,7 @@ run_test_executables() {
   local test_executable_output
   local did_test_executable_failure_occur=$FALSE
   for test_filepath in $test_filepaths; do
-    local test_executable="./bin/test/${test_type}/${test_filepath::-2}" # remove '.c' extension
+    local test_executable="./bin/tests/${test_type}/${test_filepath::-2}" # remove '.c' extension
 
     # run test_executable; hide its output unless it failed or VERBOSE_MODE is on
     [[ $VERBOSE_MODE -eq $TRUE ]] && $test_executable || test_executable_output=$($test_executable 2>&1)
@@ -196,7 +196,7 @@ run_test_executables() {
 run_unit_tests() {
   [[ $# -ne 0 ]] && internal_error "run_unit_tests() expects no arguments"
 
-  local -r unit_test_filepaths=$(find ${TEST_DIR}/unit -type f -name '*_spec.c')
+  local -r unit_test_filepaths=$(find ${TESTS_DIR}/unit -type f -name '*_spec.c')
 
   run_test_executables "$UNIT_TEST_TYPE" "$unit_test_filepaths"
 }
@@ -204,7 +204,7 @@ run_unit_tests() {
 run_component_tests() {
   [[ $# -ne 0 ]] && internal_error "run_component_tests() expects no arguments"
 
-  local -r component_test_filepaths=$(find ${TEST_DIR}/component -type f -name '*_test.c')
+  local -r component_test_filepaths=$(find ${TESTS_DIR}/component -type f -name '*_test.c')
 
   run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_filepaths"
 }
@@ -219,7 +219,7 @@ run_e2e_tests() {
   ) || error "Failed to create tmpfile" $GENERIC_ERROR_CODE
 
   local did_e2e_test_failure_occur=$FALSE
-  local -r sorted_e2e_test_filepaths=$(find ${TEST_DIR}/e2e -type f -name '*_test.cla' | sort -n)
+  local -r sorted_e2e_test_filepaths=$(find ${TESTS_DIR}/e2e -type f -name '*_test.cla' | sort -n)
 
   log_if_verbose "Running E2E tests..."
 
@@ -293,7 +293,7 @@ done
 # make builds required for testing
 log_if_verbose "Making builds required for testing..."
 array_contains "${TEST_TYPES_TO_RUN[*]}" "$E2E_TEST_TYPE" && make_target release
-array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" && make_target test
+array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" && make_target tests
 
 # run test types in specified order
 for ((i = 0; i < ${#TEST_TYPES_TO_RUN[@]}; i++)); do

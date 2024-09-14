@@ -1,6 +1,6 @@
 #include "frontend/lexer.h"
 
-#include "util/debug.h"
+#include "utils/debug.h"
 
 #include <stdbool.h>
 #include <stdio.h>

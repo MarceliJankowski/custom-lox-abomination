@@ -2,9 +2,9 @@
 
 #include "backend/chunk.h"
 #include "backend/value.h"
-#include "component/component_test_common.h"
+#include "component/component_test_utils.h"
 #include "global.h"
-#include "util/error.h"
+#include "utils/error.h"
 
 #include <stdio.h>
 
