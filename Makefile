@@ -35,7 +35,7 @@ DEBUG_CPPFLAGS ?= -D DEBUG
 
 # allow user to set .DEFAULT_GOAL through DEFAULT_TARGET environmental variable (or CLI)
 # while keeping default value assigned to DEFAULT_TARGET (works around '.DEFAULT_GOAL ?=' not being viable)
-DEFAULT_TARGET ?= $(firstword ${BUILDS})
+DEFAULT_TARGET ?= help
 .DEFAULT_GOAL := ${DEFAULT_TARGET}
 
 ##################################################
@@ -170,7 +170,7 @@ compilation-database:
 
 help:
 	@ ${ECHO} "Targets:"
-	@ ${ECHO} "    * release -- make release build (default)"
+	@ ${ECHO} "    * release -- make release build"
 	@ ${ECHO} "    * test -- make test build"
 	@ ${ECHO} "    * debug -- make debug build"
 	@ ${ECHO} "    * all -- make all builds"
@@ -178,6 +178,7 @@ help:
 	@ ${ECHO} "    * clean-{build} -- clean specified {build}"
 	@ ${ECHO} "    * run-tests -- run all cla tests"
 	@ ${ECHO} "    * compilation-database -- make compile_commands.json"
+	@ ${ECHO} "    * help -- display target list (default)"
 
 ##################################################
 #                    INCLUDES                    #
