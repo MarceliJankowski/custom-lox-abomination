@@ -50,8 +50,8 @@ static void print_manual(void) {
 
 static void enter_repl(void) {
   g_source_file = "repl";
-  g_static_err_stream = tmpfile();
-  if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+  g_static_error_stream = tmpfile();
+  if (g_static_error_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   Chunk chunk;
   struct {
@@ -84,16 +84,16 @@ static void enter_repl(void) {
     if (compilation_status == COMPILATION_SUCCESS) vm_run(&chunk);
     else {
       if (compilation_status == COMPILATION_FAILURE) {
-        if (fflush(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
-        char *const static_errors = read_binary_stream_resource_content(g_static_err_stream);
+        if (fflush(g_static_error_stream)) IO_ERROR("%s", strerror(errno));
+        char *const static_errors = read_binary_stream_resource_content(g_static_error_stream);
 
         fprintf(stderr, "%s", static_errors);
         free(static_errors);
       }
 
       // clear static errors
-      g_static_err_stream = freopen(NULL, "w+b", g_static_err_stream);
-      if (g_static_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+      g_static_error_stream = freopen(NULL, "w+b", g_static_error_stream);
+      if (g_static_error_stream == NULL) IO_ERROR("%s", strerror(errno));
 
       if (compilation_status == COMPILATION_UNEXPECTED_EOF) {
         chunk_free(&chunk);
@@ -117,7 +117,7 @@ static void enter_repl(void) {
 clean_up:
   free(input.buffer);
   chunk_free(&chunk);
-  if (fclose(g_static_err_stream)) IO_ERROR("%s", strerror(errno));
+  if (fclose(g_static_error_stream)) IO_ERROR("%s", strerror(errno));
 }
 
 static void interpret_cla_file(char const *const filepath) {
@@ -168,8 +168,9 @@ static inline void process_flag_component(char const *flag_component) {
 }
 
 int main(int const argc, char const *const argv[]) {
-  g_static_err_stream = stderr;
-  g_execution_err_stream = stderr;
+  g_static_error_stream = stderr;
+  g_execution_error_stream = stderr;
+  g_runtime_output_stream = stdout;
   char const *cla_filepath_arg = NULL;
 
   // process command-line arguments

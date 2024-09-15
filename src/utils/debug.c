@@ -103,9 +103,10 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
 /**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
 static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
-  static_assert(OP_SIMPLE_OPCODE_COUNT == 8, "Exhaustive simple opcode handling");
+  static_assert(OP_SIMPLE_OPCODE_COUNT == 9, "Exhaustive simple opcode handling");
   switch (opcode) {
     case OP_RETURN: PUTS_BREAK("OP_RETURN");
+    case OP_PRINT: PUTS_BREAK("OP_PRINT");
     case OP_POP: PUTS_BREAK("OP_POP");
     case OP_NEGATE: PUTS_BREAK("OP_NEGATE");
     case OP_ADD: PUTS_BREAK("OP_ADD");
@@ -158,9 +159,10 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
 
   uint8_t const opcode = chunk->code[offset];
 
-  static_assert(OP_OPCODE_COUNT == 10, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 11, "Exhaustive opcode handling");
   switch (opcode) {
     case OP_RETURN:
+    case OP_PRINT:
     case OP_POP:
     case OP_NEGATE:
     case OP_ADD:

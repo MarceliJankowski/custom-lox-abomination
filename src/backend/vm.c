@@ -53,7 +53,7 @@ Value vm_stack_pop(void) {
 static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *const message) {
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
   fprintf(
-    g_execution_err_stream, "[EXECUTION_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line,
+    g_execution_error_stream, "[EXECUTION_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line,
     message
   );
 }
@@ -90,10 +90,15 @@ bool vm_execute(void) {
     assert(vm.ip < vm.chunk->code + vm.chunk->count && "Instruction pointer out of bounds");
     uint8_t const opcode = READ_BYTE();
 
-    static_assert(OP_OPCODE_COUNT == 10, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 11, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
         return true; // successful chunk execution
+      }
+      case OP_PRINT: {
+        value_print(vm_stack_pop());
+        fprintf(g_runtime_output_stream, "\n");
+        break;
       }
       case OP_POP: {
         vm_stack_pop();

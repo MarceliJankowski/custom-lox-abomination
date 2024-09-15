@@ -1,6 +1,7 @@
 #include "backend/value.h"
 
 #include "backend/gc.h"
+#include "global.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -28,5 +29,5 @@ void value_array_append(ValueArray *const value_array, Value const value) {
 
 /**@desc print `value`*/
 void value_print(Value const value) {
-  printf("%g", value);
+  fprintf(g_runtime_output_stream, "%g", value);
 }

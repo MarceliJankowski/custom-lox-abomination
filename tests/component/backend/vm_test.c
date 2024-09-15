@@ -20,8 +20,12 @@ static Chunk chunk;
 
 static bool run(void) {
   // clear execution errors
-  g_execution_err_stream = freopen(NULL, "w+b", g_execution_err_stream);
-  if (g_execution_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+  g_execution_error_stream = freopen(NULL, "w+b", g_execution_error_stream);
+  if (g_execution_error_stream == NULL) IO_ERROR("%s", strerror(errno));
+
+  // clear runtime output
+  g_runtime_output_stream = freopen(NULL, "w+b", g_runtime_output_stream);
+  if (g_runtime_output_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   return vm_run(&chunk);
 }
@@ -43,10 +47,13 @@ static void reset_test_case_env(void) {
 #define append_instruction(opcode) chunk_append_instruction(&chunk, opcode, 1)
 #define append_instructions(...) APPLY_TO_EACH_ARG(append_instruction, OpCode, __VA_ARGS__)
 
-#define assert_execution_error(expected_error_message)                                               \
-  assert_binary_stream_resource_content(                                                             \
-    g_execution_err_stream, "[EXECUTION_ERROR]" M_S __FILE__ P_S "1" M_S expected_error_message "\n" \
+#define assert_execution_error(expected_error_message)                                                 \
+  assert_binary_stream_resource_content(                                                               \
+    g_execution_error_stream, "[EXECUTION_ERROR]" M_S __FILE__ P_S "1" M_S expected_error_message "\n" \
   )
+
+#define assert_runtime_output(expected_output) \
+  assert_binary_stream_resource_content(g_runtime_output_stream, expected_output "\n")
 
 // *---------------------------------------------*
 // *                  FIXTURES                   *
@@ -54,14 +61,19 @@ static void reset_test_case_env(void) {
 
 static int setup_test_group_env(void **const _) {
   g_source_file = __FILE__;
-  g_execution_err_stream = tmpfile();
-  if (g_execution_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+
+  g_execution_error_stream = tmpfile();
+  if (g_execution_error_stream == NULL) IO_ERROR("%s", strerror(errno));
+
+  g_runtime_output_stream = tmpfile();
+  if (g_runtime_output_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   return 0;
 }
 
 static int teardown_test_group_env(void **const _) {
-  if (fclose(g_execution_err_stream)) IO_ERROR("%s", strerror(errno));
+  if (fclose(g_execution_error_stream)) IO_ERROR("%s", strerror(errno));
+  if (fclose(g_runtime_output_stream)) IO_ERROR("%s", strerror(errno));
 
   return 0;
 }
@@ -83,7 +95,7 @@ static int teardown_test_case_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 10, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 11, "Exhaustive OpCode handling");
 
 static void test_OP_CONSTANT(void **const _) {
   append_constant_instructions(1, 2, 3);
@@ -101,6 +113,14 @@ static void test_OP_CONSTANT_2B(void **const _) {
   append_instruction(OP_RETURN);
   run_assert_success();
   stack_pop_assert(3), stack_pop_assert(2), stack_pop_assert(1);
+  assert_empty_stack();
+}
+
+static void test_OP_PRINT(void **const _) {
+  append_constant_instruction(1);
+  append_instructions(OP_PRINT, OP_RETURN);
+  run_assert_success();
+  assert_runtime_output("1");
   assert_empty_stack();
 }
 
@@ -185,6 +205,7 @@ int main(void) {
   struct CMUnitTest const tests[] = {
     cmocka_unit_test_setup_teardown(test_OP_CONSTANT, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_CONSTANT_2B, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_PRINT, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_POP, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_NEGATE, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_ADD, setup_test_case_env, teardown_test_case_env),
