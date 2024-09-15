@@ -17,7 +17,6 @@ inline uint8_t get_byte(uint32_t const object, int const index) {
 
 typedef enum { LITTLE_ENDIAN, BIG_ENDIAN } Endianness;
 
-Endianness detect_endianness(void);
 uint32_t concatenate_bytes(int byte_count, ...);
 
 #endif // MEMORY_H

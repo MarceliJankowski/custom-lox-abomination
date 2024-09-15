@@ -11,7 +11,6 @@
     for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); i++) fn(args[i]); \
   } while (0)
 
-FILE *open_throwaway_stream(void);
 void assert_binary_stream_resource_content(FILE *binary_stream, char const *expected_resource_content);
 
 #endif // COMPONENT_TEST_UTILS_H
