@@ -49,11 +49,12 @@ Value vm_stack_pop(void) {
   return popped_value;
 }
 
-/**@desc report runtime error at `instruction_offset` with `message`*/
+/**@desc report bytecode execution error at `instruction_offset` with `message`*/
 static void vm_report_error_at(ptrdiff_t const instruction_offset, char const *const message) {
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
   fprintf(
-    g_execution_err_stream, "[RUNTIME_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line, message
+    g_execution_err_stream, "[EXECUTION_ERROR]" M_S FILE_LINE_FORMAT M_S "%s\n", g_source_file, instruction_line,
+    message
   );
 }
 

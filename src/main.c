@@ -44,7 +44,7 @@ static void print_manual(void) {
     "       %d  Error occurred during compilation.\n"
     "\n"
     "       %d  Error occurred during bytecode execution.\n",
-    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, COMPILATION_ERROR_CODE, RUNTIME_ERROR_CODE
+    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, COMPILATION_ERROR_CODE, EXECUTION_ERROR_CODE
   );
 }
 
@@ -133,7 +133,7 @@ static void interpret_cla_file(char const *const filepath) {
     main_exit_code = COMPILATION_ERROR_CODE;
     goto clean_up;
   }
-  if (!vm_run(&chunk)) main_exit_code = RUNTIME_ERROR_CODE;
+  if (!vm_run(&chunk)) main_exit_code = EXECUTION_ERROR_CODE;
 
 clean_up:
   chunk_free(&chunk);
