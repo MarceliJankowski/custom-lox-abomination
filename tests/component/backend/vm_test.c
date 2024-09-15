@@ -18,13 +18,21 @@ static Chunk chunk;
 // *                  UTILITIES                  *
 // *---------------------------------------------*
 
+static bool run(void) {
+  // clear execution errors
+  g_execution_err_stream = freopen(NULL, "w+b", g_execution_err_stream);
+  if (g_execution_err_stream == NULL) IO_ERROR("%s", strerror(errno));
+
+  return vm_run(&chunk);
+}
+
 static void reset_test_case_env(void) {
   vm_reset();
   chunk_reset(&chunk);
 }
 
-#define run_assert_success() assert_true(vm_run(&chunk))
-#define run_assert_failure() assert_false(vm_run(&chunk))
+#define run_assert_success() assert_true(run())
+#define run_assert_failure() assert_false(run())
 
 #define assert_empty_stack() assert_int_equal(*t_vm_stack_count, 0)
 #define stack_pop_assert(expected_value) assert_int_equal(vm_stack_pop(), expected_value)
@@ -35,13 +43,19 @@ static void reset_test_case_env(void) {
 #define append_instruction(opcode) chunk_append_instruction(&chunk, opcode, 1)
 #define append_instructions(...) APPLY_TO_EACH_ARG(append_instruction, OpCode, __VA_ARGS__)
 
+#define assert_execution_error(expected_error_message)                                               \
+  assert_binary_stream_resource_content(                                                             \
+    g_execution_err_stream, "[EXECUTION_ERROR]" M_S __FILE__ P_S "1" M_S expected_error_message "\n" \
+  )
+
 // *---------------------------------------------*
 // *                  FIXTURES                   *
 // *---------------------------------------------*
 
 static int setup_test_group_env(void **const _) {
   g_source_file = __FILE__;
-  g_execution_err_stream = open_throwaway_stream();
+  g_execution_err_stream = tmpfile();
+  if (g_execution_err_stream == NULL) IO_ERROR("%s", strerror(errno));
 
   return 0;
 }
@@ -141,6 +155,7 @@ static void test_OP_DIVIDE(void **const _) {
   append_constant_instructions(1, 0);
   append_instructions(OP_DIVIDE, OP_RETURN);
   run_assert_failure();
+  assert_execution_error("Illegal division by zero");
 }
 
 static void test_OP_MODULO(void **const _) {
@@ -161,6 +176,7 @@ static void test_OP_MODULO(void **const _) {
   append_constant_instructions(8, 0);
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_failure();
+  assert_execution_error("Illegal modulo by zero");
 }
 
 int main(void) {
