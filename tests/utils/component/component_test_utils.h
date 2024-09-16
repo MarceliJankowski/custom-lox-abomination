@@ -12,5 +12,6 @@
   } while (0)
 
 void assert_binary_stream_resource_content(FILE *binary_stream, char const *expected_resource_content);
+void clear_binary_stream_resource_content(FILE *binary_stream);
 
 #endif // COMPONENT_TEST_UTILS_H

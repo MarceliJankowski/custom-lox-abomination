@@ -19,13 +19,8 @@ static Chunk chunk;
 // *---------------------------------------------*
 
 static bool run(void) {
-  // clear execution errors
-  g_execution_error_stream = freopen(NULL, "w+b", g_execution_error_stream);
-  if (g_execution_error_stream == NULL) IO_ERROR("%s", strerror(errno));
-
-  // clear runtime output
-  g_runtime_output_stream = freopen(NULL, "w+b", g_runtime_output_stream);
-  if (g_runtime_output_stream == NULL) IO_ERROR("%s", strerror(errno));
+  clear_binary_stream_resource_content(g_execution_error_stream);
+  clear_binary_stream_resource_content(g_runtime_output_stream);
 
   return vm_run(&chunk);
 }

@@ -18,3 +18,11 @@ void assert_binary_stream_resource_content(FILE *const binary_stream, char const
 
   free(resource_content);
 }
+
+/**@desc clear `binary_stream` resource content*/
+void clear_binary_stream_resource_content(FILE *binary_stream) {
+  assert(binary_stream != NULL);
+
+  binary_stream = freopen(NULL, "w+b", binary_stream);
+  if (binary_stream == NULL) IO_ERROR("%s", strerror(errno));
+}
