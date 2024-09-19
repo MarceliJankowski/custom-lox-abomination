@@ -230,9 +230,8 @@ run_e2e_tests() {
     # run E2E test and collect output data
     local e2e_test_stdout
     e2e_test_stdout=$("${BIN_DIR}/release/${LANG_EXEC_NAME}" "$e2e_test_filepath" 2>"$e2e_test_stderr_tmpfile")
-    local -r e2e_test_exit_code=$?
-    local -r e2e_test_stdout
-    local -r e2e_test_stderr=$(cat "$e2e_test_stderr_tmpfile")
+    local e2e_test_exit_code=$?
+    local e2e_test_stderr=$(cat "$e2e_test_stderr_tmpfile")
 
     # run E2E test assertions against collected output data
     if "$RUN_E2E_TEST_ASSERTIONS" "$e2e_test_filepath" "$e2e_test_stdout" "$e2e_test_stderr" "$e2e_test_exit_code"; then
