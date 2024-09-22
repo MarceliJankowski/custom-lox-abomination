@@ -233,6 +233,16 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
     ::continue::
   end
 
+  local e2e_test_stdout_slice = e2e_test_stdout:sub(e2e_test_stdout_slice_start_index)
+  if e2e_test_stdout_slice:len() > 0 then
+    assertion_failure("Unexpected stdout '" .. e2e_test_stdout_slice .. "'")
+  end
+
+  local e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index)
+  if e2e_test_stderr_slice:len() > 0 then
+    assertion_failure("Unexpected stderr '" .. e2e_test_stderr_slice .. "'")
+  end
+
   if e2e_test_exit_code ~= expected_e2e_test_exit_code then
     assertion_failure(
       "Expected exit code '" .. e2e_test_exit_code .. "' to equal '" .. expected_e2e_test_exit_code .. "'"
