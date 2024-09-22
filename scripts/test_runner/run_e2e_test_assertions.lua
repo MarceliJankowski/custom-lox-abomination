@@ -86,25 +86,52 @@ local function decode_assertion_arg_escape_sequences(assertion_arg)
   return assertion_arg:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("\\t", "\t")
 end
 
+-- @desc read file at `filepath`
+-- @return `filepath` file content
+local function read_file(filepath)
+  assert(type(filepath) == "string", "Expected string 'filepath' argument")
+
+  local filehandle, io_open_error = io.open(filepath, "rb")
+  if not filehandle then
+    io_error("Failed to open '" .. filepath .. "' - " .. io_open_error)
+  end
+
+  ---@diagnostic disable-next-line: need-check-nil
+  local content, io_read_error = filehandle:read("a")
+  if not content then
+    io_error("Failed to read '" .. filepath .. "' - " .. io_read_error)
+  end
+
+  local did_io_close_succeed, io_close_error = io.close(filehandle)
+  if not did_io_close_succeed then
+    io_error("Failed to close '" .. filepath .. "' - " .. io_close_error)
+  end
+
+  return content
+end
+
 --------------------------------------------------
 --        PROCESS COMMAND-LINE ARGUMENTS        --
 --------------------------------------------------
 
 e2e_test_filepath = arg[1] or invalid_arg_error("Missing e2e_test_filepath argument")
-local e2e_test_stdout = arg[2] or invalid_arg_error("Missing e2e_test_stdout argument")
-local e2e_test_stderr = arg[3] or invalid_arg_error("Missing e2e_test_stderr argument")
+local e2e_test_stdout_filepath = arg[2] or invalid_arg_error("Missing e2e_test_stdout_filepath argument")
+local e2e_test_stderr_filepath = arg[3] or invalid_arg_error("Missing e2e_test_stderr_filepath argument")
 local e2e_test_exit_code = arg[4] or invalid_arg_error("Missing e2e_test_exit_code argument")
+
+local e2e_test_filehandle, io_open_error = io.open(e2e_test_filepath, "rb")
+if not e2e_test_filehandle then
+  io_error("Failed to open '" .. e2e_test_filepath .. "' - " .. io_open_error)
+end
+
+local e2e_test_stdout = read_file(e2e_test_stdout_filepath)
+local e2e_test_stderr = read_file(e2e_test_stderr_filepath)
 
 ---@diagnostic disable-next-line: cast-local-type
 e2e_test_exit_code = tonumber(e2e_test_exit_code)
   or invalid_arg_error("Invalid e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (failed numeric conversion)")
 if e2e_test_exit_code < 0 or e2e_test_exit_code > 255 then
   invalid_arg_error("Out-of-bounds e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (valid range: 0-255)")
-end
-
-local e2e_test_filehandle, io_open_error = io.open(e2e_test_filepath, "rb")
-if not e2e_test_filehandle then
-  io_error("Failed to open e2e_test_filepath argument - " .. io_open_error)
 end
 
 --------------------------------------------------
@@ -254,7 +281,7 @@ end
 --                   CLEAN UP                   --
 --------------------------------------------------
 
-local io_close_success, io_close_error = assert(e2e_test_filehandle):close()
-if not io_close_success then
+local did_io_close_succeed, io_close_error = io.close(e2e_test_filehandle)
+if not did_io_close_succeed then
   io_error("Failed to close '" .. e2e_test_filepath .. "' - " .. io_close_error)
 end

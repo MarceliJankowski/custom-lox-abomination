@@ -152,6 +152,17 @@ make_target() {
   [[ $? -ne 0 ]] && exit $MAKE_FAILURE_ERROR_CODE
 }
 
+# @desc make `tmpfile_basename` tmpfile and write its filepath to stdout
+make_tmpfile() {
+  [[ $# -ne 1 ]] && internal_error "make_tmpfile() expects 'tmpfile_basename' argument"
+
+  local -r tmpfile_basename="$1"
+
+  # https://unix.stackexchange.com/questions/614808/why-is-there-no-mktemp-command-in-posix
+  m4 -D template="${TMPDIR:-/tmp}/${tmpfile_basename}.XXXXXX" <<<"mkstemp(template)" ||
+    error "Failed to make '${tmpfile_basename}' tmpfile" $GENERIC_ERROR_CODE
+}
+
 # @desc handle `test_type` failure
 handle_test_type_fail() {
   [[ $# -ne 1 ]] && internal_error "handle_test_type_fail() expects 'test_type' argument"
@@ -212,11 +223,9 @@ run_component_tests() {
 run_e2e_tests() {
   [[ $# -ne 0 ]] && internal_error "run_e2e_tests() expects no arguments"
 
-  # https://unix.stackexchange.com/questions/614808/why-is-there-no-mktemp-command-in-posix
-  local -r e2e_test_stderr_tmpfile=$(
-    echo 'mkstemp(template)' |
-      m4 -D template="${TMPDIR:-/tmp}/cla-e2e-test-stderr.XXXXXX"
-  ) || error "Failed to create tmpfile" $GENERIC_ERROR_CODE
+  # tmpfiles are utilized due to command substitution stripping trailing newlines
+  local -r e2e_test_stdout_tmpfile=$(make_tmpfile "cla-e2e-test-stdout")
+  local -r e2e_test_stderr_tmpfile=$(make_tmpfile "cla-e2e-test-stderr")
 
   local did_e2e_test_failure_occur=$FALSE
   local -r sorted_e2e_test_filepaths=$(find ${TESTS_DIR}/e2e -type f -name '*_test.cla' | sort -n)
@@ -228,13 +237,11 @@ run_e2e_tests() {
     log_if_verbose "$e2e_test_filepath - Running..."
 
     # run E2E test and collect output data
-    local e2e_test_stdout
-    e2e_test_stdout=$("${BIN_DIR}/release/${LANG_EXEC_NAME}" "$e2e_test_filepath" 2>"$e2e_test_stderr_tmpfile")
+    "${BIN_DIR}/release/${LANG_EXEC_NAME}" "$e2e_test_filepath" 1>"$e2e_test_stdout_tmpfile" 2>"$e2e_test_stderr_tmpfile"
     local e2e_test_exit_code=$?
-    local e2e_test_stderr=$(cat "$e2e_test_stderr_tmpfile")
 
     # run E2E test assertions against collected output data
-    if "$RUN_E2E_TEST_ASSERTIONS" "$e2e_test_filepath" "$e2e_test_stdout" "$e2e_test_stderr" "$e2e_test_exit_code"; then
+    if "$RUN_E2E_TEST_ASSERTIONS" "$e2e_test_filepath" "$e2e_test_stdout_tmpfile" "$e2e_test_stderr_tmpfile" "$e2e_test_exit_code"; then
       log_if_verbose "$e2e_test_filepath - Success"
     else
       log_if_verbose "$e2e_test_filepath - Failure"
@@ -243,8 +250,7 @@ run_e2e_tests() {
     fi
   done
 
-  rm "$e2e_test_stderr_tmpfile" ||
-    error "Failed to remove '${e2e_test_stderr_tmpfile}' tmpfile" $GENERIC_ERROR_CODE
+  rm "$e2e_test_stdout_tmpfile" "$e2e_test_stderr_tmpfile" || exit $GENERIC_ERROR_CODE
 
   [[ $did_e2e_test_failure_occur -eq $TRUE ]] && handle_test_type_fail "$E2E_TEST_TYPE"
 }
