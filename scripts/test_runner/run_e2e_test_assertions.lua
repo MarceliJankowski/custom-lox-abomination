@@ -5,9 +5,15 @@
 --------------------------------------------------
 
 local ASSERTION_IDENTIFIER_PREFIX = "#ASSERT_"
+
 local EXIT_CODE_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "EXIT_CODE"
-local STDERR_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDERR"
+
 local STDOUT_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDOUT"
+local STDOUT_LINE_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDOUT_LINE"
+
+local STDERR_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDERR"
+local STDERR_LINE_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDERR_LINE"
+
 local ASSERTION_ARG_DELIMITER = " "
 
 --------------------------------------------------
@@ -176,10 +182,15 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
       end
 
       expected_e2e_test_exit_code = exit_code_assertion_arg
-    elseif assertion_identifier == STDOUT_ASSERTION_IDENTIFIER then
-      local stdout_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg) .. "\n"
-      local e2e_test_stdout_slice_end_index = e2e_test_stdout_slice_start_index + stdout_assertion_arg:len() - 1
+    elseif
+      assertion_identifier == STDOUT_ASSERTION_IDENTIFIER or assertion_identifier == STDOUT_LINE_ASSERTION_IDENTIFIER
+    then
+      local stdout_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg)
+      if assertion_identifier == STDOUT_LINE_ASSERTION_IDENTIFIER then
+        stdout_assertion_arg = stdout_assertion_arg .. "\n"
+      end
 
+      local e2e_test_stdout_slice_end_index = e2e_test_stdout_slice_start_index + stdout_assertion_arg:len() - 1
       local e2e_test_stdout_slice =
         e2e_test_stdout:sub(e2e_test_stdout_slice_start_index, e2e_test_stdout_slice_end_index)
       e2e_test_stdout_slice_start_index = e2e_test_stdout_slice_end_index + 1
@@ -191,10 +202,15 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
           assertion_identifier_start_index
         )
       end
-    elseif assertion_identifier == STDERR_ASSERTION_IDENTIFIER then
-      local stderr_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg) .. "\n"
-      local e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + stderr_assertion_arg:len() - 1
+    elseif
+      assertion_identifier == STDERR_ASSERTION_IDENTIFIER or assertion_identifier == STDERR_LINE_ASSERTION_IDENTIFIER
+    then
+      local stderr_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg)
+      if assertion_identifier == STDERR_LINE_ASSERTION_IDENTIFIER then
+        stderr_assertion_arg = stderr_assertion_arg .. "\n"
+      end
 
+      local e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + stderr_assertion_arg:len() - 1
       local e2e_test_stderr_slice =
         e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
       e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
