@@ -177,14 +177,14 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
 
       expected_e2e_test_exit_code = exit_code_assertion_arg
     elseif assertion_identifier == STDOUT_ASSERTION_IDENTIFIER then
-      local stdout_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg)
+      local stdout_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg) .. "\n"
       local e2e_test_stdout_slice_end_index = e2e_test_stdout_slice_start_index + stdout_assertion_arg:len() - 1
 
       local e2e_test_stdout_slice =
         e2e_test_stdout:sub(e2e_test_stdout_slice_start_index, e2e_test_stdout_slice_end_index)
       e2e_test_stdout_slice_start_index = e2e_test_stdout_slice_end_index + 1
 
-      if e2e_test_stdout_slice ~= stdout_assertion_arg .. "\n" then
+      if e2e_test_stdout_slice ~= stdout_assertion_arg then
         assertion_failure(
           "Expected stdout '" .. e2e_test_stdout_slice .. "' to equal '" .. stdout_assertion_arg .. "'",
           e2e_testfile_line_number,
@@ -192,14 +192,14 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
         )
       end
     elseif assertion_identifier == STDERR_ASSERTION_IDENTIFIER then
-      local stderr_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg)
+      local stderr_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg) .. "\n"
       local e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + stderr_assertion_arg:len() - 1
 
       local e2e_test_stderr_slice =
         e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
       e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
 
-      if e2e_test_stderr_slice ~= stderr_assertion_arg .. "\n" then
+      if e2e_test_stderr_slice ~= stderr_assertion_arg then
         assertion_failure(
           "Expected stderr '" .. e2e_test_stderr_slice .. "' to equal '" .. stderr_assertion_arg .. "'",
           e2e_testfile_line_number,
