@@ -6,9 +6,12 @@ source "$(dirname $(readlink -e "$0"))/../scripts_common.sh"
 #                GLOBAL VARIABLES                #
 ##################################################
 
-readonly UNTRACKED_FILES=$(git ls-files --others --exclude-standard || exit $GENERIC_ERROR_CODE)
-readonly UNSTAGED_FILES=$(git diff --name-only || exit $GENERIC_ERROR_CODE)
-readonly STAGED_FILES=$(git diff --staged --diff-filter=d --name-only || exit $GENERIC_ERROR_CODE)
+UNTRACKED_FILES=$(git ls-files --others --exclude-standard) || exit $GENERIC_ERROR_CODE
+readonly UNTRACKED_FILES
+UNSTAGED_FILES=$(git diff --name-only) || exit $GENERIC_ERROR_CODE
+readonly UNSTAGED_FILES
+STAGED_FILES=$(git diff --staged --diff-filter=d --name-only) || exit $GENERIC_ERROR_CODE
+readonly STAGED_FILES
 
 readonly STAGED_LUA_FILES=$(grep '\.lua$' <<<"$STAGED_FILES")
 readonly STAGED_C_FILES=$(grep '\.c$' <<<"$STAGED_FILES")

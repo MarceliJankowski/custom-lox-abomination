@@ -6,7 +6,8 @@ source "$(dirname "$0")/../scripts_common.sh"
 #                GLOBAL VARIABLES                #
 ##################################################
 
-readonly REPO_GIT_DIR=$(git rev-parse --git-common-dir || exit $GENERIC_ERROR_CODE)
+REPO_GIT_DIR=$(git rev-parse --git-common-dir) || exit $GENERIC_ERROR_CODE
+readonly REPO_GIT_DIR
 readonly GIT_HOOKS_DIR=${SCRIPTS_DIR}/git_hooks
 
 [[ ! -d "$GIT_HOOKS_DIR" ]] && internal_error "GIT_HOOKS_DIR '${GIT_HOOKS_DIR}' is not a directory"

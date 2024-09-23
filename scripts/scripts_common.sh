@@ -13,7 +13,8 @@ readonly FALSE=1
 readonly GENERIC_ERROR_CODE=1
 readonly INTERNAL_ERROR_CODE=255
 
-readonly WORKING_TREE_ROOT_DIR=$(git rev-parse --show-toplevel || exit $GENERIC_ERROR_CODE)
+WORKING_TREE_ROOT_DIR=$(git rev-parse --show-toplevel) || exit $GENERIC_ERROR_CODE
+readonly WORKING_TREE_ROOT_DIR
 readonly SCRIPTS_DIR=${WORKING_TREE_ROOT_DIR}/scripts
 
 ##################################################
