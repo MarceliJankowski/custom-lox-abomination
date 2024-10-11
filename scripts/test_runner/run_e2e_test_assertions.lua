@@ -1,110 +1,96 @@
 #!/usr/bin/env luajit
 
 --------------------------------------------------
---             ASSERTION CONSTANTS              --
+--            COMPILE-TIME CONSTANTS            --
 --------------------------------------------------
 
-local ASSERTION_IDENTIFIER_PREFIX = "#ASSERT_"
+local ASSERTION_ID_PREFIX = "#ASSERT_"
 
-local EXIT_CODE_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "EXIT_CODE"
+local EXIT_CODE_ASSERTION_ID = ASSERTION_ID_PREFIX .. "EXIT_CODE"
 
-local STDOUT_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDOUT"
-local STDOUT_LINE_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDOUT_LINE"
+local STDOUT_ASSERTION_ID = ASSERTION_ID_PREFIX .. "STDOUT"
+local STDOUT_LINE_ASSERTION_ID = ASSERTION_ID_PREFIX .. "STDOUT_LINE"
 
-local STDERR_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDERR"
-local STDERR_LINE_ASSERTION_IDENTIFIER = ASSERTION_IDENTIFIER_PREFIX .. "STDERR_LINE"
+local STDERR_ASSERTION_ID = ASSERTION_ID_PREFIX .. "STDERR"
+local STDERR_LINE_ASSERTION_ID = ASSERTION_ID_PREFIX .. "STDERR_LINE"
 
-local ASSERTION_ARG_DELIMITER = " "
+local LEXICAL_ERROR_ASSERTION_ID = ASSERTION_ID_PREFIX .. "LEXICAL_ERROR"
+local SYNTAX_ERROR_ASSERTION_ID = ASSERTION_ID_PREFIX .. "SYNTAX_ERROR"
+local SEMANTIC_ERROR_ASSERTION_ID = ASSERTION_ID_PREFIX .. "SEMANTIC_ERROR"
+local EXECUTION_ERROR_ASSERTION_ID = ASSERTION_ID_PREFIX .. "EXECUTION_ERROR"
+
+local ASSERTION_ARG_DELIMITER_CHAR = " " -- this constant gets used in RegExprs (it shouldn't be a metacharacter)
+
+local CLA_ERROR_TYPE_MAP = {
+  [LEXICAL_ERROR_ASSERTION_ID] = "[LEXICAL_ERROR]",
+  [SYNTAX_ERROR_ASSERTION_ID] = "[SYNTAX_ERROR]",
+  [SEMANTIC_ERROR_ASSERTION_ID] = "[SEMANTIC_ERROR]",
+  [EXECUTION_ERROR_ASSERTION_ID] = "[EXECUTION_ERROR]",
+}
+
+local CLA_M_S = " - "
+local CLA_P_S = ":"
+
+local M_S = CLA_M_S -- Message Separator
+local P_S = CLA_P_S -- Position Separator
 
 --------------------------------------------------
 --                  UTILITIES                   --
 --------------------------------------------------
-local e2e_test_filepath -- forward declaration
+
+-- forward declarations
+local e2e_test_filepath
 
 -- @desc log error consisting of `error_type` and `message` to stderr and terminate execution
 local function log_error_and_terminate_execution(error_type, message)
-  assert(
-    type(error_type) == "string" and type(message) == "string",
-    "Expected string 'error_type' and 'message' arguments"
-  )
+  assert(type(error_type) == "string")
+  assert(type(message) == "string")
 
-  io.stderr:write("[" .. error_type .. "] - " .. message .. "\n")
+  io.stderr:write("[" .. error_type .. "]" .. M_S .. message .. "\n")
   os.exit(1)
 end
 
 -- @desc log Input/Output error `message` to stderr and terminate execution
 local function io_error(message)
-  assert(type(message) == "string", "Expected string 'message' argument")
+  assert(type(message) == "string")
 
   log_error_and_terminate_execution("IO_ERROR", message)
 end
 
 -- @desc log invalid argument error `message` to stderr and terminate execution
 local function invalid_arg_error(message)
-  assert(type(message) == "string", "Expected string 'message' argument")
+  assert(type(message) == "string")
 
   log_error_and_terminate_execution("INVALID_ARG_ERROR", message)
 end
 
--- @desc log syntax error `message` with `line`/`column` position and terminate execution
-local function syntax_error(message, line, column)
-  assert(
-    type(message) == "string" and type(line) == "number" and type(column) == "number",
-    "Expected string 'message', number 'line', and number 'column' arguments"
-  )
+-- @desc decode `assertion_message_arg` escape sequences
+-- @return `assertion_message_arg` with its escape sequences decoded (enabled)
+local function decode_assertion_message_arg_escape_sequences(assertion_message_arg)
+  assert(type(assertion_message_arg) == "string")
 
-  log_error_and_terminate_execution(
-    "ASSERTION_SYNTAX_ERROR",
-    e2e_test_filepath .. ":" .. line .. ":" .. column .. " - " .. message
-  )
-end
-
--- @desc log assertion failure `message` with optional `line`/`column` position and terminate execution
-local function assertion_failure(message, line, column)
-  assert(type(message) == "string", "Expected string 'message' argument")
-  if line ~= nil or column ~= nil then
-    assert(
-      type(line) == "number" and type(column) == "number",
-      "Expected both 'line' and 'column' to be number arguments when either is present"
-    )
-  end
-
-  message = " - " .. message
-  if line then
-    message = ":" .. line .. ":" .. column .. message
-  end
-  message = e2e_test_filepath .. message
-
-  log_error_and_terminate_execution("ASSERTION_FAILURE", message)
-end
-
--- @desc decode string `assertion_arg` escape sequences
--- @return string with `assertion_arg` escape sequences decoded (enabled)
-local function decode_assertion_arg_escape_sequences(assertion_arg)
-  assert(type(assertion_arg) == "string", "Expected string 'assertion_arg' argument")
-
-  return assertion_arg:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("\\t", "\t")
+  return assertion_message_arg:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("\\t", "\t")
 end
 
 -- @desc read file at `filepath`
 -- @return `filepath` file content
 local function read_file(filepath)
-  assert(type(filepath) == "string", "Expected string 'filepath' argument")
+  assert(type(filepath) == "string")
 
   local filehandle, io_open_error = io.open(filepath, "rb")
   if not filehandle then
-    io_error("Failed to open '" .. filepath .. "' - " .. io_open_error)
+    io_error("Failed to open '" .. filepath .. "'" .. M_S .. io_open_error)
   end
 
   ---@diagnostic disable-next-line: need-check-nil
   local content, io_read_error = filehandle:read("a")
   if not content then
-    io_error("Failed to read '" .. filepath .. "' - " .. io_read_error)
+    io_error("Failed to read '" .. filepath .. "'" .. M_S .. io_read_error)
   end
 
   local did_io_close_succeed, io_close_error = io.close(filehandle)
   if not did_io_close_succeed then
-    io_error("Failed to close '" .. filepath .. "' - " .. io_close_error)
+    io_error("Failed to close '" .. filepath .. "'" .. M_S .. io_close_error)
   end
 
   return content
@@ -121,21 +107,22 @@ local e2e_test_exit_code = arg[4] or invalid_arg_error("Missing e2e_test_exit_co
 
 local e2e_test_filehandle, io_open_error = io.open(e2e_test_filepath, "rb")
 if not e2e_test_filehandle then
-  io_error("Failed to open '" .. e2e_test_filepath .. "' - " .. io_open_error)
+  io_error("Failed to open '" .. e2e_test_filepath .. "'" .. M_S .. io_open_error)
 end
 
 local e2e_test_stdout = read_file(e2e_test_stdout_filepath)
 local e2e_test_stderr = read_file(e2e_test_stderr_filepath)
 
+local _ = e2e_test_exit_code:match("^%d+$")
+  or invalid_arg_error("Invalid e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (expected signless integer)")
 ---@diagnostic disable-next-line: cast-local-type
-e2e_test_exit_code = tonumber(e2e_test_exit_code)
-  or invalid_arg_error("Invalid e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (failed numeric conversion)")
+e2e_test_exit_code = assert(tonumber(e2e_test_exit_code))
 if e2e_test_exit_code < 0 or e2e_test_exit_code > 255 then
   invalid_arg_error("Out-of-bounds e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (valid range: 0-255)")
 end
 
 --------------------------------------------------
---           RUN E2E TEST ASSERTIONS            --
+--     EXECUTE e2e_test_filepath ASSERTIONS     --
 --------------------------------------------------
 
 do -- execute e2e_test_filepath assertions against e2e_test_filepath output
@@ -147,114 +134,356 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
   local is_exit_code_assertion_detected = false
 
   local e2e_testfile_line_number = 0
-  for e2e_testfile_line in assert(e2e_test_filehandle):lines() do
-    e2e_testfile_line_number = e2e_testfile_line_number + 1
 
-    local assertion_identifier_start_index, assertion_identifier_end_index, assertion_identifier =
-      string.find(e2e_testfile_line, "(" .. ASSERTION_IDENTIFIER_PREFIX .. "[%w_]*)")
-    if not assertion_identifier then
-      goto continue
+  -- forward declarations
+  local assertion_id
+  local assertion_id_start_index
+  local outer_scope_assertion_arg_descriptor
+  local outer_scope_e2e_testfile_line
+
+  --------------------------------------------------
+  --             ASSERTION UTILITIES              --
+  --------------------------------------------------
+
+  -- @desc log assertion syntax error `message` with e2e_testfile_line_number/`column` position and terminate execution
+  local function syntax_error(message, column)
+    assert(type(message) == "string")
+    assert(type(column) == "number")
+
+    log_error_and_terminate_execution(
+      "ASSERTION_SYNTAX_ERROR",
+      e2e_test_filepath .. P_S .. e2e_testfile_line_number .. P_S .. column .. M_S .. message
+    )
+  end
+
+  -- @desc log assertion failure `message` with optional e2e_testfile_line_number/`column` position and terminate execution
+  local function assertion_failure(message, column)
+    assert(type(message) == "string")
+    if column ~= nil then
+      assert(type(column) == "number")
     end
 
-    local assertion_arg_delimiter_start_index = assertion_identifier_end_index + 1
+    message = M_S .. message
+    if column then
+      message = P_S .. e2e_testfile_line_number .. P_S .. column .. message
+    end
+    message = e2e_test_filepath .. message
+
+    log_error_and_terminate_execution("ASSERTION_FAILURE", message)
+  end
+
+  -- @desc assert `string_descriptor` `string_a` and `string_b` equality
+  local function assert_string_equality(string_descriptor, string_a, string_b)
+    assert(type(string_descriptor) == "string")
+    assert(type(string_a) == "string")
+    assert(type(string_b) == "string")
+
+    if string_a ~= string_b then
+      assertion_failure(
+        "Expected " .. string_descriptor .. "'" .. string_a .. "' to equal '" .. string_b .. "'",
+        assertion_id_start_index
+      )
+    end
+  end
+
+  -- @desc process assertion argument
+  -- @param assertion_arg_descriptor string describing argument being processed
+  -- @param processed_assertion_end_index end index of currently processed assertion up to this invocation
+  -- @param assertion_arg_processor callback invoked with assertion_arg_delimiter_end_index and assertion_arg_start_index
+  -- @return value(s) returned by `assertion_arg_processor`
+  local function process_assertion_arg(assertion_arg_descriptor, processed_assertion_end_index, assertion_arg_processor)
+    assert(type(assertion_arg_descriptor) == "string")
+    assert(type(processed_assertion_end_index) == "number")
+    assert(type(assertion_arg_processor) == "function")
+
+    outer_scope_assertion_arg_descriptor = assertion_arg_descriptor
+
+    local assertion_arg_delimiter_start_index = processed_assertion_end_index + 1
     local assertion_arg_delimiter_end_index = assertion_arg_delimiter_start_index
+      + ASSERTION_ARG_DELIMITER_CHAR:len()
+      - 1
     local assertion_arg_delimiter =
-      string.sub(e2e_testfile_line, assertion_arg_delimiter_start_index, assertion_arg_delimiter_end_index)
+      outer_scope_e2e_testfile_line:sub(assertion_arg_delimiter_start_index, assertion_arg_delimiter_end_index)
     if not assertion_arg_delimiter then
       syntax_error(
-        "Assertion '" .. assertion_identifier .. "' is missing '" .. ASSERTION_ARG_DELIMITER .. "' argument delimiter",
-        e2e_testfile_line_number,
-        assertion_identifier_end_index
+        "Assertion "
+          .. assertion_id
+          .. " is missing '"
+          .. ASSERTION_ARG_DELIMITER_CHAR
+          .. "' "
+          .. assertion_arg_descriptor
+          .. " argument delimiter",
+        processed_assertion_end_index
       )
-    elseif assertion_arg_delimiter ~= ASSERTION_ARG_DELIMITER then
+    elseif assertion_arg_delimiter ~= ASSERTION_ARG_DELIMITER_CHAR then
       syntax_error(
-        "Invalid argument delimiter '" .. assertion_arg_delimiter .. "' (expected '" .. ASSERTION_ARG_DELIMITER .. "')",
-        e2e_testfile_line_number,
+        "Invalid "
+          .. assertion_id
+          .. " "
+          .. assertion_arg_descriptor
+          .. " argument delimiter '"
+          .. assertion_arg_delimiter
+          .. "' (expected '"
+          .. ASSERTION_ARG_DELIMITER_CHAR
+          .. "')",
         assertion_arg_delimiter_start_index
       )
     end
 
     local assertion_arg_start_index = assertion_arg_delimiter_end_index + 1
-    local assertion_arg = string.sub(e2e_testfile_line, assertion_arg_start_index)
+
+    return assertion_arg_processor(assertion_arg_delimiter_end_index, assertion_arg_start_index)
+  end
+
+  -- @desc convert `assertion_arg` starting at `assertion_arg_start_index` into signless integer
+  -- @return `assertion_arg` signless integer
+  local function convert_assertion_arg_to_signless_int(assertion_arg, assertion_arg_start_index)
+    local _ = assertion_arg:match("^%d+$")
       or syntax_error(
-        "Assertion '" .. assertion_identifier .. "' is missing argument",
-        e2e_testfile_line_number,
-        assertion_arg_delimiter_end_index
+        "Invalid "
+          .. assertion_id
+          .. " "
+          .. outer_scope_assertion_arg_descriptor
+          .. " argument '"
+          .. assertion_arg
+          .. "' (expected signless integer)",
+        assertion_arg_start_index
       )
 
-    if assertion_identifier == EXIT_CODE_ASSERTION_IDENTIFIER then
+    return assert(tonumber(assertion_arg))
+  end
+
+  --------------------------------------------------
+  --           ASSERTION EXECUTION LOOP           --
+  --------------------------------------------------
+  ---@diagnostic disable-next-line: need-check-nil
+  for e2e_testfile_line in e2e_test_filehandle:lines() do
+    outer_scope_e2e_testfile_line = e2e_testfile_line
+    e2e_testfile_line_number = e2e_testfile_line_number + 1
+
+    local assertion_id_end_index
+    assertion_id_start_index, assertion_id_end_index, assertion_id =
+      string.find(e2e_testfile_line, "(" .. ASSERTION_ID_PREFIX .. "[_%w]*)")
+    if not assertion_id then
+      goto continue
+    end
+
+    if assertion_id == EXIT_CODE_ASSERTION_ID then
+      --------------------------------------------------
+      --             EXIT_CODE_ASSERTION              --
+      --------------------------------------------------
       if is_exit_code_assertion_detected == true then
-        syntax_error(
-          "Second '" .. assertion_identifier .. "' assertion detected (only one allowed)",
-          e2e_testfile_line_number,
-          assertion_identifier_start_index
-        )
+        syntax_error("Second " .. assertion_id .. " assertion detected (only one allowed)", assertion_id_start_index)
       end
       is_exit_code_assertion_detected = true
 
-      local _ = string.match(assertion_arg, "^%d+$")
-        or syntax_error(
-          "Invalid '" .. assertion_identifier .. "' argument '" .. assertion_arg .. "' (expected signless integer)",
-          e2e_testfile_line_number,
-          assertion_arg_start_index
-        )
+      local expected_exit_code_arg = process_assertion_arg(
+        "expected_exit_code",
+        assertion_id_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local arg = e2e_testfile_line:sub(arg_start_index)
+            or syntax_error(
+              "Assertion " .. assertion_id .. " is missing expected_exit_code argument",
+              delimiter_end_index
+            )
 
-      local exit_code_assertion_arg = assert(tonumber(assertion_arg))
-      if exit_code_assertion_arg < 0 or exit_code_assertion_arg > 255 then
-        syntax_error(
-          "Out-of-bounds '" .. assertion_identifier .. "' argument '" .. assertion_arg .. "' (valid range: 0-255)",
-          e2e_testfile_line_number,
-          assertion_arg_start_index
-        )
-      end
+          arg = convert_assertion_arg_to_signless_int(arg, arg_start_index)
+          if arg < 0 or arg > 255 then
+            syntax_error(
+              "Out-of-bounds " .. assertion_id .. " expected_exit_code argument '" .. arg .. "' (valid range: 0-255)",
+              arg_start_index
+            )
+          end
 
-      expected_e2e_test_exit_code = exit_code_assertion_arg
-    elseif
-      assertion_identifier == STDOUT_ASSERTION_IDENTIFIER or assertion_identifier == STDOUT_LINE_ASSERTION_IDENTIFIER
-    then
-      local stdout_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg)
-      if assertion_identifier == STDOUT_LINE_ASSERTION_IDENTIFIER then
-        stdout_assertion_arg = stdout_assertion_arg .. "\n"
-      end
+          return arg
+        end
+      )
 
-      local e2e_test_stdout_slice_end_index = e2e_test_stdout_slice_start_index + stdout_assertion_arg:len() - 1
+      expected_e2e_test_exit_code = expected_exit_code_arg
+    elseif assertion_id == STDOUT_ASSERTION_ID or assertion_id == STDOUT_LINE_ASSERTION_ID then
+      --------------------------------------------------
+      --           STDOUT_{,LINE}_ASSERTION           --
+      --------------------------------------------------
+      local decoded_expected_stdout_arg = process_assertion_arg(
+        "expected_stdout",
+        assertion_id_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local arg = e2e_testfile_line:sub(arg_start_index)
+            or syntax_error("Assertion " .. assertion_id .. " is missing expected_stdout argument", delimiter_end_index)
+
+          local decoded_arg = decode_assertion_message_arg_escape_sequences(arg)
+          if assertion_id == STDOUT_LINE_ASSERTION_ID then
+            decoded_arg = decoded_arg .. "\n"
+          end
+
+          return decoded_arg
+        end
+      )
+
+      local e2e_test_stdout_slice_end_index = e2e_test_stdout_slice_start_index + decoded_expected_stdout_arg:len() - 1
       local e2e_test_stdout_slice =
         e2e_test_stdout:sub(e2e_test_stdout_slice_start_index, e2e_test_stdout_slice_end_index)
       e2e_test_stdout_slice_start_index = e2e_test_stdout_slice_end_index + 1
 
-      if e2e_test_stdout_slice ~= stdout_assertion_arg then
-        assertion_failure(
-          "Expected stdout '" .. e2e_test_stdout_slice .. "' to equal '" .. stdout_assertion_arg .. "'",
-          e2e_testfile_line_number,
-          assertion_identifier_start_index
-        )
-      end
-    elseif
-      assertion_identifier == STDERR_ASSERTION_IDENTIFIER or assertion_identifier == STDERR_LINE_ASSERTION_IDENTIFIER
-    then
-      local stderr_assertion_arg = decode_assertion_arg_escape_sequences(assertion_arg)
-      if assertion_identifier == STDERR_LINE_ASSERTION_IDENTIFIER then
-        stderr_assertion_arg = stderr_assertion_arg .. "\n"
-      end
+      assert_string_equality("stdout", e2e_test_stdout_slice, decoded_expected_stdout_arg)
+    elseif assertion_id == STDERR_ASSERTION_ID or assertion_id == STDERR_LINE_ASSERTION_ID then
+      --------------------------------------------------
+      --           STDERR_{,LINE}_ASSERTION           --
+      --------------------------------------------------
+      local decoded_expected_stderr_arg = process_assertion_arg(
+        "expected_stderr",
+        assertion_id_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local arg = e2e_testfile_line:sub(arg_start_index)
+            or syntax_error("Assertion " .. assertion_id .. " is missing expected_stderr argument", delimiter_end_index)
 
-      local e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + stderr_assertion_arg:len() - 1
+          local decoded_arg = decode_assertion_message_arg_escape_sequences(arg)
+          if assertion_id == STDERR_LINE_ASSERTION_ID then
+            decoded_arg = decoded_arg .. "\n"
+          end
+
+          return decoded_arg
+        end
+      )
+
+      local e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + decoded_expected_stderr_arg:len() - 1
       local e2e_test_stderr_slice =
         e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
       e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
 
-      if e2e_test_stderr_slice ~= stderr_assertion_arg then
-        assertion_failure(
-          "Expected stderr '" .. e2e_test_stderr_slice .. "' to equal '" .. stderr_assertion_arg .. "'",
-          e2e_testfile_line_number,
-          assertion_identifier_start_index
-        )
-      end
-    else
-      syntax_error(
-        "Invalid '" .. assertion_identifier .. "' assertion identifier",
-        e2e_testfile_line_number,
-        assertion_identifier_start_index
+      assert_string_equality("stderr", e2e_test_stderr_slice, decoded_expected_stderr_arg)
+    elseif
+      assertion_id == LEXICAL_ERROR_ASSERTION_ID
+      or assertion_id == SYNTAX_ERROR_ASSERTION_ID
+      or assertion_id == SEMANTIC_ERROR_ASSERTION_ID
+    then
+      --------------------------------------------------
+      --  {LEXICAL,SYNTAX,SEMANTIC}_ERROR_ASSERTION   --
+      --------------------------------------------------
+      local expected_error_line_arg_end_index, expected_error_line_arg = process_assertion_arg(
+        "expected_error_line",
+        assertion_id_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local _, arg_end_index, arg =
+            e2e_testfile_line:find("^([^" .. ASSERTION_ARG_DELIMITER_CHAR .. "]+)", arg_start_index)
+          if not arg then
+            syntax_error(
+              "Assertion " .. assertion_id .. " is missing expected_error_line argument",
+              delimiter_end_index
+            )
+          end
+
+          return arg_end_index, convert_assertion_arg_to_signless_int(arg, arg_start_index)
+        end
       )
+
+      local expected_error_column_arg_end_index, expected_error_column_arg = process_assertion_arg(
+        "expected_error_column",
+        expected_error_line_arg_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local _, arg_end_index, arg =
+            e2e_testfile_line:find("^([^" .. ASSERTION_ARG_DELIMITER_CHAR .. "]+)", arg_start_index)
+          if not arg then
+            syntax_error(
+              "Assertion " .. assertion_id .. " is missing expected_error_column argument",
+              delimiter_end_index
+            )
+          end
+
+          return arg_end_index, convert_assertion_arg_to_signless_int(arg, arg_start_index)
+        end
+      )
+
+      local decoded_expected_error_message_arg = process_assertion_arg(
+        "expected_error_message",
+        expected_error_column_arg_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local arg = e2e_testfile_line:sub(arg_start_index)
+            or syntax_error(
+              "Assertion " .. assertion_id .. " is missing expected_error_message argument",
+              delimiter_end_index
+            )
+
+          return decode_assertion_message_arg_escape_sequences(arg) .. "\n"
+        end
+      )
+
+      local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
+        .. CLA_M_S
+        .. e2e_test_filepath
+        .. CLA_P_S
+        .. expected_error_line_arg
+        .. CLA_P_S
+        .. expected_error_column_arg
+        .. CLA_M_S
+        .. decoded_expected_error_message_arg
+
+      local _, e2e_test_stderr_slice_end_index, e2e_test_stderr_slice =
+        e2e_test_stderr:find("(.+\n)", e2e_test_stderr_slice_start_index)
+      if not e2e_test_stderr_slice then
+        e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + expected_error:len() - 1
+        e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
+      end
+      e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
+
+      assert_string_equality("stderr", e2e_test_stderr_slice, expected_error)
+    elseif assertion_id == EXECUTION_ERROR_ASSERTION_ID then
+      --------------------------------------------------
+      --          EXECUTION_ERROR_ASSERTION           --
+      --------------------------------------------------
+      local expected_error_line_arg_end_index, expected_error_line_arg = process_assertion_arg(
+        "expected_error_line",
+        assertion_id_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local _, arg_end_index, arg =
+            e2e_testfile_line:find("^([^" .. ASSERTION_ARG_DELIMITER_CHAR .. "]+)", arg_start_index)
+          if not arg then
+            syntax_error(
+              "Assertion " .. assertion_id .. " is missing expected_error_line argument",
+              delimiter_end_index
+            )
+          end
+
+          return arg_end_index, convert_assertion_arg_to_signless_int(arg, arg_start_index)
+        end
+      )
+
+      local decoded_expected_error_message_arg = process_assertion_arg(
+        "expected_error_message",
+        expected_error_line_arg_end_index,
+        function(delimiter_end_index, arg_start_index)
+          local arg = e2e_testfile_line:sub(arg_start_index)
+            or syntax_error(
+              "Assertion " .. assertion_id .. " is missing expected_error_message argument",
+              delimiter_end_index
+            )
+
+          return decode_assertion_message_arg_escape_sequences(arg) .. "\n"
+        end
+      )
+
+      local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
+        .. CLA_M_S
+        .. e2e_test_filepath
+        .. CLA_P_S
+        .. expected_error_line_arg
+        .. CLA_M_S
+        .. decoded_expected_error_message_arg
+
+      local _, e2e_test_stderr_slice_end_index, e2e_test_stderr_slice =
+        e2e_test_stderr:find("(.+\n)", e2e_test_stderr_slice_start_index)
+      if not e2e_test_stderr_slice then
+        e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + expected_error:len() - 1
+        e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
+      end
+      e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
+
+      assert_string_equality("stderr", e2e_test_stderr_slice, expected_error)
+    else
+      --------------------------------------------------
+      --         INVALID ASSERTION IDENTIFIER         --
+      --------------------------------------------------
+      syntax_error("Invalid assertion identifier '" .. assertion_id .. "'", assertion_id_start_index)
     end
 
     ::continue::
@@ -262,12 +491,12 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
 
   local e2e_test_stdout_slice = e2e_test_stdout:sub(e2e_test_stdout_slice_start_index)
   if e2e_test_stdout_slice:len() > 0 then
-    assertion_failure("Unexpected stdout '" .. e2e_test_stdout_slice .. "'")
+    assertion_failure("Unasserted stdout '" .. e2e_test_stdout_slice .. "'")
   end
 
   local e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index)
   if e2e_test_stderr_slice:len() > 0 then
-    assertion_failure("Unexpected stderr '" .. e2e_test_stderr_slice .. "'")
+    assertion_failure("Unasserted stderr '" .. e2e_test_stderr_slice .. "'")
   end
 
   if e2e_test_exit_code ~= expected_e2e_test_exit_code then
@@ -283,5 +512,5 @@ end
 
 local did_io_close_succeed, io_close_error = io.close(e2e_test_filehandle)
 if not did_io_close_succeed then
-  io_error("Failed to close '" .. e2e_test_filepath .. "' - " .. io_close_error)
+  io_error("Failed to close '" .. e2e_test_filepath .. "'" .. M_S .. io_close_error)
 end
