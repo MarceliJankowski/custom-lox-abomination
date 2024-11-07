@@ -4,20 +4,6 @@ set -o nounset
 set -o pipefail
 
 ##################################################
-#                GLOBAL VARIABLES                #
-##################################################
-
-readonly TRUE=0
-readonly FALSE=1
-
-readonly GENERIC_ERROR_CODE=1
-readonly INTERNAL_ERROR_CODE=255
-
-WORKING_TREE_ROOT_DIR=$(git rev-parse --show-toplevel) || exit $GENERIC_ERROR_CODE
-readonly WORKING_TREE_ROOT_DIR
-readonly SCRIPTS_DIR=${WORKING_TREE_ROOT_DIR}/scripts
-
-##################################################
 #                   UTILITIES                    #
 ##################################################
 
@@ -63,12 +49,25 @@ log_action() {
 }
 
 ##################################################
-#                 MISCELLANEOUS                  #
+#                GLOBAL VARIABLES                #
 ##################################################
 
-# validate path constants
+readonly TRUE=0
+readonly FALSE=1
+
+readonly GENERIC_ERROR_CODE=1
+readonly INTERNAL_ERROR_CODE=255
+
+WORKING_TREE_ROOT_DIR=$(git rev-parse --show-toplevel) || exit $GENERIC_ERROR_CODE
+readonly WORKING_TREE_ROOT_DIR
+readonly SCRIPTS_DIR=${WORKING_TREE_ROOT_DIR}/scripts
+
 [[ ! -d "$WORKING_TREE_ROOT_DIR" ]] && internal_error "WORKING_TREE_ROOT_DIR '${WORKING_TREE_ROOT_DIR}' is not a directory"
 [[ ! -d "$SCRIPTS_DIR" ]] && internal_error "SCRIPTS_DIR '${SCRIPTS_DIR}' is not a directory"
+
+##################################################
+#          SET SCRIPT WORKING DIRECTORY          #
+##################################################
 
 cd "$WORKING_TREE_ROOT_DIR" ||
   error "Failed to navigate into '$WORKING_TREE_ROOT_DIR'" $GENERIC_ERROR_CODE
