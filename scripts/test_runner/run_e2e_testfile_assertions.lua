@@ -39,7 +39,7 @@ local P_S = CLA_P_S -- Position Separator
 --------------------------------------------------
 
 -- forward declarations
-local e2e_test_filepath
+local e2e_testfile_path
 
 -- @desc log error consisting of `error_type` and `message` to stderr and terminate execution
 local function log_error_and_terminate_execution(error_type, message)
@@ -100,36 +100,41 @@ end
 --        PROCESS COMMAND-LINE ARGUMENTS        --
 --------------------------------------------------
 
-e2e_test_filepath = arg[1] or invalid_arg_error("Missing e2e_test_filepath argument")
-local e2e_test_stdout_filepath = arg[2] or invalid_arg_error("Missing e2e_test_stdout_filepath argument")
-local e2e_test_stderr_filepath = arg[3] or invalid_arg_error("Missing e2e_test_stderr_filepath argument")
-local e2e_test_exit_code = arg[4] or invalid_arg_error("Missing e2e_test_exit_code argument")
+e2e_testfile_path = arg[1] or invalid_arg_error("Missing e2e_testfile_path argument")
+local e2e_testfile_stdout_path = arg[2] or invalid_arg_error("Missing e2e_testfile_stdout_path argument")
+local e2e_testfile_stderr_path = arg[3] or invalid_arg_error("Missing e2e_testfile_stderr_path argument")
+local e2e_testfile_exit_code = arg[4] or invalid_arg_error("Missing e2e_testfile_exit_code argument")
 
-local e2e_test_filehandle, io_open_error = io.open(e2e_test_filepath, "rb")
-if not e2e_test_filehandle then
-  io_error("Failed to open '" .. e2e_test_filepath .. "'" .. M_S .. io_open_error)
+local e2e_testfile_handle, io_open_error = io.open(e2e_testfile_path, "rb")
+if not e2e_testfile_handle then
+  io_error("Failed to open '" .. e2e_testfile_path .. "'" .. M_S .. io_open_error)
 end
 
-local e2e_test_stdout = read_file(e2e_test_stdout_filepath)
-local e2e_test_stderr = read_file(e2e_test_stderr_filepath)
+local e2e_testfile_stdout = read_file(e2e_testfile_stdout_path)
+local e2e_testfile_stderr = read_file(e2e_testfile_stderr_path)
 
-local _ = e2e_test_exit_code:match("^%d+$")
-  or invalid_arg_error("Invalid e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (expected signless integer)")
+if not e2e_testfile_exit_code:match("^%d+$") then
+  invalid_arg_error(
+    "Invalid e2e_testfile_exit_code argument '" .. e2e_testfile_exit_code .. "' (expected signless integer)"
+  )
+end
 ---@diagnostic disable-next-line: cast-local-type
-e2e_test_exit_code = assert(tonumber(e2e_test_exit_code))
-if e2e_test_exit_code < 0 or e2e_test_exit_code > 255 then
-  invalid_arg_error("Out-of-bounds e2e_test_exit_code argument '" .. e2e_test_exit_code .. "' (valid range: 0-255)")
+e2e_testfile_exit_code = assert(tonumber(e2e_testfile_exit_code))
+if e2e_testfile_exit_code < 0 or e2e_testfile_exit_code > 255 then
+  invalid_arg_error(
+    "Out-of-bounds e2e_testfile_exit_code argument '" .. e2e_testfile_exit_code .. "' (valid range: 0-255)"
+  )
 end
 
 --------------------------------------------------
---     EXECUTE e2e_test_filepath ASSERTIONS     --
+--     EXECUTE e2e_testfile_path ASSERTIONS     --
 --------------------------------------------------
 
-do -- execute e2e_test_filepath assertions against e2e_test_filepath output
-  local expected_e2e_test_exit_code = 0
+do -- execute e2e_testfile_path assertions against e2e_testfile_path output
+  local expected_e2e_testfile_exit_code = 0
 
-  local e2e_test_stdout_slice_start_index = 1
-  local e2e_test_stderr_slice_start_index = 1
+  local e2e_testfile_stdout_slice_start_index = 1
+  local e2e_testfile_stderr_slice_start_index = 1
 
   local is_exit_code_assertion_detected = false
 
@@ -152,7 +157,7 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
 
     log_error_and_terminate_execution(
       "ASSERTION_SYNTAX_ERROR",
-      e2e_test_filepath .. P_S .. e2e_testfile_line_number .. P_S .. column .. M_S .. message
+      e2e_testfile_path .. P_S .. e2e_testfile_line_number .. P_S .. column .. M_S .. message
     )
   end
 
@@ -167,7 +172,7 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
     if column then
       message = P_S .. e2e_testfile_line_number .. P_S .. column .. message
     end
-    message = e2e_test_filepath .. message
+    message = e2e_testfile_path .. message
 
     log_error_and_terminate_execution("ASSERTION_FAILURE", message)
   end
@@ -257,7 +262,7 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
   --           ASSERTION EXECUTION LOOP           --
   --------------------------------------------------
   ---@diagnostic disable-next-line: need-check-nil
-  for e2e_testfile_line in e2e_test_filehandle:lines() do
+  for e2e_testfile_line in e2e_testfile_handle:lines() do
     outer_scope_e2e_testfile_line = e2e_testfile_line
     e2e_testfile_line_number = e2e_testfile_line_number + 1
 
@@ -299,7 +304,7 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
         end
       )
 
-      expected_e2e_test_exit_code = expected_exit_code_arg
+      expected_e2e_testfile_exit_code = expected_exit_code_arg
     elseif assertion_id == STDOUT_ASSERTION_ID or assertion_id == STDOUT_LINE_ASSERTION_ID then
       --------------------------------------------------
       --           STDOUT_{,LINE}_ASSERTION           --
@@ -320,12 +325,14 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
         end
       )
 
-      local e2e_test_stdout_slice_end_index = e2e_test_stdout_slice_start_index + decoded_expected_stdout_arg:len() - 1
-      local e2e_test_stdout_slice =
-        e2e_test_stdout:sub(e2e_test_stdout_slice_start_index, e2e_test_stdout_slice_end_index)
-      e2e_test_stdout_slice_start_index = e2e_test_stdout_slice_end_index + 1
+      local e2e_testfile_stdout_slice_end_index = e2e_testfile_stdout_slice_start_index
+        + decoded_expected_stdout_arg:len()
+        - 1
+      local e2e_testfile_stdout_slice =
+        e2e_testfile_stdout:sub(e2e_testfile_stdout_slice_start_index, e2e_testfile_stdout_slice_end_index)
+      e2e_testfile_stdout_slice_start_index = e2e_testfile_stdout_slice_end_index + 1
 
-      assert_string_equality("stdout", e2e_test_stdout_slice, decoded_expected_stdout_arg)
+      assert_string_equality("stdout", e2e_testfile_stdout_slice, decoded_expected_stdout_arg)
     elseif assertion_id == STDERR_ASSERTION_ID or assertion_id == STDERR_LINE_ASSERTION_ID then
       --------------------------------------------------
       --           STDERR_{,LINE}_ASSERTION           --
@@ -346,12 +353,14 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
         end
       )
 
-      local e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + decoded_expected_stderr_arg:len() - 1
-      local e2e_test_stderr_slice =
-        e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
-      e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
+      local e2e_testfile_stderr_slice_end_index = e2e_testfile_stderr_slice_start_index
+        + decoded_expected_stderr_arg:len()
+        - 1
+      local e2e_testfile_stderr_slice =
+        e2e_testfile_stderr:sub(e2e_testfile_stderr_slice_start_index, e2e_testfile_stderr_slice_end_index)
+      e2e_testfile_stderr_slice_start_index = e2e_testfile_stderr_slice_end_index + 1
 
-      assert_string_equality("stderr", e2e_test_stderr_slice, decoded_expected_stderr_arg)
+      assert_string_equality("stderr", e2e_testfile_stderr_slice, decoded_expected_stderr_arg)
     elseif
       assertion_id == LEXICAL_ERROR_ASSERTION_ID
       or assertion_id == SYNTAX_ERROR_ASSERTION_ID
@@ -410,7 +419,7 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
 
       local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
         .. CLA_M_S
-        .. e2e_test_filepath
+        .. e2e_testfile_path
         .. CLA_P_S
         .. expected_error_line_arg
         .. CLA_P_S
@@ -418,15 +427,16 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
         .. CLA_M_S
         .. decoded_expected_error_message_arg
 
-      local _, e2e_test_stderr_slice_end_index, e2e_test_stderr_slice =
-        e2e_test_stderr:find("(.+\n)", e2e_test_stderr_slice_start_index)
-      if not e2e_test_stderr_slice then
-        e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + expected_error:len() - 1
-        e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
+      local _, e2e_testfile_stderr_slice_end_index, e2e_testfile_stderr_slice =
+        e2e_testfile_stderr:find("(.+\n)", e2e_testfile_stderr_slice_start_index)
+      if not e2e_testfile_stderr_slice then
+        e2e_testfile_stderr_slice_end_index = e2e_testfile_stderr_slice_start_index + expected_error:len() - 1
+        e2e_testfile_stderr_slice =
+          e2e_testfile_stderr:sub(e2e_testfile_stderr_slice_start_index, e2e_testfile_stderr_slice_end_index)
       end
-      e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
+      e2e_testfile_stderr_slice_start_index = e2e_testfile_stderr_slice_end_index + 1
 
-      assert_string_equality("stderr", e2e_test_stderr_slice, expected_error)
+      assert_string_equality("stderr", e2e_testfile_stderr_slice, expected_error)
     elseif assertion_id == EXECUTION_ERROR_ASSERTION_ID then
       --------------------------------------------------
       --          EXECUTION_ERROR_ASSERTION           --
@@ -464,21 +474,22 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
 
       local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
         .. CLA_M_S
-        .. e2e_test_filepath
+        .. e2e_testfile_path
         .. CLA_P_S
         .. expected_error_line_arg
         .. CLA_M_S
         .. decoded_expected_error_message_arg
 
-      local _, e2e_test_stderr_slice_end_index, e2e_test_stderr_slice =
-        e2e_test_stderr:find("(.+\n)", e2e_test_stderr_slice_start_index)
-      if not e2e_test_stderr_slice then
-        e2e_test_stderr_slice_end_index = e2e_test_stderr_slice_start_index + expected_error:len() - 1
-        e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index, e2e_test_stderr_slice_end_index)
+      local _, e2e_testfile_stderr_slice_end_index, e2e_testfile_stderr_slice =
+        e2e_testfile_stderr:find("(.+\n)", e2e_testfile_stderr_slice_start_index)
+      if not e2e_testfile_stderr_slice then
+        e2e_testfile_stderr_slice_end_index = e2e_testfile_stderr_slice_start_index + expected_error:len() - 1
+        e2e_testfile_stderr_slice =
+          e2e_testfile_stderr:sub(e2e_testfile_stderr_slice_start_index, e2e_testfile_stderr_slice_end_index)
       end
-      e2e_test_stderr_slice_start_index = e2e_test_stderr_slice_end_index + 1
+      e2e_testfile_stderr_slice_start_index = e2e_testfile_stderr_slice_end_index + 1
 
-      assert_string_equality("stderr", e2e_test_stderr_slice, expected_error)
+      assert_string_equality("stderr", e2e_testfile_stderr_slice, expected_error)
     else
       --------------------------------------------------
       --         INVALID ASSERTION IDENTIFIER         --
@@ -489,19 +500,19 @@ do -- execute e2e_test_filepath assertions against e2e_test_filepath output
     ::continue::
   end
 
-  local e2e_test_stdout_slice = e2e_test_stdout:sub(e2e_test_stdout_slice_start_index)
-  if e2e_test_stdout_slice:len() > 0 then
-    assertion_failure("Unasserted stdout '" .. e2e_test_stdout_slice .. "'")
+  local e2e_testfile_stdout_slice = e2e_testfile_stdout:sub(e2e_testfile_stdout_slice_start_index)
+  if e2e_testfile_stdout_slice:len() > 0 then
+    assertion_failure("Unasserted stdout '" .. e2e_testfile_stdout_slice .. "'")
   end
 
-  local e2e_test_stderr_slice = e2e_test_stderr:sub(e2e_test_stderr_slice_start_index)
-  if e2e_test_stderr_slice:len() > 0 then
-    assertion_failure("Unasserted stderr '" .. e2e_test_stderr_slice .. "'")
+  local e2e_testfile_stderr_slice = e2e_testfile_stderr:sub(e2e_testfile_stderr_slice_start_index)
+  if e2e_testfile_stderr_slice:len() > 0 then
+    assertion_failure("Unasserted stderr '" .. e2e_testfile_stderr_slice .. "'")
   end
 
-  if e2e_test_exit_code ~= expected_e2e_test_exit_code then
+  if e2e_testfile_exit_code ~= expected_e2e_testfile_exit_code then
     assertion_failure(
-      "Expected exit code '" .. e2e_test_exit_code .. "' to equal '" .. expected_e2e_test_exit_code .. "'"
+      "Expected exit code '" .. e2e_testfile_exit_code .. "' to equal '" .. expected_e2e_testfile_exit_code .. "'"
     )
   end
 end
@@ -510,7 +521,7 @@ end
 --                   CLEAN UP                   --
 --------------------------------------------------
 
-local did_io_close_succeed, io_close_error = io.close(e2e_test_filehandle)
+local did_io_close_succeed, io_close_error = io.close(e2e_testfile_handle)
 if not did_io_close_succeed then
-  io_error("Failed to close '" .. e2e_test_filepath .. "'" .. M_S .. io_close_error)
+  io_error("Failed to close '" .. e2e_testfile_path .. "'" .. M_S .. io_close_error)
 end

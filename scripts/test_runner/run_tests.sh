@@ -10,9 +10,9 @@ source "$(dirname "$0")/../scripts_common.sh"
 
 readonly SCRIPT_NAME=$(basename "$0")
 
-readonly RUN_E2E_TEST_ASSERTIONS="${SCRIPTS_DIR}/test_runner/run_e2e_test_assertions.lua"
-[[ ! -f "$RUN_E2E_TEST_ASSERTIONS" ]] &&
-  internal_error "RUN_E2E_TEST_ASSERTIONS '${RUN_E2E_TEST_ASSERTIONS}' is not a file"
+readonly RUN_E2E_TESTFILE_ASSERTIONS="${SCRIPTS_DIR}/test_runner/run_e2e_testfile_assertions.lua"
+[[ ! -f "$RUN_E2E_TESTFILE_ASSERTIONS" ]] &&
+  internal_error "RUN_E2E_TESTFILE_ASSERTIONS '${RUN_E2E_TESTFILE_ASSERTIONS}' is not a file"
 
 readonly LANG_EXEC_NAME='cla'
 readonly TESTS_DIR='tests'
@@ -224,35 +224,38 @@ run_e2e_tests() {
   [[ $# -ne 0 ]] && internal_error "run_e2e_tests() expects no arguments"
 
   # tmpfiles are utilized due to command substitution stripping trailing newlines
-  local -r e2e_test_stdout_tmpfile=$(make_tmpfile "cla-e2e-test-stdout")
-  local -r e2e_test_stderr_tmpfile=$(make_tmpfile "cla-e2e-test-stderr")
+  local -r e2e_testfile_stdout_tmpfile=$(make_tmpfile "cla-e2e-testfile-stdout")
+  local -r e2e_testfile_stderr_tmpfile=$(make_tmpfile "cla-e2e-testfile-stderr")
 
-  local did_e2e_test_failure_occur=$FALSE
-  local -r sorted_e2e_test_filepaths=$(find ${TESTS_DIR}/e2e -type f -name '*_test.cla' | sort -n)
+  local did_e2e_testfile_failure_occur=$FALSE
+  local -r sorted_e2e_testfile_paths=$(find ${TESTS_DIR}/e2e -type f -name '*_test.cla' | sort -n)
 
   log_if_verbose "Running E2E tests..."
 
-  local e2e_test_filepath
-  for e2e_test_filepath in $sorted_e2e_test_filepaths; do
-    log_if_verbose "$e2e_test_filepath - Running..."
+  local e2e_testfile_path
+  for e2e_testfile_path in $sorted_e2e_testfile_paths; do
+    log_if_verbose "$e2e_testfile_path - Running..."
 
-    # run E2E test and collect output data
-    "${BIN_DIR}/release/${LANG_EXEC_NAME}" "$e2e_test_filepath" 1>"$e2e_test_stdout_tmpfile" 2>"$e2e_test_stderr_tmpfile"
-    local e2e_test_exit_code=$?
+    # run E2E testfile and collect output data
+    "${BIN_DIR}/release/${LANG_EXEC_NAME}" "$e2e_testfile_path" 1>"$e2e_testfile_stdout_tmpfile" 2>"$e2e_testfile_stderr_tmpfile"
+    local e2e_testfile_exit_code=$?
 
-    # run E2E test assertions against collected output data
-    if "$RUN_E2E_TEST_ASSERTIONS" "$e2e_test_filepath" "$e2e_test_stdout_tmpfile" "$e2e_test_stderr_tmpfile" "$e2e_test_exit_code"; then
-      log_if_verbose "$e2e_test_filepath - Success"
+    # run E2E testfile assertions against collected output data
+    if
+      "$RUN_E2E_TESTFILE_ASSERTIONS" "$e2e_testfile_path" \
+        "$e2e_testfile_stdout_tmpfile" "$e2e_testfile_stderr_tmpfile" "$e2e_testfile_exit_code"
+    then
+      log_if_verbose "$e2e_testfile_path - Success"
     else
-      log_if_verbose "$e2e_test_filepath - Failure"
-      did_e2e_test_failure_occur=$TRUE
+      log_if_verbose "$e2e_testfile_path - Failure"
+      did_e2e_testfile_failure_occur=$TRUE
       [[ $FAIL_FAST_MODE -eq $TRUE ]] && break
     fi
   done
 
-  rm "$e2e_test_stdout_tmpfile" "$e2e_test_stderr_tmpfile" || exit $GENERIC_ERROR_CODE
+  rm "$e2e_testfile_stdout_tmpfile" "$e2e_testfile_stderr_tmpfile" || exit $GENERIC_ERROR_CODE
 
-  [[ $did_e2e_test_failure_occur -eq $TRUE ]] && handle_test_type_fail "$E2E_TEST_TYPE"
+  [[ $did_e2e_testfile_failure_occur -eq $TRUE ]] && handle_test_type_fail "$E2E_TEST_TYPE"
 }
 
 ##################################################
