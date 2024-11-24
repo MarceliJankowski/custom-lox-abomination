@@ -185,7 +185,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
 
     if string_a ~= string_b then
       assertion_failure(
-        "Expected " .. string_descriptor .. "'" .. string_a .. "' to equal '" .. string_b .. "'",
+        "Expected " .. string_descriptor .. " '" .. string_a .. "' to equal '" .. string_b .. "'",
         assertion_id_start_index
       )
     end
@@ -243,6 +243,9 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
   -- @desc convert `assertion_arg` starting at `assertion_arg_start_index` into signless integer
   -- @return `assertion_arg` signless integer
   local function convert_assertion_arg_to_signless_int(assertion_arg, assertion_arg_start_index)
+    assert(type(assertion_arg) == "string")
+    assert(type(assertion_arg_start_index) == "number")
+
     local _ = assertion_arg:match("^%d+$")
       or syntax_error(
         "Invalid "
