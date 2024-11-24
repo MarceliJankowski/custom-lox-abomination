@@ -28,6 +28,9 @@ local CLA_ERROR_TYPE_MAP = {
   [EXECUTION_ERROR_ASSERTION_ID] = "[EXECUTION_ERROR]",
 }
 
+local CLA_COMPILATION_ERROR_CODE = 4
+local CLA_EXECUTION_ERROR_CODE = 5
+
 local CLA_M_S = " - "
 local CLA_P_S = ":"
 
@@ -131,14 +134,12 @@ end
 --------------------------------------------------
 
 do -- execute e2e_testfile_path assertions against e2e_testfile_path output
-  local expected_e2e_testfile_exit_code = 0
+  local e2e_testfile_line_number = 0
 
   local e2e_testfile_stdout_slice_start_index = 1
   local e2e_testfile_stderr_slice_start_index = 1
 
-  local is_exit_code_assertion_detected = false
-
-  local e2e_testfile_line_number = 0
+  local expected_e2e_testfile_exit_code = 0 -- this var should only be modified through its setter function
 
   -- forward declarations
   local assertion_id
@@ -262,6 +263,32 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
   end
 
   --------------------------------------------------
+  --               GETTERS/SETTERS                --
+  --------------------------------------------------
+
+  -- @desc set expected_e2e_testfile_exit_code to `expected_exit_code`
+  local set_expected_e2e_testfile_exit_code = (function()
+    local setting_assertion_id = nil
+
+    return function(expected_exit_code)
+      assert(type(expected_exit_code) == "number")
+
+      if setting_assertion_id ~= nil then
+        syntax_error(
+          "Assertion "
+            .. assertion_id
+            .. " appears after "
+            .. setting_assertion_id
+            .. " (only one assertion setting expected_e2e_testfile_exit_code is allowed)",
+          assertion_id_start_index
+        )
+      end
+      setting_assertion_id = assertion_id
+      expected_e2e_testfile_exit_code = expected_exit_code
+    end
+  end)()
+
+  --------------------------------------------------
   --           ASSERTION EXECUTION LOOP           --
   --------------------------------------------------
   ---@diagnostic disable-next-line: need-check-nil
@@ -280,11 +307,6 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
       --------------------------------------------------
       --             EXIT_CODE_ASSERTION              --
       --------------------------------------------------
-      if is_exit_code_assertion_detected == true then
-        syntax_error("Second " .. assertion_id .. " assertion detected (only one allowed)", assertion_id_start_index)
-      end
-      is_exit_code_assertion_detected = true
-
       local expected_exit_code_arg = process_assertion_arg(
         "expected_exit_code",
         assertion_id_end_index,
@@ -307,7 +329,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
         end
       )
 
-      expected_e2e_testfile_exit_code = expected_exit_code_arg
+      set_expected_e2e_testfile_exit_code(expected_exit_code_arg)
     elseif assertion_id == STDOUT_ASSERTION_ID or assertion_id == STDOUT_LINE_ASSERTION_ID then
       --------------------------------------------------
       --           STDOUT_{,LINE}_ASSERTION           --
@@ -420,6 +442,8 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
         end
       )
 
+      set_expected_e2e_testfile_exit_code(CLA_COMPILATION_ERROR_CODE)
+
       local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
         .. CLA_M_S
         .. e2e_testfile_path
@@ -474,6 +498,8 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
           return decode_assertion_message_arg_escape_sequences(arg) .. "\n"
         end
       )
+
+      set_expected_e2e_testfile_exit_code(CLA_EXECUTION_ERROR_CODE)
 
       local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
         .. CLA_M_S
