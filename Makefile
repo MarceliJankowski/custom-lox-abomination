@@ -25,6 +25,9 @@ CPPFLAGS ?=
 TARGET_ARCH ?=
 LDFLAGS ?=
 
+# run-tests target specific variable
+TEST_TYPES ?=
+
 LANG_IMPL_BUILDS += release debug
 BUILDS := ${LANG_IMPL_BUILDS} tests
 
@@ -162,7 +165,7 @@ clean:
 	${RM} ${BUILD_DIR} ${BIN_DIR}
 
 run-tests:
-	@ ${RUN_TESTS}
+	@ ${RUN_TESTS} ${TEST_TYPES}
 
 compilation-database:
 	@ ${GENERATE_COMPILATION_DATABASE}
@@ -175,7 +178,7 @@ help:
 	@ ${ECHO} "    * all -- make all builds"
 	@ ${ECHO} "    * clean -- clean all builds"
 	@ ${ECHO} "    * clean-{build} -- clean specified {build}"
-	@ ${ECHO} "    * run-tests -- run all cla tests"
+	@ ${ECHO} "    * run-tests [TEST_TYPES] -- run cla TEST_TYPES (defaults to running all test types)"
 	@ ${ECHO} "    * compilation-database -- make compile_commands.json"
 	@ ${ECHO} "    * help -- display target list (default)"
 
