@@ -1,0 +1,1 @@
+123.; #ASSERT_SYNTAX_ERROR 1 4 Expected ';' terminating expression statement at '.'
