@@ -1,0 +1,1 @@
+print 1; #ASSERT_STDOUT_LINE 1
