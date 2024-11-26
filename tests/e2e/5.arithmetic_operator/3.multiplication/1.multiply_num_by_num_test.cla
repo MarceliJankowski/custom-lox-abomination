@@ -1,0 +1,11 @@
+print 5 * 3; #ASSERT_STDOUT_LINE 15
+print 12.34 * 0.3; #ASSERT_STDOUT_LINE 3.702
+
+print -2 * 4; #ASSERT_STDOUT_LINE -8
+print 2 * -4; #ASSERT_STDOUT_LINE -8
+print -2 * -4; #ASSERT_STDOUT_LINE 8
+
+print 0 * 0; #ASSERT_STDOUT_LINE 0
+print 0 * -0; #ASSERT_STDOUT_LINE -0
+print -0 * 0; #ASSERT_STDOUT_LINE -0
+print -0 * -0; #ASSERT_STDOUT_LINE 0

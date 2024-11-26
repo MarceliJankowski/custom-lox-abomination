@@ -1,0 +1,1 @@
+print 5 % -0; #ASSERT_EXECUTION_ERROR 1 Illegal modulo by zero

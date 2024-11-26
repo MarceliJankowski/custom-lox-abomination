@@ -1,0 +1,12 @@
+print 4 - 3; #ASSERT_STDOUT_LINE 1
+print 1.2 - 1.2; #ASSERT_STDOUT_LINE 0
+print 2 - 4; #ASSERT_STDOUT_LINE -2
+
+print -4 - 3; #ASSERT_STDOUT_LINE -7
+print 4 - -3; #ASSERT_STDOUT_LINE 7
+print -4 - -3; #ASSERT_STDOUT_LINE -1
+
+print 0 - 0; #ASSERT_STDOUT_LINE 0
+print 0 - -0; #ASSERT_STDOUT_LINE 0
+print -0 - 0; #ASSERT_STDOUT_LINE -0
+print -0 - -0; #ASSERT_STDOUT_LINE 0
