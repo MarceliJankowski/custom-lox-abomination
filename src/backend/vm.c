@@ -18,7 +18,7 @@
 
 static VirtualMachine vm;
 
-/**@desc exposes vm.stack.count (meant soly for automated tests)*/
+/**@desc exposes vm.stack.count (meant solely for automated tests)*/
 int32_t const *const t_vm_stack_count = &vm.stack.count;
 
 // *---------------------------------------------*
