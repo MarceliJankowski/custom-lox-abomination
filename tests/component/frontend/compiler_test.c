@@ -45,21 +45,29 @@ static CompilationStatus compile(char const *const source_code) {
 #define assert_opcode(expected_opcode) assert_int_equal(next_chunk_code_byte(), expected_opcode)
 #define assert_opcodes(...) APPLY_TO_EACH_ARG(assert_opcode, OpCode, __VA_ARGS__)
 
-static void assert_constant_instruction(Value const expected_constant) {
-  uint32_t constant_index;
-  if (chunk_constant_instruction_index > UCHAR_MAX) {
-    assert_opcode(OP_CONSTANT_2B);
-    uint8_t const constant_index_LSB = next_chunk_code_byte();
-    uint8_t const constant_index_MSB = next_chunk_code_byte();
-    constant_index = concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
-  } else {
-    assert_opcode(OP_CONSTANT);
-    constant_index = next_chunk_code_byte();
-  }
-
-  assert_int_equal(constant_index, chunk_constant_instruction_index);
-  assert_int_equal(chunk.constants.values[chunk_constant_instruction_index], expected_constant);
+static void assert_chunk_constant(int32_t const constant_index, Value const expected_constant) {
+  assert_int_equal(chunk_constant_instruction_index, constant_index);
+  assert_int_equal(chunk.constants.values[constant_index], expected_constant);
   chunk_constant_instruction_index++;
+}
+
+static void assert_OP_CONSTANT_instruction(Value const expected_constant) {
+  assert_opcode(OP_CONSTANT);
+  uint32_t const constant_index = next_chunk_code_byte();
+  assert_chunk_constant(constant_index, expected_constant);
+}
+
+static void assert_OP_CONSTANT_2B_instruction(Value const expected_constant) {
+  assert_opcode(OP_CONSTANT_2B);
+  uint8_t const constant_index_LSB = next_chunk_code_byte();
+  uint8_t const constant_index_MSB = next_chunk_code_byte();
+  uint32_t const constant_index = concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
+  assert_chunk_constant(constant_index, expected_constant);
+}
+
+static void assert_constant_instruction(Value const expected_constant) {
+  if (chunk_constant_instruction_index > UCHAR_MAX) assert_OP_CONSTANT_2B_instruction(expected_constant);
+  else assert_OP_CONSTANT_instruction(expected_constant);
 }
 #define assert_constant_instructions(...) APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
 
@@ -126,6 +134,25 @@ static void test_numeric_literal(void **const _) {
   compile_assert_success("-10.25;");
   assert_constant_instruction(10.25);
   assert_opcodes(OP_NEGATE, OP_POP, OP_RETURN);
+}
+
+static void test_OP_CONSTANT_2B_being_generated(void **const _) {
+  char source_code[(BYTE_STATE_COUNT + 1) * 2 + 1];
+  for (size_t i = 0; i < BYTE_STATE_COUNT * 2; i += 2) {
+    source_code[i] = '1';
+    source_code[i + 1] = ';';
+  }
+  source_code[sizeof(source_code) - 3] = '2';
+  source_code[sizeof(source_code) - 2] = ';';
+  source_code[sizeof(source_code) - 1] = '\0';
+
+  compile_assert_success(source_code);
+  for (size_t i = 0; i < BYTE_STATE_COUNT; i++) {
+    assert_OP_CONSTANT_instruction(1);
+    assert_opcode(OP_POP);
+  }
+  assert_OP_CONSTANT_2B_instruction(2);
+  assert_opcodes(OP_POP, OP_RETURN);
 }
 
 static void test_line_tracking(void **const _) {
@@ -301,6 +328,7 @@ int main(void) {
   struct CMUnitTest const tests[] = {
     cmocka_unit_test(test_lexical_error_reporting),
     cmocka_unit_test(test_numeric_literal),
+    cmocka_unit_test(test_OP_CONSTANT_2B_being_generated),
     cmocka_unit_test(test_line_tracking),
     cmocka_unit_test(test_arithmetic_operators),
     cmocka_unit_test(test_arithmetic_operator_associativity),

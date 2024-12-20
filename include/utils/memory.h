@@ -6,6 +6,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define BYTE_STATE_COUNT (UCHAR_MAX + 1)
+
+typedef enum { LITTLE_ENDIAN, BIG_ENDIAN } Endianness;
+
 /**@desc get `object` byte located at `index`; `index` goes from LSB to MSB
 @return byte located at `index`*/
 inline uint8_t get_byte(uint32_t const object, int const index) {
@@ -14,8 +18,6 @@ inline uint8_t get_byte(uint32_t const object, int const index) {
 
   return object >> CHAR_BIT * index;
 }
-
-typedef enum { LITTLE_ENDIAN, BIG_ENDIAN } Endianness;
 
 uint32_t concatenate_bytes(int byte_count, ...);
 

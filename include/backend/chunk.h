@@ -41,14 +41,14 @@ typedef struct {
   int count;
 } ChunkLineCount;
 
-/**@desc dynamic array representing bytecode chunk*/
+/**@desc bytecode chunk*/
 typedef struct {
   ValueArray constants;
   struct {
     int32_t capacity, count;
     ChunkLineCount *line_counts;
   } lines;
-  /**@desc array of Chunk instructions and their operands.
+  /**@desc dynamic array of Chunk instructions and their operands.
   Each instruction is encoded as 1 byte long OpCode.*/
   uint8_t *code;
   int32_t capacity, count;
