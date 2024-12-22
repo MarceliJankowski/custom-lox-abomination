@@ -146,62 +146,209 @@ static void test_OP_NEGATE(void **const _) {
 }
 
 static void test_OP_ADD(void **const _) {
-  append_constant_instructions(1, 2);
-  append_instructions(OP_ADD, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(3);
-  assert_empty_stack();
+#define assert_a_b_OP_ADD_equals_c(constant_a, constant_b, expected_value_c) \
+  do {                                                                       \
+    reset_test_case_env();                                                   \
+    append_constant_instructions(constant_a, constant_b);                    \
+    append_instructions(OP_ADD, OP_RETURN);                                  \
+    run_assert_success();                                                    \
+    stack_pop_assert(expected_value_c);                                      \
+    assert_empty_stack();                                                    \
+  } while (0)
+
+  // integer addition and commutativity
+  assert_a_b_OP_ADD_equals_c(1, 2, 3);
+  assert_a_b_OP_ADD_equals_c(2, 1, 3);
+
+  // addition properties
+  assert_a_b_OP_ADD_equals_c(2, 0, 2);
+  assert_a_b_OP_ADD_equals_c(2, -2, 0);
+
+  // floating-point addition
+  assert_a_b_OP_ADD_equals_c(1.7, 2.25, 3.95);
+
+  // signed integer addition
+  assert_a_b_OP_ADD_equals_c(5, -7, -2);
+  assert_a_b_OP_ADD_equals_c(-5, 7, 2);
+  assert_a_b_OP_ADD_equals_c(-5, -7, -12);
+
+  // signed zero addition
+  assert_a_b_OP_ADD_equals_c(0, 0, 0);
+  assert_a_b_OP_ADD_equals_c(0, -0, 0);
+  assert_a_b_OP_ADD_equals_c(-0, 0, 0);
+  assert_a_b_OP_ADD_equals_c(-0, -0, -0);
+
+#undef assert_a_b_OP_ADD_equals_c
 }
 
 static void test_OP_SUBTRACT(void **const _) {
-  append_constant_instructions(2, 1);
-  append_instructions(OP_SUBTRACT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(1);
-  assert_empty_stack();
+#define assert_a_b_OP_SUBTRACT_equals_c(constant_a, constant_b, expected_value_c) \
+  do {                                                                            \
+    reset_test_case_env();                                                        \
+    append_constant_instructions(constant_a, constant_b);                         \
+    append_instructions(OP_SUBTRACT, OP_RETURN);                                  \
+    run_assert_success();                                                         \
+    stack_pop_assert(expected_value_c);                                           \
+    assert_empty_stack();                                                         \
+  } while (0)
+
+  // integer subtraction and non-commutativity
+  assert_a_b_OP_SUBTRACT_equals_c(4, 3, 1);
+  assert_a_b_OP_SUBTRACT_equals_c(3, 4, -1);
+
+  // subtraction properties
+  assert_a_b_OP_SUBTRACT_equals_c(2, 0, 2);
+  assert_a_b_OP_SUBTRACT_equals_c(25, 25, 0);
+
+  // floating-point subtraction
+  assert_a_b_OP_SUBTRACT_equals_c(3.75, 2.45, 1.3);
+
+  // signed integer subtraction
+  assert_a_b_OP_SUBTRACT_equals_c(-4, 3, -7);
+  assert_a_b_OP_SUBTRACT_equals_c(4, -3, 7);
+  assert_a_b_OP_SUBTRACT_equals_c(-4, -3, -1);
+
+  // signed zero subtraction
+  assert_a_b_OP_SUBTRACT_equals_c(0, 0, 0);
+  assert_a_b_OP_SUBTRACT_equals_c(0, -0, 0);
+  assert_a_b_OP_SUBTRACT_equals_c(-0, 0, -0);
+  assert_a_b_OP_SUBTRACT_equals_c(-0, -0, 0);
+
+#undef assert_a_b_OP_SUBTRACT_equals_c
 }
 
 static void test_OP_MULTIPLY(void **const _) {
-  append_constant_instructions(3, 4);
-  append_instructions(OP_MULTIPLY, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(12);
-  assert_empty_stack();
+#define assert_a_b_OP_MULTIPLY_equals_c(constant_a, constant_b, expected_value_c) \
+  do {                                                                            \
+    reset_test_case_env();                                                        \
+    append_constant_instructions(constant_a, constant_b);                         \
+    append_instructions(OP_MULTIPLY, OP_RETURN);                                  \
+    run_assert_success();                                                         \
+    stack_pop_assert(expected_value_c);                                           \
+    assert_empty_stack();                                                         \
+  } while (0)
+
+  // integer multiplication and commutativity
+  assert_a_b_OP_MULTIPLY_equals_c(5, 3, 15);
+  assert_a_b_OP_MULTIPLY_equals_c(3, 5, 15);
+
+  // multiplication properties
+  assert_a_b_OP_MULTIPLY_equals_c(125, 1, 125);
+  assert_a_b_OP_MULTIPLY_equals_c(50, 0, 0);
+
+  // floating-point multiplication
+  assert_a_b_OP_MULTIPLY_equals_c(12.34, 0.3, 3.702);
+
+  // signed integer multiplication
+  assert_a_b_OP_MULTIPLY_equals_c(-2, 4, -8);
+  assert_a_b_OP_MULTIPLY_equals_c(2, -4, -8);
+  assert_a_b_OP_MULTIPLY_equals_c(-2, -4, 8);
+
+  // signed zero multiplication
+  assert_a_b_OP_MULTIPLY_equals_c(0, 0, 0);
+  assert_a_b_OP_MULTIPLY_equals_c(0, -0, -0);
+  assert_a_b_OP_MULTIPLY_equals_c(-0, 0, -0);
+  assert_a_b_OP_MULTIPLY_equals_c(-0, -0, 0);
+
+#undef assert_a_b_OP_MULTIPLY_equals_c
 }
 
 static void test_OP_DIVIDE(void **const _) {
-  append_constant_instructions(8, 4);
-  append_instructions(OP_DIVIDE, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(2);
-  assert_empty_stack();
+#define assert_a_b_OP_DIVIDE_equals_c(constant_a, constant_b, expected_value_c) \
+  do {                                                                          \
+    reset_test_case_env();                                                      \
+    append_constant_instructions(constant_a, constant_b);                       \
+    append_instructions(OP_DIVIDE, OP_RETURN);                                  \
+    run_assert_success();                                                       \
+    stack_pop_assert(expected_value_c);                                         \
+    assert_empty_stack();                                                       \
+  } while (0)
 
+  // integer division and non-commutativity
+  assert_a_b_OP_DIVIDE_equals_c(8, 2, 4);
+  assert_a_b_OP_DIVIDE_equals_c(2, 8, 0.25);
+
+  // division properties
+  assert_a_b_OP_DIVIDE_equals_c(4, 1, 4);
+  assert_a_b_OP_DIVIDE_equals_c(25, 25, 1);
+
+  // floating-point division
+  assert_a_b_OP_DIVIDE_equals_c(4.2, 1.5, 2.8);
+
+  // signed integer division
+  assert_a_b_OP_DIVIDE_equals_c(-5, 2, -2.5);
+  assert_a_b_OP_DIVIDE_equals_c(5, -2, -2.5);
+  assert_a_b_OP_DIVIDE_equals_c(-5, -2, 2.5);
+
+  // signed zero division
+  assert_a_b_OP_DIVIDE_equals_c(0, 2, 0);
+  assert_a_b_OP_DIVIDE_equals_c(0, -2, -0);
+  assert_a_b_OP_DIVIDE_equals_c(-0, 2, -0);
+  assert_a_b_OP_DIVIDE_equals_c(-0, -2, 0);
+
+  // division by zero
   reset_test_case_env();
-  append_constant_instructions(1, 0);
+  append_constant_instructions(5, 0);
   append_instructions(OP_DIVIDE, OP_RETURN);
   run_assert_failure();
   assert_execution_error("Illegal division by zero");
+
+  reset_test_case_env();
+  append_constant_instructions(5, -0);
+  append_instructions(OP_DIVIDE, OP_RETURN);
+  run_assert_failure();
+  assert_execution_error("Illegal division by zero");
+
+#undef assert_a_b_OP_DIVIDE_equals_c
 }
 
 static void test_OP_MODULO(void **const _) {
-  append_constant_instructions(8, 2);
-  append_instructions(OP_MODULO, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(0);
-  assert_empty_stack();
+#define assert_a_b_OP_MODULO_equals_c(constant_a, constant_b, expected_value_c) \
+  do {                                                                          \
+    reset_test_case_env();                                                      \
+    append_constant_instructions(constant_a, constant_b);                       \
+    append_instructions(OP_MODULO, OP_RETURN);                                  \
+    run_assert_success();                                                       \
+    stack_pop_assert(expected_value_c);                                         \
+    assert_empty_stack();                                                       \
+  } while (0)
 
-  reset_test_case_env();
-  append_constant_instructions(9, 2);
-  append_instructions(OP_MODULO, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(1);
-  assert_empty_stack();
+  // integer modulo and non-commutativity
+  assert_a_b_OP_MODULO_equals_c(8, 2, 0);
+  assert_a_b_OP_MODULO_equals_c(2, 8, 2);
 
+  // modulo properties
+  assert_a_b_OP_MODULO_equals_c(25, 25, 0);
+  assert_a_b_OP_MODULO_equals_c(25, 1, 0);
+
+  // floating-point modulo
+  assert_a_b_OP_MODULO_equals_c(4.68, 3.23, 1.45);
+
+  // signed integer modulo
+  assert_a_b_OP_MODULO_equals_c(-5, 2, -1);
+  assert_a_b_OP_MODULO_equals_c(5, -2, 1);
+  assert_a_b_OP_MODULO_equals_c(-5, -2, -1);
+
+  // signed zero modulo
+  assert_a_b_OP_MODULO_equals_c(0, 2, 0);
+  assert_a_b_OP_MODULO_equals_c(0, -2, 0);
+  assert_a_b_OP_MODULO_equals_c(-0, 2, -0);
+  assert_a_b_OP_MODULO_equals_c(-0, -2, -0);
+
+  // modulo by zero
   reset_test_case_env();
-  append_constant_instructions(8, 0);
+  append_constant_instructions(5, 0);
   append_instructions(OP_MODULO, OP_RETURN);
   run_assert_failure();
   assert_execution_error("Illegal modulo by zero");
+
+  reset_test_case_env();
+  append_constant_instructions(5, -0);
+  append_instructions(OP_MODULO, OP_RETURN);
+  run_assert_failure();
+  assert_execution_error("Illegal modulo by zero");
+
+#undef assert_a_b_OP_MODULO_equals_c
 }
 
 int main(void) {

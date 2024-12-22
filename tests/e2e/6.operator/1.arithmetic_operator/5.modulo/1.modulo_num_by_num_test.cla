@@ -1,9 +1,20 @@
+# integer modulo and non-commutativity
 print 8 % 2; #ASSERT_STDOUT_LINE 0
-print 1.2 % 1.2; #ASSERT_STDOUT_LINE 0
-print 13 % 5; #ASSERT_STDOUT_LINE 3
+print 2 % 8; #ASSERT_STDOUT_LINE 2
+
+# modulo properties
+print 25 % 25; #ASSERT_STDOUT_LINE 0
+print 25 % 1; #ASSERT_STDOUT_LINE 0
+
+# floating-point modulo
+print 4.68 % 3.23; #ASSERT_STDOUT_LINE 1.45
+
+# signed integer modulo
 print -5 % 2; #ASSERT_STDOUT_LINE -1
 print 5 % -2; #ASSERT_STDOUT_LINE 1
+print -5 % -2; #ASSERT_STDOUT_LINE -1
 
+# signed zero modulo
 print 0 % 2; #ASSERT_STDOUT_LINE 0
 print 0 % -2; #ASSERT_STDOUT_LINE 0
 print -0 % 2; #ASSERT_STDOUT_LINE -0

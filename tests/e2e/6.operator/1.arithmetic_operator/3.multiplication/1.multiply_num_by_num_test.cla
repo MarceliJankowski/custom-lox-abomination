@@ -1,10 +1,20 @@
+# integer multiplication and commutativity
 print 5 * 3; #ASSERT_STDOUT_LINE 15
+print 3 * 5; #ASSERT_STDOUT_LINE 15
+
+# multiplication properties
+print 125 * 1; #ASSERT_STDOUT_LINE 125
+print 50 * 0; #ASSERT_STDOUT_LINE 0
+
+# floating-point multiplication
 print 12.34 * 0.3; #ASSERT_STDOUT_LINE 3.702
 
+# signed integer multiplication
 print -2 * 4; #ASSERT_STDOUT_LINE -8
 print 2 * -4; #ASSERT_STDOUT_LINE -8
 print -2 * -4; #ASSERT_STDOUT_LINE 8
 
+# signed zero multiplication
 print 0 * 0; #ASSERT_STDOUT_LINE 0
 print 0 * -0; #ASSERT_STDOUT_LINE -0
 print -0 * 0; #ASSERT_STDOUT_LINE -0

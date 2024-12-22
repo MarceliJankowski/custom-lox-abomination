@@ -1,11 +1,20 @@
+# integer division and non-commutativity
 print 8 / 2; #ASSERT_STDOUT_LINE 4
-print 1.2 / 1.2; #ASSERT_STDOUT_LINE 1
-print 5.7 / 2.3; #ASSERT_STDOUT_LINE 2.47826
+print 2 / 8; #ASSERT_STDOUT_LINE 0.25
 
+# division properties
+print 4 / 1; #ASSERT_STDOUT_LINE 4
+print 25 / 25; #ASSERT_STDOUT_LINE 1
+
+# floating-point division
+print 4.2 / 1.5; #ASSERT_STDOUT_LINE 2.8
+
+# signed integer division
 print -5 / 2; #ASSERT_STDOUT_LINE -2.5
 print 5 / -2; #ASSERT_STDOUT_LINE -2.5
 print -5 / -2; #ASSERT_STDOUT_LINE 2.5
 
+# signed zero division
 print 0 / 2; #ASSERT_STDOUT_LINE 0
 print 0 / -2; #ASSERT_STDOUT_LINE -0
 print -0 / 2; #ASSERT_STDOUT_LINE -0

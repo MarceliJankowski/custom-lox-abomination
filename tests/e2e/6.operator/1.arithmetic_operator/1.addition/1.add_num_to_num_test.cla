@@ -1,10 +1,20 @@
-print 123 + 456; #ASSERT_STDOUT_LINE 579
+# integer addition and commutativity
+print 1 + 2; #ASSERT_STDOUT_LINE 3
+print 2 + 1; #ASSERT_STDOUT_LINE 3
+
+# addition properties
+print 2 + 0; #ASSERT_STDOUT_LINE 2
+print 2 + -2; #ASSERT_STDOUT_LINE 0
+
+# floating-point addition
 print 1.7 + 2.25; #ASSERT_STDOUT_LINE 3.95
 
+# signed integer addition
 print 5 + -7; #ASSERT_STDOUT_LINE -2
 print -5 + 7; #ASSERT_STDOUT_LINE 2
 print -5 + -7; #ASSERT_STDOUT_LINE -12
 
+# signed zero addition
 print 0 + 0; #ASSERT_STDOUT_LINE 0
 print 0 + -0; #ASSERT_STDOUT_LINE 0
 print -0 + 0; #ASSERT_STDOUT_LINE 0
