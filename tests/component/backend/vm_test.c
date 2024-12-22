@@ -5,6 +5,7 @@
 #include "component/component_test_utils.h"
 #include "global.h"
 #include "utils/error.h"
+#include "utils/number.h"
 
 #include <stdio.h>
 
@@ -34,7 +35,16 @@ static void reset_test_case_env(void) {
 #define run_assert_failure() assert_false(run())
 
 #define assert_empty_stack() assert_int_equal(*t_vm_stack_count, 0)
-#define stack_pop_assert(expected_value) assert_int_equal(vm_stack_pop(), expected_value)
+
+static void stack_pop_assert(Value const expected_value) {
+  Value const value = vm_stack_pop();
+
+  if (is_integer(value) && is_integer(expected_value)) {
+    assert_double_equal(value, expected_value, 0);
+  } else {
+    assert_double_equal(value, expected_value, 1e-9);
+  }
+}
 
 #define append_constant_instruction(constant) chunk_append_constant_instruction(&chunk, constant, 1)
 #define append_constant_instructions(...) APPLY_TO_EACH_ARG(append_constant_instruction, Value, __VA_ARGS__)
