@@ -1,0 +1,14 @@
+# signed integer negation
+print -(1); #ASSERT_STDOUT_LINE -1
+print -(-2); #ASSERT_STDOUT_LINE 2
+
+# floating-point negation
+print -(1.25); #ASSERT_STDOUT_LINE -1.25
+
+# signed zero negation
+print -(0); #ASSERT_STDOUT_LINE -0
+print -(-0); #ASSERT_STDOUT_LINE 0
+
+# negation stacking
+print -(-(2)); #ASSERT_STDOUT_LINE 2
+print -(-(-(3))); #ASSERT_STDOUT_LINE -3

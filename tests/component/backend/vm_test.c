@@ -138,11 +138,43 @@ static void test_OP_POP(void **const _) {
 }
 
 static void test_OP_NEGATE(void **const _) {
-  append_constant_instruction(1);
-  append_instructions(OP_NEGATE, OP_RETURN);
+#define assert_a_OP_NEGATE_equals_b(constant_a, expected_value_b) \
+  do {                                                            \
+    reset_test_case_env();                                        \
+    append_constant_instruction(constant_a);                      \
+    append_instructions(OP_NEGATE, OP_RETURN);                    \
+    run_assert_success();                                         \
+    stack_pop_assert(expected_value_b);                           \
+    assert_empty_stack();                                         \
+  } while (0)
+
+  // signed integer negation
+  assert_a_OP_NEGATE_equals_b(1, -1);
+  assert_a_OP_NEGATE_equals_b(-2, 2);
+
+  // floating-point negation
+  assert_a_OP_NEGATE_equals_b(1.25, -1.25);
+
+  // signed zero negation
+  assert_a_OP_NEGATE_equals_b(0, -0);
+  assert_a_OP_NEGATE_equals_b(-0, 0);
+
+  // negation stacking
+  reset_test_case_env();
+  append_constant_instruction(2);
+  append_instructions(OP_NEGATE, OP_NEGATE, OP_RETURN);
   run_assert_success();
-  stack_pop_assert(-1);
+  stack_pop_assert(2);
   assert_empty_stack();
+
+  reset_test_case_env();
+  append_constant_instruction(3);
+  append_instructions(OP_NEGATE, OP_NEGATE, OP_NEGATE, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(-3);
+  assert_empty_stack();
+
+#undef assert_a_OP_NEGATE_equals_b
 }
 
 static void test_OP_ADD(void **const _) {
