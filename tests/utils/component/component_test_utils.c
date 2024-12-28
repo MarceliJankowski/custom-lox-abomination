@@ -2,6 +2,7 @@
 
 #include "utils/error.h"
 #include "utils/io.h"
+#include "utils/number.h"
 
 #include <assert.h>
 
@@ -25,4 +26,29 @@ void clear_binary_stream_resource_content(FILE *binary_stream) {
 
   binary_stream = freopen(NULL, "w+b", binary_stream);
   if (binary_stream == NULL) IO_ERROR("%s", strerror(errno));
+}
+
+/**@desc assert `value_a` and `value_b` equality*/
+void assert_value_equality(Value const value_a, Value const value_b) {
+  assert_int_equal(value_a.type, value_b.type);
+
+  static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
+  switch (value_a.type) {
+    case VALUE_NIL: {
+      break;
+    }
+    case VALUE_BOOL: {
+      assert_true(value_a.payload.boolean == value_b.payload.boolean);
+      break;
+    }
+    case VALUE_NUMBER: {
+      if (is_integer(value_a.payload.number) && is_integer(value_b.payload.number)) {
+        assert_double_equal(value_a.payload.number, value_b.payload.number, 0);
+      } else {
+        assert_double_equal(value_a.payload.number, value_b.payload.number, 1e-9);
+      }
+      break;
+    }
+    default: INTERNAL_ERROR("Unknown ValueType '%d'", value_a.type);
+  }
 }

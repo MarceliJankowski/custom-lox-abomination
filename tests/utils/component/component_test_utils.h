@@ -1,6 +1,7 @@
 #ifndef COMPONENT_TEST_UTILS_H
 #define COMPONENT_TEST_UTILS_H
 
+#include "backend/value.h"
 #include "common/common_test_utils.h"
 
 #include <stdio.h>
@@ -13,5 +14,6 @@
 
 void assert_binary_stream_resource_content(FILE *binary_stream, char const *expected_resource_content);
 void clear_binary_stream_resource_content(FILE *binary_stream);
+void assert_value_equality(Value value_a, Value value_b);
 
 #endif // COMPONENT_TEST_UTILS_H

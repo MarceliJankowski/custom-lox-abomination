@@ -1,0 +1,1 @@
+true * false; #ASSERT_EXECUTION_ERROR 1 Expected multiplication operands to be numbers (got 'bool' and 'bool')

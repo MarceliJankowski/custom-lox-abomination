@@ -2,29 +2,13 @@
 
 #include "backend/value.h"
 #include "common.h"
-#include "global.h"
 #include "utils/error.h"
+#include "utils/io.h"
 #include "utils/memory.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-// *---------------------------------------------*
-// *                  UTILITIES                  *
-// *---------------------------------------------*
-
-#define PUTS_BREAK(string) \
-  puts(string);            \
-  break
-
-#define PRINTF_BREAK(...) \
-  printf(__VA_ARGS__);    \
-  break
-
-// *---------------------------------------------*
-// *               DEBUG FUNCTIONS               *
-// *---------------------------------------------*
 
 /**@desc print lexical `token`*/
 void debug_token(Token const *const token) {
@@ -103,7 +87,7 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
 /**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
 static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
-  static_assert(OP_SIMPLE_OPCODE_COUNT == 9, "Exhaustive simple opcode handling");
+  static_assert(OP_SIMPLE_OPCODE_COUNT == 12, "Exhaustive simple opcode handling");
   switch (opcode) {
     case OP_RETURN: PUTS_BREAK("OP_RETURN");
     case OP_PRINT: PUTS_BREAK("OP_PRINT");
@@ -114,6 +98,9 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
     case OP_MULTIPLY: PUTS_BREAK("OP_MULTIPLY");
     case OP_DIVIDE: PUTS_BREAK("OP_DIVIDE");
     case OP_MODULO: PUTS_BREAK("OP_MODULO");
+    case OP_NIL: PUTS_BREAK("OP_NIL");
+    case OP_TRUE: PUTS_BREAK("OP_TRUE");
+    case OP_FALSE: PUTS_BREAK("OP_FALSE");
 
     default: INTERNAL_ERROR("Unknown simple instruction opcode '%d'", opcode);
   }
@@ -159,7 +146,7 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
 
   uint8_t const opcode = chunk->code[offset];
 
-  static_assert(OP_OPCODE_COUNT == 11, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 14, "Exhaustive opcode handling");
   switch (opcode) {
     case OP_RETURN:
     case OP_PRINT:
@@ -169,7 +156,10 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
     case OP_SUBTRACT:
     case OP_MULTIPLY:
     case OP_DIVIDE:
-    case OP_MODULO: {
+    case OP_MODULO:
+    case OP_NIL:
+    case OP_TRUE:
+    case OP_FALSE: {
       return debug_simple_instruction(opcode, offset);
     }
     case OP_CONSTANT:

@@ -2,9 +2,26 @@
 
 #include "backend/gc.h"
 #include "global.h"
+#include "utils/error.h"
+#include "utils/io.h"
 
 #include <assert.h>
 #include <stdio.h>
+
+// *---------------------------------------------*
+// *               STATIC OBJECTS                *
+// *---------------------------------------------*
+
+static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
+char const *const value_type_to_string_table[] = {
+  [VALUE_NIL] = "nil",
+  [VALUE_BOOL] = "bool",
+  [VALUE_NUMBER] = "number",
+};
+
+// *---------------------------------------------*
+// *               VALUE FUNCTIONS               *
+// *---------------------------------------------*
 
 /**@desc initialize `value_array`*/
 void value_array_init(ValueArray *const value_array) {
@@ -29,5 +46,12 @@ void value_array_append(ValueArray *const value_array, Value const value) {
 
 /**@desc print `value`*/
 void value_print(Value const value) {
-  fprintf(g_runtime_output_stream, "%g", value);
+  static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
+  switch (value.type) {
+    case VALUE_BOOL: PRINTF_BREAK(value.payload.boolean ? "true" : "false");
+    case VALUE_NIL: PRINTF_BREAK("nil");
+    case VALUE_NUMBER: PRINTF_BREAK("%g", value.payload.number);
+
+    default: INTERNAL_ERROR("Unknown ValueType '%d'", value.type);
+  }
 }

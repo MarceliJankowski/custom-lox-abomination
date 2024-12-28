@@ -1,0 +1,1 @@
+-true; #ASSERT_EXECUTION_ERROR 1 Expected negation operand to be a number (got 'bool')

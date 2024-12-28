@@ -49,6 +49,7 @@ static void compiler_binary_expr(void);
 static void compiler_unary_expr(void);
 static void compiler_grouping_expr(void);
 static void compiler_numeric_literal(void);
+static void compiler_invariable_literal(void);
 
 // *---------------------------------------------*
 // *               STATIC OBJECTS                *
@@ -57,8 +58,11 @@ static void compiler_numeric_literal(void);
 static_assert(TOKEN_TYPE_COUNT - TOKEN_INDICATOR_COUNT == 41, "Exhaustive TokenType handling");
 static ParseRule const parse_rules[] = {
   // literals
-  [TOKEN_STRING] = {NULL, NULL, PRECEDENCE_NONE},
+  [TOKEN_NIL] = {compiler_invariable_literal, NULL, PRECEDENCE_NONE},
+  [TOKEN_TRUE] = {compiler_invariable_literal, NULL, PRECEDENCE_NONE},
+  [TOKEN_FALSE] = {compiler_invariable_literal, NULL, PRECEDENCE_NONE},
   [TOKEN_NUMBER] = {compiler_numeric_literal, NULL, PRECEDENCE_NONE},
+  [TOKEN_STRING] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_IDENTIFIER] = {NULL, NULL, PRECEDENCE_NONE},
 
   // single-character tokens
@@ -88,10 +92,7 @@ static ParseRule const parse_rules[] = {
   [TOKEN_GREATER_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
 
   // reserved identifiers (keywords)
-  [TOKEN_TRUE] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_FALSE] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_VAR] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_NIL] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_AND] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_OR] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_FUN] = {NULL, NULL, PRECEDENCE_NONE},
@@ -233,8 +234,7 @@ static void compiler_expr(void) {
 /**@desc compile binary expression*/
 static void compiler_binary_expr(void) {
   TokenType const operator_type = parser.previous.type;
-  ParseRule const *const parse_rule = parse_rules + operator_type;
-  compiler_precedence_expr(parse_rule->precedence + 1);
+  compiler_precedence_expr(parse_rules[operator_type].precedence + 1);
 
   switch (operator_type) {
     case TOKEN_PLUS: {
@@ -291,7 +291,28 @@ static void compiler_numeric_literal(void) {
       parser.previous.column, parser.previous.lexeme_length, parser.previous.lexeme
     );
   }
-  compiler_emit_constant_instruction(value);
+  compiler_emit_constant_instruction(NUMBER_VALUE(value));
+}
+
+/**@desc compile invariable literal (one with fixed lexeme)*/
+static void compiler_invariable_literal(void) {
+  TokenType const literal_type = parser.previous.type;
+
+  switch (literal_type) {
+    case TOKEN_NIL: {
+      compiler_emit_instruction(OP_NIL);
+      break;
+    }
+    case TOKEN_TRUE: {
+      compiler_emit_instruction(OP_TRUE);
+      break;
+    }
+    case TOKEN_FALSE: {
+      compiler_emit_instruction(OP_FALSE);
+      break;
+    }
+    default: INTERNAL_ERROR("Unknown invariable literal type '%d'", literal_type);
+  }
 }
 
 /**@desc compile expression statement*/

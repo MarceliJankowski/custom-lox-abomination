@@ -1,0 +1,1 @@
+true % nil; #ASSERT_EXECUTION_ERROR 1 Expected modulo operands to be numbers (got 'bool' and 'nil')

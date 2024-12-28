@@ -1,0 +1,1 @@
+false + nil; #ASSERT_EXECUTION_ERROR 1 Expected addition operands to be numbers (got 'bool' and 'nil')
