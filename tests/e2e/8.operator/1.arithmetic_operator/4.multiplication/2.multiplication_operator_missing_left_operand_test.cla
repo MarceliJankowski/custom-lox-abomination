@@ -1,0 +1,1 @@
+* 2; #ASSERT_SYNTAX_ERROR 1 1 Expected expression at '*'
