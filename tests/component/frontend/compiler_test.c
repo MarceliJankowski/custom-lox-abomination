@@ -106,7 +106,7 @@ static int teardown_test_group_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 14, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 15, "Exhaustive OpCode handling");
 
 static void test_lexical_error_reporting(void **const _) {
   compile_assert_failure("\"abc");
@@ -328,6 +328,14 @@ static void test_grouping_expr(void **const _) {
   assert_opcodes(OP_DIVIDE, OP_MULTIPLY, OP_POP, OP_RETURN);
 }
 
+static void test_logical_operators(void **const _) {
+  compile_assert_unexpected_eof("!");
+  assert_syntax_error(1, 2, "Expected expression");
+
+  compile_assert_success("!true;");
+  assert_opcodes(OP_TRUE, OP_NOT, OP_POP, OP_RETURN);
+}
+
 static void test_print_stmt(void **const _) {
   compile_assert_unexpected_eof("print");
   assert_syntax_error(1, 6, "Expected expression");
@@ -353,6 +361,7 @@ int main(void) {
     cmocka_unit_test(test_arithmetic_operator_associativity),
     cmocka_unit_test(test_arithmetic_operator_precedence),
     cmocka_unit_test(test_grouping_expr),
+    cmocka_unit_test(test_logical_operators),
     cmocka_unit_test(test_print_stmt),
   };
 

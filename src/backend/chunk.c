@@ -121,7 +121,7 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
   int32_t instruction_index = 0;
   int32_t loop_offset = 0;
 
-  static_assert(OP_OPCODE_COUNT == 14, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 15, "Exhaustive opcode handling");
   while (loop_offset < offset) {
     switch (chunk->code[loop_offset]) {
       case OP_RETURN:
@@ -133,6 +133,7 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
       case OP_MULTIPLY:
       case OP_DIVIDE:
       case OP_MODULO:
+      case OP_NOT:
       case OP_NIL:
       case OP_TRUE:
       case OP_FALSE: {

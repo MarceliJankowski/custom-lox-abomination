@@ -71,7 +71,7 @@ static ParseRule const parse_rules[] = {
   [TOKEN_STAR] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
   [TOKEN_SLASH] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
   [TOKEN_PERCENT] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
-  [TOKEN_BANG] = {NULL, NULL, PRECEDENCE_NONE},
+  [TOKEN_BANG] = {compiler_unary_expr, NULL, PRECEDENCE_NONE},
   [TOKEN_LESS] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_GREATER] = {NULL, NULL, PRECEDENCE_NONE},
@@ -269,6 +269,10 @@ static void compiler_unary_expr(void) {
   switch (operator_type) {
     case TOKEN_MINUS: {
       compiler_emit_instruction(OP_NEGATE);
+      break;
+    }
+    case TOKEN_BANG: {
+      compiler_emit_instruction(OP_NOT);
       break;
     }
     default: INTERNAL_ERROR("Unknown unary operator type '%d'", operator_type);

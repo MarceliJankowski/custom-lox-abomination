@@ -141,7 +141,7 @@ static int teardown_test_case_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 14, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 15, "Exhaustive OpCode handling");
 
 static void test_OP_CONSTANT(void **const _) {
   append_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2), NUMBER_VALUE(3));
@@ -476,6 +476,63 @@ static void test_OP_MODULO(void **const _) {
 #undef assert_a_b_OP_MODULO_equals_c
 }
 
+static void test_OP_NOT(void **const _) {
+  // truthy values
+  append_constant_instruction(NUMBER_VALUE(1));
+  append_instructions(OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(false));
+  assert_empty_stack();
+
+  reset_test_case_env();
+  append_constant_instruction(NUMBER_VALUE(-1));
+  append_instructions(OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(false));
+  assert_empty_stack();
+
+  reset_test_case_env();
+  append_constant_instruction(NUMBER_VALUE(0));
+  append_instructions(OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(false));
+  assert_empty_stack();
+
+  reset_test_case_env();
+  append_instructions(OP_TRUE, OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(false));
+  assert_empty_stack();
+
+  // falsy values
+  reset_test_case_env();
+  append_instructions(OP_FALSE, OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(true));
+  assert_empty_stack();
+
+  reset_test_case_env();
+  append_instructions(OP_NIL, OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(true));
+  assert_empty_stack();
+
+  // "not" stacking
+  reset_test_case_env();
+  append_constant_instruction(NUMBER_VALUE(2));
+  append_instructions(OP_NOT, OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(true));
+  assert_empty_stack();
+
+  reset_test_case_env();
+  append_constant_instruction(NUMBER_VALUE(3));
+  append_instructions(OP_NOT, OP_NOT, OP_NOT, OP_RETURN);
+  run_assert_success();
+  stack_pop_assert(BOOL_VALUE(false));
+  assert_empty_stack();
+}
+
 int main(void) {
   // OP_RETURN test is missing as it's not yet properly implemented
 
@@ -493,6 +550,7 @@ int main(void) {
     cmocka_unit_test_setup_teardown(test_OP_MULTIPLY, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_DIVIDE, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_MODULO, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_NOT, setup_test_case_env, teardown_test_case_env),
   };
 
   return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);

@@ -100,7 +100,7 @@ bool vm_execute(void) {
     assert(vm.ip < vm.chunk->code + vm.chunk->count && "Instruction pointer out of bounds");
     uint8_t const opcode = read_byte();
 
-    static_assert(OP_OPCODE_COUNT == 14, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 15, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
         return true; // successful chunk execution
@@ -217,6 +217,12 @@ bool vm_execute(void) {
         }
         if (divisor.payload.number == 0) return vm_error_at(get_instruction_offset(1), "Illegal modulo by zero");
         vm_stack_top_frame.payload.number = fmod(vm_stack_top_frame.payload.number, divisor.payload.number);
+        break;
+      }
+      case OP_NOT: {
+        assert_min_vm_stack_count(1);
+
+        vm_stack_top_frame = BOOL_VALUE(IS_FALSY_VALUE(vm_stack_top_frame));
         break;
       }
       default: INTERNAL_ERROR("Unknown opcode '%d'", opcode);

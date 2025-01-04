@@ -35,6 +35,8 @@ typedef struct {
 #define IS_NIL_VALUE(value) ((value).type == VALUE_NIL)
 #define IS_NUMBER_VALUE(value) ((value).type == VALUE_NUMBER)
 
+#define IS_FALSY_VALUE(value) IS_NIL_VALUE(value) || (IS_BOOL_VALUE(value) && !value.payload.boolean)
+
 extern char const *const value_type_to_string_table[];
 
 void value_array_init(ValueArray *array);

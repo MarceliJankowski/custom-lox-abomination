@@ -20,6 +20,7 @@ typedef enum {
   OP_MULTIPLY,
   OP_DIVIDE,
   OP_MODULO,
+  OP_NOT,
   OP_NIL,
   OP_TRUE,
   OP_FALSE,

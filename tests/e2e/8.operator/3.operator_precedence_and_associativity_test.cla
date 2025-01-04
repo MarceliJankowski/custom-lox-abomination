@@ -12,3 +12,5 @@ print 2 + 3 * 4; #ASSERT_STDOUT_LINE 14
 
 # '()' control expression evaluation order, overriding operator precedence
 print (2 * (6 - (2 + 2))); #ASSERT_STDOUT_LINE 4
+
+# '!' is not yet tested, this will change once relational operators are introduced
