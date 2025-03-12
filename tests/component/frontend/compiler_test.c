@@ -8,8 +8,10 @@
 #include "utils/io.h"
 #include "utils/memory.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // *---------------------------------------------*
 // *               STATIC OBJECTS                *
@@ -22,6 +24,14 @@ static int chunk_constant_instruction_index;
 // *---------------------------------------------*
 // *                  UTILITIES                  *
 // *---------------------------------------------*
+
+static int count_non_negative_int_digits(int const non_negative_int) {
+  assert(non_negative_int >= 0);
+
+  if (non_negative_int == 0) return 1;
+
+  return log10(non_negative_int) + 1;
+}
 
 static CompilationStatus compile(char const *const source_code) {
   assert(source_code != NULL);
@@ -38,10 +48,39 @@ static CompilationStatus compile(char const *const source_code) {
 #define compile_assert_failure(source_code) assert_int_equal(compile(source_code), COMPILATION_FAILURE)
 #define compile_assert_unexpected_eof(source_code) assert_int_equal(compile(source_code), COMPILATION_UNEXPECTED_EOF)
 
-#define assert_static_error(error_type, line, column, expected_error_message)                            \
-  assert_binary_stream_resource_content(                                                                 \
-    g_static_error_stream, error_type M_S __FILE__ P_S #line P_S #column M_S expected_error_message "\n" \
-  )
+static void assert_static_error(
+  char const *const error_type, int const line, int const column, char const *const expected_error_message
+) {
+  assert(error_type != NULL);
+  assert(line >= 0);
+  assert(column >= 0);
+  assert(expected_error_message != NULL);
+
+  int const line_digit_count = count_non_negative_int_digits(line);
+  int const column_digit_count = count_non_negative_int_digits(column);
+
+  char const *const separator_1 = M_S __FILE__ P_S;
+  char const *const separator_2 = P_S;
+  char const *const separator_3 = M_S;
+  char const *const ending = "\n";
+
+  size_t const expected_static_error_length = strlen(error_type) + strlen(separator_1) + line_digit_count +
+                                              strlen(separator_2) + column_digit_count + strlen(separator_3) +
+                                              strlen(expected_error_message) + strlen(ending);
+
+  char *const expected_static_error = malloc(expected_static_error_length);
+  if (expected_static_error == NULL) MEMORY_ERROR("%s", strerror(errno));
+
+  if (sprintf(
+        expected_static_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column, separator_3,
+        expected_error_message, ending
+      ) < 0)
+    IO_ERROR("%s", strerror(errno));
+
+  assert_binary_stream_resource_content(g_static_error_stream, expected_static_error);
+
+  free(expected_static_error);
+}
 
 #define assert_lexical_error(...) assert_static_error("[LEXICAL_ERROR]", __VA_ARGS__)
 #define assert_syntax_error(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
@@ -80,6 +119,72 @@ static void assert_constant_instruction(Value const expected_constant) {
   else assert_OP_CONSTANT_instruction(expected_constant);
 }
 #define assert_constant_instructions(...) APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
+
+static OpCode map_binary_operator_to_its_opcode(char const *const operator) {
+  assert(operator!= NULL);
+
+  if (0 == strcmp(operator, "+")) return OP_ADD;
+  if (0 == strcmp(operator, "-")) return OP_SUBTRACT;
+  if (0 == strcmp(operator, "*")) return OP_MULTIPLY;
+  if (0 == strcmp(operator, "/")) return OP_DIVIDE;
+  if (0 == strcmp(operator, "%")) return OP_MODULO;
+
+  INTERNAL_ERROR("Unknown binary operator '%s'", operator);
+}
+
+#define assert_binary_operator_syntax(operator)                                 \
+  do {                                                                          \
+    OpCode const operator_opcode = map_binary_operator_to_its_opcode(operator); \
+    int const operator_length = strlen(operator);                               \
+                                                                                \
+    compile_assert_failure(operator);                                           \
+    assert_syntax_error(1, 1, "Expected expression at '" operator"'");          \
+                                                                                \
+    compile_assert_unexpected_eof("1 " operator);                               \
+    assert_syntax_error(1, 3 + operator_length, "Expected expression");         \
+                                                                                \
+    compile_assert_success("1 " operator" 2;");                                 \
+    assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));             \
+    assert_opcodes(operator_opcode, OP_POP, OP_RETURN);                         \
+  } while (0)
+
+#define assert_binary_operator_is_left_associative(operator)                    \
+  do {                                                                          \
+    OpCode const operator_opcode = map_binary_operator_to_its_opcode(operator); \
+    compile_assert_success("1 " operator" 2 " operator" 3;");                   \
+    assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));             \
+    assert_opcode(operator_opcode);                                             \
+    assert_constant_instruction(NUMBER_VALUE(3));                               \
+    assert_opcodes(operator_opcode, OP_POP, OP_RETURN);                         \
+  } while (0)
+
+#define assert_binary_operators_have_the_same_precedence(operator_a, operator_b)    \
+  do {                                                                              \
+    OpCode const operator_a_opcode = map_binary_operator_to_its_opcode(operator_a); \
+    OpCode const operator_b_opcode = map_binary_operator_to_its_opcode(operator_b); \
+                                                                                    \
+    compile_assert_success("1 " operator_a " 2 " operator_b " 3;");                 \
+    assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));                 \
+    assert_opcode(operator_a_opcode);                                               \
+    assert_constant_instruction(NUMBER_VALUE(3));                                   \
+    assert_opcodes(operator_b_opcode, OP_POP, OP_RETURN);                           \
+                                                                                    \
+    compile_assert_success("1 " operator_b " 2 " operator_a " 3;");                 \
+    assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));                 \
+    assert_opcode(operator_b_opcode);                                               \
+    assert_constant_instruction(NUMBER_VALUE(3));                                   \
+    assert_opcodes(operator_a_opcode, OP_POP, OP_RETURN);                           \
+  } while (0)
+
+#define assert_binary_operator_a_has_higher_precedence(operator_a, operator_b)       \
+  do {                                                                               \
+    OpCode const operator_a_opcode = map_binary_operator_to_its_opcode(operator_a);  \
+    OpCode const operator_b_opcode = map_binary_operator_to_its_opcode(operator_b);  \
+                                                                                     \
+    compile_assert_success("1 " operator_b " 2 " operator_a " 3;");                  \
+    assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2), NUMBER_VALUE(3)); \
+    assert_opcodes(operator_a_opcode, operator_b_opcode, OP_POP, OP_RETURN);         \
+  } while (0)
 
 // *---------------------------------------------*
 // *                  FIXTURES                   *
@@ -183,121 +288,38 @@ static void test_OP_CONSTANT_2B_being_generated(void **const _) {
 }
 
 static void test_arithmetic_operators(void **const _) {
-  compile_assert_failure("+");
-  assert_syntax_error(1, 1, "Expected expression at '+'");
-  compile_assert_failure("*");
-  assert_syntax_error(1, 1, "Expected expression at '*'");
-  compile_assert_failure("/");
-  assert_syntax_error(1, 1, "Expected expression at '/'");
-  compile_assert_failure("%");
-  assert_syntax_error(1, 1, "Expected expression at '%'");
+  assert_binary_operator_syntax("+");
+  assert_binary_operator_syntax("*");
+  assert_binary_operator_syntax("/");
+  assert_binary_operator_syntax("%");
 
-  compile_assert_unexpected_eof("-"); // '-' symbol also denotes unary negation operator, hence unexpected_eof
+  // '-' is a unary/binary operator; hence it cannot use binary-operator-specific assertions
+  compile_assert_unexpected_eof("-");
   assert_syntax_error(1, 2, "Expected expression");
-  compile_assert_unexpected_eof("1 +");
-  assert_syntax_error(1, 4, "Expected expression");
+
   compile_assert_unexpected_eof("2 -");
   assert_syntax_error(1, 4, "Expected expression");
-  compile_assert_unexpected_eof("3 *");
-  assert_syntax_error(1, 4, "Expected expression");
-  compile_assert_unexpected_eof("4 /");
-  assert_syntax_error(1, 4, "Expected expression");
-  compile_assert_unexpected_eof("5 %");
-  assert_syntax_error(1, 4, "Expected expression");
-
-  compile_assert_success("1 + 2;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
 
   compile_assert_success("1 - 2;");
   assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
   assert_opcodes(OP_SUBTRACT, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 * 2;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 / 2;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcodes(OP_DIVIDE, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 % 2;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcodes(OP_MODULO, OP_POP, OP_RETURN);
 }
 
 static void test_arithmetic_operator_associativity(void **const _) {
-  compile_assert_success("1 + 2 + 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_ADD);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 - 2 - 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_SUBTRACT);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_SUBTRACT, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 * 2 * 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_MULTIPLY);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 / 2 / 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_DIVIDE);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_DIVIDE, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 % 2 % 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_MODULO);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_MODULO, OP_POP, OP_RETURN);
+  assert_binary_operator_is_left_associative("+");
+  assert_binary_operator_is_left_associative("-");
+  assert_binary_operator_is_left_associative("*");
+  assert_binary_operator_is_left_associative("/");
+  assert_binary_operator_is_left_associative("%");
 }
 
 static void test_arithmetic_operator_precedence(void **const _) {
-  compile_assert_success("1 + 2 - 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_ADD);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_SUBTRACT, OP_POP, OP_RETURN);
+  assert_binary_operators_have_the_same_precedence("+", "-");
 
-  compile_assert_success("1 - 2 + 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_SUBTRACT);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcodes(OP_ADD, OP_POP, OP_RETURN);
+  assert_binary_operators_have_the_same_precedence("*", "/");
+  assert_binary_operators_have_the_same_precedence("/", "%");
 
-  compile_assert_success("1 * 2 / 3 % 4;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_MULTIPLY);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcode(OP_DIVIDE);
-  assert_constant_instruction(NUMBER_VALUE(4));
-  assert_opcodes(OP_MODULO, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 % 2 * 3 / 4;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_MODULO);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcode(OP_MULTIPLY);
-  assert_constant_instruction(NUMBER_VALUE(4));
-  assert_opcodes(OP_DIVIDE, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 / 2 % 3 * 4;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2));
-  assert_opcode(OP_DIVIDE);
-  assert_constant_instruction(NUMBER_VALUE(3));
-  assert_opcode(OP_MODULO);
-  assert_constant_instruction(NUMBER_VALUE(4));
-  assert_opcodes(OP_MULTIPLY, OP_POP, OP_RETURN);
-
-  compile_assert_success("1 + 2 * 3;");
-  assert_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2), NUMBER_VALUE(3));
-  assert_opcodes(OP_MULTIPLY, OP_ADD, OP_POP, OP_RETURN);
+  assert_binary_operator_a_has_higher_precedence("*", "+");
 }
 
 static void test_grouping_expr(void **const _) {
