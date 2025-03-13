@@ -477,45 +477,25 @@ static void test_OP_MODULO(void **const _) {
 }
 
 static void test_OP_NOT(void **const _) {
+#define assert_value_a_OP_NOT_equals_b(value_a, expected_value_b) \
+  do {                                                            \
+    reset_test_case_env();                                        \
+    append_constant_instructions(value_a);                        \
+    append_instructions(OP_NOT, OP_RETURN);                       \
+    run_assert_success();                                         \
+    stack_pop_assert(BOOL_VALUE(expected_value_b));               \
+    assert_empty_stack();                                         \
+  } while (0)
+
   // truthy values
-  append_constant_instruction(NUMBER_VALUE(1));
-  append_instructions(OP_NOT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(BOOL_VALUE(false));
-  assert_empty_stack();
-
-  reset_test_case_env();
-  append_constant_instruction(NUMBER_VALUE(-1));
-  append_instructions(OP_NOT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(BOOL_VALUE(false));
-  assert_empty_stack();
-
-  reset_test_case_env();
-  append_constant_instruction(NUMBER_VALUE(0));
-  append_instructions(OP_NOT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(BOOL_VALUE(false));
-  assert_empty_stack();
-
-  reset_test_case_env();
-  append_instructions(OP_TRUE, OP_NOT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(BOOL_VALUE(false));
-  assert_empty_stack();
+  assert_value_a_OP_NOT_equals_b(NUMBER_VALUE(1), false);
+  assert_value_a_OP_NOT_equals_b(NUMBER_VALUE(-1), false);
+  assert_value_a_OP_NOT_equals_b(NUMBER_VALUE(0), false);
+  assert_value_a_OP_NOT_equals_b(BOOL_VALUE(true), false);
 
   // falsy values
-  reset_test_case_env();
-  append_instructions(OP_FALSE, OP_NOT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(BOOL_VALUE(true));
-  assert_empty_stack();
-
-  reset_test_case_env();
-  append_instructions(OP_NIL, OP_NOT, OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(BOOL_VALUE(true));
-  assert_empty_stack();
+  assert_value_a_OP_NOT_equals_b(BOOL_VALUE(false), true);
+  assert_value_a_OP_NOT_equals_b(NIL_VALUE(), true);
 
   // "not" stacking
   reset_test_case_env();
@@ -531,6 +511,8 @@ static void test_OP_NOT(void **const _) {
   run_assert_success();
   stack_pop_assert(BOOL_VALUE(false));
   assert_empty_stack();
+
+#undef assert_value_a_OP_NOT_equals_b
 }
 
 int main(void) {
