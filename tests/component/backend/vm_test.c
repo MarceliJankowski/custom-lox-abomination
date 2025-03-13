@@ -473,7 +473,7 @@ static void test_OP_MODULO(void **const _) {
   // invalid operand types
   assert_invalid_binary_arithmetic_operator_operand_types(OP_MODULO, "modulo");
 
-#undef assert_a_b_OP_MODULO_equals_c
+#undef assert_number_constants_a_b_OP_MODULO_equal_c
 }
 
 static void test_OP_NOT(void **const _) {
