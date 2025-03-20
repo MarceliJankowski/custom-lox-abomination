@@ -101,6 +101,16 @@ static void reset_test_case_env(void) {
     assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");    \
   } while (0)
 
+#define assert_value_is_result_of_instruction_on_values(expected_value, instruction, ...) \
+  do {                                                                                    \
+    reset_test_case_env();                                                                \
+    append_constant_instructions(__VA_ARGS__);                                            \
+    append_instructions(instruction, OP_RETURN);                                          \
+    run_assert_success();                                                                 \
+    stack_pop_assert(expected_value);                                                     \
+    assert_empty_stack();                                                                 \
+  } while (0)
+
 // *---------------------------------------------*
 // *                  FIXTURES                   *
 // *---------------------------------------------*
@@ -201,14 +211,7 @@ static void test_OP_POP(void **const _) {
 
 static void test_OP_NEGATE(void **const _) {
 #define assert_number_constant_a_OP_NEGATE_equal_b(number_a, expected_number_b) \
-  do {                                                                          \
-    reset_test_case_env();                                                      \
-    append_constant_instruction(NUMBER_VALUE(number_a));                        \
-    append_instructions(OP_NEGATE, OP_RETURN);                                  \
-    run_assert_success();                                                       \
-    stack_pop_assert(NUMBER_VALUE(expected_number_b));                          \
-    assert_empty_stack();                                                       \
-  } while (0)
+  assert_value_is_result_of_instruction_on_values(NUMBER_VALUE(expected_number_b), OP_NEGATE, NUMBER_VALUE(number_a))
 
   // signed integer negation
   assert_number_constant_a_OP_NEGATE_equal_b(1, -1);
@@ -256,15 +259,10 @@ static void test_OP_NEGATE(void **const _) {
 }
 
 static void test_OP_ADD(void **const _) {
-#define assert_number_constants_a_b_OP_ADD_equal_c(number_a, number_b, expected_number_c) \
-  do {                                                                                    \
-    reset_test_case_env();                                                                \
-    append_constant_instructions(NUMBER_VALUE(number_a), NUMBER_VALUE(number_b));         \
-    append_instructions(OP_ADD, OP_RETURN);                                               \
-    run_assert_success();                                                                 \
-    stack_pop_assert(NUMBER_VALUE(expected_number_c));                                    \
-    assert_empty_stack();                                                                 \
-  } while (0)
+#define assert_number_constants_a_b_OP_ADD_equal_c(number_a, number_b, expected_number_c)   \
+  assert_value_is_result_of_instruction_on_values(                                          \
+    NUMBER_VALUE(expected_number_c), OP_ADD, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
 
   // integer addition and commutativity
   assert_number_constants_a_b_OP_ADD_equal_c(1, 2, 3);
@@ -295,15 +293,10 @@ static void test_OP_ADD(void **const _) {
 }
 
 static void test_OP_SUBTRACT(void **const _) {
-#define assert_number_constants_a_b_OP_SUBTRACT_equal_c(number_a, number_b, expected_number_c) \
-  do {                                                                                         \
-    reset_test_case_env();                                                                     \
-    append_constant_instructions(NUMBER_VALUE(number_a), NUMBER_VALUE(number_b));              \
-    append_instructions(OP_SUBTRACT, OP_RETURN);                                               \
-    run_assert_success();                                                                      \
-    stack_pop_assert(NUMBER_VALUE(expected_number_c));                                         \
-    assert_empty_stack();                                                                      \
-  } while (0)
+#define assert_number_constants_a_b_OP_SUBTRACT_equal_c(number_a, number_b, expected_number_c)   \
+  assert_value_is_result_of_instruction_on_values(                                               \
+    NUMBER_VALUE(expected_number_c), OP_SUBTRACT, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
 
   // integer subtraction and non-commutativity
   assert_number_constants_a_b_OP_SUBTRACT_equal_c(4, 3, 1);
@@ -334,15 +327,10 @@ static void test_OP_SUBTRACT(void **const _) {
 }
 
 static void test_OP_MULTIPLY(void **const _) {
-#define assert_number_constants_a_b_OP_MULTIPLY_equal_c(number_a, number_b, expected_number_c) \
-  do {                                                                                         \
-    reset_test_case_env();                                                                     \
-    append_constant_instructions(NUMBER_VALUE(number_a), NUMBER_VALUE(number_b));              \
-    append_instructions(OP_MULTIPLY, OP_RETURN);                                               \
-    run_assert_success();                                                                      \
-    stack_pop_assert(NUMBER_VALUE(expected_number_c));                                         \
-    assert_empty_stack();                                                                      \
-  } while (0)
+#define assert_number_constants_a_b_OP_MULTIPLY_equal_c(number_a, number_b, expected_number_c)   \
+  assert_value_is_result_of_instruction_on_values(                                               \
+    NUMBER_VALUE(expected_number_c), OP_MULTIPLY, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
 
   // integer multiplication and commutativity
   assert_number_constants_a_b_OP_MULTIPLY_equal_c(5, 3, 15);
@@ -373,15 +361,10 @@ static void test_OP_MULTIPLY(void **const _) {
 }
 
 static void test_OP_DIVIDE(void **const _) {
-#define assert_number_constants_a_b_OP_DIVIDE_equal_c(number_a, number_b, expected_number_c) \
-  do {                                                                                       \
-    reset_test_case_env();                                                                   \
-    append_constant_instructions(NUMBER_VALUE(number_a), NUMBER_VALUE(number_b));            \
-    append_instructions(OP_DIVIDE, OP_RETURN);                                               \
-    run_assert_success();                                                                    \
-    stack_pop_assert(NUMBER_VALUE(expected_number_c));                                       \
-    assert_empty_stack();                                                                    \
-  } while (0)
+#define assert_number_constants_a_b_OP_DIVIDE_equal_c(number_a, number_b, expected_number_c)   \
+  assert_value_is_result_of_instruction_on_values(                                             \
+    NUMBER_VALUE(expected_number_c), OP_DIVIDE, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
 
   // integer division and non-commutativity
   assert_number_constants_a_b_OP_DIVIDE_equal_c(8, 2, 4);
@@ -425,15 +408,10 @@ static void test_OP_DIVIDE(void **const _) {
 }
 
 static void test_OP_MODULO(void **const _) {
-#define assert_number_constants_a_b_OP_MODULO_equal_c(number_a, number_b, expected_number_c) \
-  do {                                                                                       \
-    reset_test_case_env();                                                                   \
-    append_constant_instructions(NUMBER_VALUE(number_a), NUMBER_VALUE(number_b));            \
-    append_instructions(OP_MODULO, OP_RETURN);                                               \
-    run_assert_success();                                                                    \
-    stack_pop_assert(NUMBER_VALUE(expected_number_c));                                       \
-    assert_empty_stack();                                                                    \
-  } while (0)
+#define assert_number_constants_a_b_OP_MODULO_equal_c(number_a, number_b, expected_number_c)   \
+  assert_value_is_result_of_instruction_on_values(                                             \
+    NUMBER_VALUE(expected_number_c), OP_MODULO, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
 
   // integer modulo and non-commutativity
   assert_number_constants_a_b_OP_MODULO_equal_c(8, 2, 0);
@@ -477,15 +455,8 @@ static void test_OP_MODULO(void **const _) {
 }
 
 static void test_OP_NOT(void **const _) {
-#define assert_value_a_OP_NOT_equals_b(value_a, expected_value_b) \
-  do {                                                            \
-    reset_test_case_env();                                        \
-    append_constant_instructions(value_a);                        \
-    append_instructions(OP_NOT, OP_RETURN);                       \
-    run_assert_success();                                         \
-    stack_pop_assert(BOOL_VALUE(expected_value_b));               \
-    assert_empty_stack();                                         \
-  } while (0)
+#define assert_value_a_OP_NOT_equals_b(value_a, expected_bool_b) \
+  assert_value_is_result_of_instruction_on_values(BOOL_VALUE(expected_bool_b), OP_NOT, value_a)
 
   // truthy values
   assert_value_a_OP_NOT_equals_b(NUMBER_VALUE(1), false);
