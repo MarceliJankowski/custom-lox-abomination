@@ -39,9 +39,9 @@ typedef enum {
   TOKEN_SINGLE_CHAR_END, // assertion utility
 
   // multi-character tokens
+  TOKEN_EQUAL_EQUAL,
   TOKEN_BANG_EQUAL,
   TOKEN_LESS_EQUAL,
-  TOKEN_EQUAL_EQUAL,
   TOKEN_GREATER_EQUAL,
   TOKEN_MULTI_CHAR_END, // assertion utility
 

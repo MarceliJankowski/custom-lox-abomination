@@ -43,5 +43,6 @@ void value_array_init(ValueArray *array);
 void value_array_append(ValueArray *array, Value value);
 void value_array_free(ValueArray *array);
 void value_print(Value value);
+bool value_equals(Value value_a, Value value_b);
 
 #endif // VALUE_H

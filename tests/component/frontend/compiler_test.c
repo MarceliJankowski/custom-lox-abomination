@@ -128,6 +128,12 @@ static OpCode map_binary_operator_to_its_opcode(char const *const operator) {
   if (0 == strcmp(operator, "*")) return OP_MULTIPLY;
   if (0 == strcmp(operator, "/")) return OP_DIVIDE;
   if (0 == strcmp(operator, "%")) return OP_MODULO;
+  if (0 == strcmp(operator, "==")) return OP_EQUAL;
+  if (0 == strcmp(operator, "!=")) return OP_NOT_EQUAL;
+  if (0 == strcmp(operator, "<")) return OP_LESS;
+  if (0 == strcmp(operator, "<=")) return OP_LESS_EQUAL;
+  if (0 == strcmp(operator, ">")) return OP_GREATER;
+  if (0 == strcmp(operator, ">=")) return OP_GREATER_EQUAL;
 
   INTERNAL_ERROR("Unknown binary operator '%s'", operator);
 }
@@ -211,7 +217,7 @@ static int teardown_test_group_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 15, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 21, "Exhaustive OpCode handling");
 
 static void test_lexical_error_reporting(void **const _) {
   compile_assert_failure("\"abc");
@@ -358,6 +364,34 @@ static void test_logical_operators(void **const _) {
   assert_opcodes(OP_TRUE, OP_NOT, OP_POP, OP_RETURN);
 }
 
+static void test_relational_operators(void **const _) {
+  assert_binary_operator_syntax("==");
+  assert_binary_operator_syntax("!=");
+  assert_binary_operator_syntax("<");
+  assert_binary_operator_syntax("<=");
+  assert_binary_operator_syntax("<");
+  assert_binary_operator_syntax("<=");
+}
+
+static void test_relational_operator_associativity(void **const _) {
+  assert_binary_operator_is_left_associative("==");
+  assert_binary_operator_is_left_associative("!=");
+  assert_binary_operator_is_left_associative("<");
+  assert_binary_operator_is_left_associative("<=");
+  assert_binary_operator_is_left_associative(">");
+  assert_binary_operator_is_left_associative(">=");
+}
+
+static void test_relational_operator_precedence(void **const _) {
+  assert_binary_operators_have_the_same_precedence("==", "!=");
+
+  assert_binary_operators_have_the_same_precedence("<", "<=");
+  assert_binary_operators_have_the_same_precedence("<=", ">");
+  assert_binary_operators_have_the_same_precedence(">", ">=");
+
+  assert_binary_operator_a_has_higher_precedence(">", "==");
+}
+
 static void test_print_stmt(void **const _) {
   compile_assert_unexpected_eof("print");
   assert_syntax_error(1, 6, "Expected expression");
@@ -381,9 +415,13 @@ int main(void) {
     cmocka_unit_test(test_OP_CONSTANT_2B_being_generated),
     cmocka_unit_test(test_arithmetic_operators),
     cmocka_unit_test(test_arithmetic_operator_associativity),
+
     cmocka_unit_test(test_arithmetic_operator_precedence),
     cmocka_unit_test(test_grouping_expr),
     cmocka_unit_test(test_logical_operators),
+    cmocka_unit_test(test_relational_operators),
+    cmocka_unit_test(test_relational_operator_associativity),
+    cmocka_unit_test(test_relational_operator_precedence),
     cmocka_unit_test(test_print_stmt),
   };
 

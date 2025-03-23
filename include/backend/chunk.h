@@ -24,6 +24,12 @@ typedef enum {
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
+  OP_EQUAL,
+  OP_NOT_EQUAL,
+  OP_LESS,
+  OP_LESS_EQUAL,
+  OP_GREATER,
+  OP_GREATER_EQUAL,
   OP_SIMPLE_OPCODE_END, // assertion utility
 
   // complex-instruction opcodes (with operands)

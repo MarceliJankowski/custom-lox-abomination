@@ -87,7 +87,7 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
 /**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
 @return offset to next instruction*/
 static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
-  static_assert(OP_SIMPLE_OPCODE_COUNT == 13, "Exhaustive simple opcode handling");
+  static_assert(OP_SIMPLE_OPCODE_COUNT == 19, "Exhaustive simple opcode handling");
   switch (opcode) {
     case OP_RETURN: PUTS_BREAK("OP_RETURN");
     case OP_PRINT: PUTS_BREAK("OP_PRINT");
@@ -102,6 +102,12 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
     case OP_NIL: PUTS_BREAK("OP_NIL");
     case OP_TRUE: PUTS_BREAK("OP_TRUE");
     case OP_FALSE: PUTS_BREAK("OP_FALSE");
+    case OP_EQUAL: PUTS_BREAK("OP_EQUAL");
+    case OP_NOT_EQUAL: PUTS_BREAK("OP_NOT_EQUAL");
+    case OP_LESS: PUTS_BREAK("OP_LESS");
+    case OP_LESS_EQUAL: PUTS_BREAK("OP_LESS_EQUAL");
+    case OP_GREATER: PUTS_BREAK("OP_GREATER");
+    case OP_GREATER_EQUAL: PUTS_BREAK("OP_GREATER_EQUAL");
 
     default: INTERNAL_ERROR("Unknown simple instruction opcode '%d'", opcode);
   }
@@ -147,7 +153,7 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
 
   uint8_t const opcode = chunk->code[offset];
 
-  static_assert(OP_OPCODE_COUNT == 15, "Exhaustive opcode handling");
+  static_assert(OP_OPCODE_COUNT == 21, "Exhaustive opcode handling");
   switch (opcode) {
     case OP_RETURN:
     case OP_PRINT:
@@ -161,7 +167,13 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
     case OP_NOT:
     case OP_NIL:
     case OP_TRUE:
-    case OP_FALSE: {
+    case OP_FALSE:
+    case OP_EQUAL:
+    case OP_NOT_EQUAL:
+    case OP_LESS:
+    case OP_LESS_EQUAL:
+    case OP_GREATER:
+    case OP_GREATER_EQUAL: {
       return debug_simple_instruction(opcode, offset);
     }
     case OP_CONSTANT:

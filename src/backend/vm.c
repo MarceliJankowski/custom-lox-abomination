@@ -100,7 +100,7 @@ bool vm_execute(void) {
     assert(vm.ip < vm.chunk->code + vm.chunk->count && "Instruction pointer out of bounds");
     uint8_t const opcode = read_byte();
 
-    static_assert(OP_OPCODE_COUNT == 15, "Exhaustive opcode handling");
+    static_assert(OP_OPCODE_COUNT == 21, "Exhaustive opcode handling");
     switch (opcode) {
       case OP_RETURN: {
         return true; // successful chunk execution
@@ -155,74 +155,141 @@ bool vm_execute(void) {
       case OP_ADD: {
         assert_min_vm_stack_count(2);
 
-        Value const addend = vm_stack_pop();
-        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(addend)) {
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
           return vm_error_at(
             get_instruction_offset(1), "Expected addition operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[addend.type]
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
           );
         }
-        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number + addend.payload.number;
+        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number + second_operand.payload.number;
         break;
       }
       case OP_SUBTRACT: {
         assert_min_vm_stack_count(2);
 
-        Value const subtrahent = vm_stack_pop();
-        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(subtrahent)) {
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
           return vm_error_at(
             get_instruction_offset(1), "Expected subtraction operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[subtrahent.type]
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
           );
         }
-        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number - subtrahent.payload.number;
+        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number - second_operand.payload.number;
         break;
       }
       case OP_MULTIPLY: {
         assert_min_vm_stack_count(2);
 
-        Value const multiplicand = vm_stack_pop();
-        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(multiplicand)) {
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
           return vm_error_at(
             get_instruction_offset(1), "Expected multiplication operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[multiplicand.type]
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
           );
         }
-        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number * multiplicand.payload.number;
+        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number * second_operand.payload.number;
         break;
       }
       case OP_DIVIDE: {
         assert_min_vm_stack_count(2);
 
-        Value const divisor = vm_stack_pop();
-        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(divisor)) {
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
           return vm_error_at(
             get_instruction_offset(1), "Expected division operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[divisor.type]
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
           );
         }
-        if (divisor.payload.number == 0) return vm_error_at(get_instruction_offset(1), "Illegal division by zero");
-        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number / divisor.payload.number;
+        if (second_operand.payload.number == 0)
+          return vm_error_at(get_instruction_offset(1), "Illegal division by zero");
+        vm_stack_top_frame.payload.number = vm_stack_top_frame.payload.number / second_operand.payload.number;
         break;
       }
       case OP_MODULO: {
         assert_min_vm_stack_count(2);
 
-        Value const divisor = vm_stack_pop();
-        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(divisor)) {
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
           return vm_error_at(
             get_instruction_offset(1), "Expected modulo operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[divisor.type]
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
           );
         }
-        if (divisor.payload.number == 0) return vm_error_at(get_instruction_offset(1), "Illegal modulo by zero");
-        vm_stack_top_frame.payload.number = fmod(vm_stack_top_frame.payload.number, divisor.payload.number);
+        if (second_operand.payload.number == 0) return vm_error_at(get_instruction_offset(1), "Illegal modulo by zero");
+        vm_stack_top_frame.payload.number = fmod(vm_stack_top_frame.payload.number, second_operand.payload.number);
         break;
       }
       case OP_NOT: {
         assert_min_vm_stack_count(1);
 
         vm_stack_top_frame = BOOL_VALUE(IS_FALSY_VALUE(vm_stack_top_frame));
+        break;
+      }
+      case OP_EQUAL: {
+        assert_min_vm_stack_count(2);
+
+        Value const second_operand = vm_stack_pop();
+        vm_stack_top_frame = BOOL_VALUE(value_equals(vm_stack_top_frame, second_operand));
+        break;
+      }
+      case OP_NOT_EQUAL: {
+        assert_min_vm_stack_count(2);
+
+        Value const second_operand = vm_stack_pop();
+        vm_stack_top_frame = BOOL_VALUE(!value_equals(vm_stack_top_frame, second_operand));
+        break;
+      }
+      case OP_LESS: {
+        assert_min_vm_stack_count(2);
+
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
+          return vm_error_at(
+            get_instruction_offset(1), "Expected less-than operands to be numbers (got '%s' and '%s')",
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
+          );
+        }
+        vm_stack_top_frame = BOOL_VALUE(vm_stack_top_frame.payload.number < second_operand.payload.number);
+        break;
+      }
+      case OP_LESS_EQUAL: {
+        assert_min_vm_stack_count(2);
+
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
+          return vm_error_at(
+            get_instruction_offset(1), "Expected less-than-or-equal operands to be numbers (got '%s' and '%s')",
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
+          );
+        }
+        vm_stack_top_frame = BOOL_VALUE(vm_stack_top_frame.payload.number <= second_operand.payload.number);
+        break;
+      }
+      case OP_GREATER: {
+        assert_min_vm_stack_count(2);
+
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
+          return vm_error_at(
+            get_instruction_offset(1), "Expected greater-than operands to be numbers (got '%s' and '%s')",
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
+          );
+        }
+        vm_stack_top_frame = BOOL_VALUE(vm_stack_top_frame.payload.number > second_operand.payload.number);
+        break;
+      }
+      case OP_GREATER_EQUAL: {
+        assert_min_vm_stack_count(2);
+
+        Value const second_operand = vm_stack_pop();
+        if (!IS_NUMBER_VALUE(vm_stack_top_frame) || !IS_NUMBER_VALUE(second_operand)) {
+          return vm_error_at(
+            get_instruction_offset(1), "Expected greater-than-or-equal operands to be numbers (got '%s' and '%s')",
+            value_type_to_string_table[vm_stack_top_frame.type], value_type_to_string_table[second_operand.type]
+          );
+        }
+        vm_stack_top_frame = BOOL_VALUE(vm_stack_top_frame.payload.number >= second_operand.payload.number);
         break;
       }
       default: INTERNAL_ERROR("Unknown opcode '%d'", opcode);

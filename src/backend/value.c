@@ -55,3 +55,18 @@ void value_print(Value const value) {
     default: INTERNAL_ERROR("Unknown ValueType '%d'", value.type);
   }
 }
+
+/**@desc determine whether `value_a` equals `value_b`
+@return true if it does, false otherwise*/
+bool value_equals(Value const value_a, Value const value_b) {
+  if (value_a.type != value_b.type) return false;
+
+  static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
+  switch (value_a.type) {
+    case VALUE_NIL: return true;
+    case VALUE_BOOL: return value_a.payload.boolean == value_b.payload.boolean;
+    case VALUE_NUMBER: return value_a.payload.number == value_b.payload.number;
+
+    default: INTERNAL_ERROR("Unknown ValueType '%d'", value_a.type);
+  }
+}

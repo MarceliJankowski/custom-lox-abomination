@@ -52,7 +52,7 @@ static void reset_test_case_env(void) {
 #define assert_runtime_output(expected_output) \
   assert_binary_stream_resource_content(g_runtime_output_stream, expected_output "\n")
 
-#define assert_invalid_binary_arithmetic_operator_operand_types(operator_instruction, operator_descriptor)       \
+#define assert_invalid_binary_numeric_operator_operand_types(operator_instruction, operator_descriptor)          \
   do {                                                                                                           \
     reset_test_case_env();                                                                                       \
     append_instructions(OP_NIL, OP_NIL, operator_instruction, OP_RETURN);                                        \
@@ -151,7 +151,7 @@ static int teardown_test_case_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(OP_OPCODE_COUNT == 15, "Exhaustive OpCode handling");
+static_assert(OP_OPCODE_COUNT == 21, "Exhaustive OpCode handling");
 
 static void test_OP_CONSTANT(void **const _) {
   append_constant_instructions(NUMBER_VALUE(1), NUMBER_VALUE(2), NUMBER_VALUE(3));
@@ -287,7 +287,7 @@ static void test_OP_ADD(void **const _) {
   assert_number_constants_a_b_OP_ADD_equal_c(-0, -0, -0);
 
   // invalid operand types
-  assert_invalid_binary_arithmetic_operator_operand_types(OP_ADD, "addition");
+  assert_invalid_binary_numeric_operator_operand_types(OP_ADD, "addition");
 
 #undef assert_number_constants_a_b_OP_ADD_equal_c
 }
@@ -321,7 +321,7 @@ static void test_OP_SUBTRACT(void **const _) {
   assert_number_constants_a_b_OP_SUBTRACT_equal_c(-0, -0, 0);
 
   // invalid operand types
-  assert_invalid_binary_arithmetic_operator_operand_types(OP_SUBTRACT, "subtraction");
+  assert_invalid_binary_numeric_operator_operand_types(OP_SUBTRACT, "subtraction");
 
 #undef assert_number_constants_a_b_OP_SUBTRACT_equal_c
 }
@@ -355,7 +355,7 @@ static void test_OP_MULTIPLY(void **const _) {
   assert_number_constants_a_b_OP_MULTIPLY_equal_c(-0, -0, 0);
 
   // invalid operand types
-  assert_invalid_binary_arithmetic_operator_operand_types(OP_MULTIPLY, "multiplication");
+  assert_invalid_binary_numeric_operator_operand_types(OP_MULTIPLY, "multiplication");
 
 #undef assert_number_constants_a_b_OP_MULTIPLY_equal_c
 }
@@ -402,7 +402,7 @@ static void test_OP_DIVIDE(void **const _) {
   assert_execution_error("Illegal division by zero");
 
   // invalid operand types
-  assert_invalid_binary_arithmetic_operator_operand_types(OP_DIVIDE, "division");
+  assert_invalid_binary_numeric_operator_operand_types(OP_DIVIDE, "division");
 
 #undef assert_number_constants_a_b_OP_DIVIDE_equal_c
 }
@@ -449,7 +449,7 @@ static void test_OP_MODULO(void **const _) {
   assert_execution_error("Illegal modulo by zero");
 
   // invalid operand types
-  assert_invalid_binary_arithmetic_operator_operand_types(OP_MODULO, "modulo");
+  assert_invalid_binary_numeric_operator_operand_types(OP_MODULO, "modulo");
 
 #undef assert_number_constants_a_b_OP_MODULO_equal_c
 }
@@ -486,6 +486,152 @@ static void test_OP_NOT(void **const _) {
 #undef assert_value_a_OP_NOT_equals_b
 }
 
+static void test_OP_EQUAL(void **const _) {
+#define assert_values_a_b_OP_EQUAL_equal_c(value_a, value_b, expected_bool_c) \
+  assert_value_is_result_of_instruction_on_values(BOOL_VALUE(expected_bool_c), OP_EQUAL, value_a, value_b)
+
+  // equal values
+  assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(1), NUMBER_VALUE(1), true);
+  assert_values_a_b_OP_EQUAL_equal_c(BOOL_VALUE(true), BOOL_VALUE(true), true);
+  assert_values_a_b_OP_EQUAL_equal_c(NIL_VALUE(), NIL_VALUE(), true);
+
+  // unequal values
+  assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(0), NUMBER_VALUE(1), false);
+  assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(0), BOOL_VALUE(true), false);
+  assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(0), NIL_VALUE(), false);
+  assert_values_a_b_OP_EQUAL_equal_c(BOOL_VALUE(true), BOOL_VALUE(false), false);
+  assert_values_a_b_OP_EQUAL_equal_c(BOOL_VALUE(false), NIL_VALUE(), false);
+
+#undef assert_values_a_b_OP_EQUAL_equal_c
+}
+
+static void test_OP_NOT_EQUAL(void **const _) {
+#define assert_values_a_b_OP_NOT_EQUAL_equal_c(value_a, value_b, expected_bool_c) \
+  assert_value_is_result_of_instruction_on_values(BOOL_VALUE(expected_bool_c), OP_NOT_EQUAL, value_a, value_b)
+
+  // equal values
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(1), NUMBER_VALUE(1), false);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(BOOL_VALUE(true), BOOL_VALUE(true), false);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(NIL_VALUE(), NIL_VALUE(), false);
+
+  // unequal values
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(0), NUMBER_VALUE(1), true);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(0), BOOL_VALUE(true), true);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(0), NIL_VALUE(), true);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(BOOL_VALUE(true), BOOL_VALUE(false), true);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(BOOL_VALUE(false), NIL_VALUE(), true);
+
+#undef assert_values_a_b_OP_NOT_EQUAL_equal_c
+}
+
+static void test_OP_LESS(void **const _) {
+#define assert_numbers_a_b_OP_LESS_equal_c(number_a, number_b, expected_bool_c)          \
+  assert_value_is_result_of_instruction_on_values(                                       \
+    BOOL_VALUE(expected_bool_c), OP_LESS, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
+
+  // ascending numbers
+  assert_numbers_a_b_OP_LESS_equal_c(-5, 0, true);
+  assert_numbers_a_b_OP_LESS_equal_c(0, 5, true);
+  assert_numbers_a_b_OP_LESS_equal_c(5, 10, true);
+
+  // descending numbers
+  assert_numbers_a_b_OP_LESS_equal_c(0, -5, false);
+  assert_numbers_a_b_OP_LESS_equal_c(5, 0, false);
+  assert_numbers_a_b_OP_LESS_equal_c(10, 5, false);
+
+  // equal numbers
+  assert_numbers_a_b_OP_LESS_equal_c(-1, -1, false);
+  assert_numbers_a_b_OP_LESS_equal_c(0, 0, false);
+  assert_numbers_a_b_OP_LESS_equal_c(2, 2, false);
+
+  // invalid operand types
+  assert_invalid_binary_numeric_operator_operand_types(OP_LESS, "less-than");
+
+#undef assert_numbers_a_b_OP_LESS_equal_c
+}
+
+static void test_OP_LESS_EQUAL(void **const _) {
+#define assert_numbers_a_b_OP_LESS_EQUAL_equal_c(number_a, number_b, expected_bool_c)          \
+  assert_value_is_result_of_instruction_on_values(                                             \
+    BOOL_VALUE(expected_bool_c), OP_LESS_EQUAL, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
+
+  // ascending numbers
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(-5, 0, true);
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(0, 5, true);
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(5, 10, true);
+
+  // descending numbers
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(0, -5, false);
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(5, 0, false);
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(10, 5, false);
+
+  // equal numbers
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(-1, -1, true);
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(0, 0, true);
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(2, 2, true);
+
+  // invalid operand types
+  assert_invalid_binary_numeric_operator_operand_types(OP_LESS_EQUAL, "less-than-or-equal");
+
+#undef assert_numbers_a_b_OP_LESS_EQUAL_equal_c
+}
+
+static void test_OP_GREATER(void **const _) {
+#define assert_numbers_a_b_OP_GREATER_equal_c(number_a, number_b, expected_bool_c)          \
+  assert_value_is_result_of_instruction_on_values(                                          \
+    BOOL_VALUE(expected_bool_c), OP_GREATER, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
+
+  // ascending numbers
+  assert_numbers_a_b_OP_GREATER_equal_c(-5, 0, false);
+  assert_numbers_a_b_OP_GREATER_equal_c(0, 5, false);
+  assert_numbers_a_b_OP_GREATER_equal_c(5, 10, false);
+
+  // descending numbers
+  assert_numbers_a_b_OP_GREATER_equal_c(0, -5, true);
+  assert_numbers_a_b_OP_GREATER_equal_c(5, 0, true);
+  assert_numbers_a_b_OP_GREATER_equal_c(10, 5, true);
+
+  // equal numbers
+  assert_numbers_a_b_OP_GREATER_equal_c(-1, -1, false);
+  assert_numbers_a_b_OP_GREATER_equal_c(0, 0, false);
+  assert_numbers_a_b_OP_GREATER_equal_c(2, 2, false);
+
+  // invalid operand types
+  assert_invalid_binary_numeric_operator_operand_types(OP_GREATER, "greater-than");
+
+#undef assert_numbers_a_b_OP_GREATER_equal_c
+}
+
+static void test_OP_GREATER_EQUAL(void **const _) {
+#define assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(number_a, number_b, expected_bool_c)          \
+  assert_value_is_result_of_instruction_on_values(                                                \
+    BOOL_VALUE(expected_bool_c), OP_GREATER_EQUAL, NUMBER_VALUE(number_a), NUMBER_VALUE(number_b) \
+  )
+
+  // ascending numbers
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(-5, 0, false);
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(0, 5, false);
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(5, 10, false);
+
+  // descending numbers
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(0, -5, true);
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(5, 0, true);
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(10, 5, true);
+
+  // equal numbers
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(-1, -1, true);
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(0, 0, true);
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(2, 2, true);
+
+  // invalid operand types
+  assert_invalid_binary_numeric_operator_operand_types(OP_GREATER_EQUAL, "greater-than-or-equal");
+
+#undef assert_numbers_a_b_OP_GREATER_EQUAL_equal_c
+}
+
 int main(void) {
   // OP_RETURN test is missing as it's not yet properly implemented
 
@@ -504,6 +650,12 @@ int main(void) {
     cmocka_unit_test_setup_teardown(test_OP_DIVIDE, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_MODULO, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_OP_NOT, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_EQUAL, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_NOT_EQUAL, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_LESS, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_LESS_EQUAL, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_GREATER, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_GREATER_EQUAL, setup_test_case_env, teardown_test_case_env),
   };
 
   return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);

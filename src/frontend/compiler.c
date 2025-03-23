@@ -72,9 +72,9 @@ static ParseRule const parse_rules[] = {
   [TOKEN_SLASH] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
   [TOKEN_PERCENT] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
   [TOKEN_BANG] = {compiler_unary_expr, NULL, PRECEDENCE_NONE},
-  [TOKEN_LESS] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_GREATER] = {NULL, NULL, PRECEDENCE_NONE},
+  [TOKEN_LESS] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
+  [TOKEN_GREATER] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
   [TOKEN_DOT] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_COMMA] = {NULL, NULL, PRECEDENCE_NONE},
   [TOKEN_COLON] = {NULL, NULL, PRECEDENCE_NONE},
@@ -86,10 +86,10 @@ static ParseRule const parse_rules[] = {
   [TOKEN_CLOSE_CURLY_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
 
   // multi-character tokens
-  [TOKEN_BANG_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_LESS_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_EQUAL_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
-  [TOKEN_GREATER_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
+  [TOKEN_EQUAL_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_EQUALITY},
+  [TOKEN_BANG_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_EQUALITY},
+  [TOKEN_LESS_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
+  [TOKEN_GREATER_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
 
   // reserved identifiers (keywords)
   [TOKEN_VAR] = {NULL, NULL, PRECEDENCE_NONE},
@@ -255,6 +255,30 @@ static void compiler_binary_expr(void) {
     }
     case TOKEN_PERCENT: {
       compiler_emit_instruction(OP_MODULO);
+      break;
+    }
+    case TOKEN_EQUAL_EQUAL: {
+      compiler_emit_instruction(OP_EQUAL);
+      break;
+    }
+    case TOKEN_BANG_EQUAL: {
+      compiler_emit_instruction(OP_NOT_EQUAL);
+      break;
+    }
+    case TOKEN_LESS: {
+      compiler_emit_instruction(OP_LESS);
+      break;
+    }
+    case TOKEN_LESS_EQUAL: {
+      compiler_emit_instruction(OP_LESS_EQUAL);
+      break;
+    }
+    case TOKEN_GREATER: {
+      compiler_emit_instruction(OP_GREATER);
+      break;
+    }
+    case TOKEN_GREATER_EQUAL: {
+      compiler_emit_instruction(OP_GREATER_EQUAL);
       break;
     }
     default: INTERNAL_ERROR("Unknown binary operator type '%d'", operator_type);
