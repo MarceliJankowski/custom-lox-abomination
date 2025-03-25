@@ -498,6 +498,7 @@ static void test_OP_EQUAL(void **const _) {
   // unequal values
   assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(0), NUMBER_VALUE(1), false);
   assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(0), BOOL_VALUE(true), false);
+  assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(1), BOOL_VALUE(false), false);
   assert_values_a_b_OP_EQUAL_equal_c(NUMBER_VALUE(0), NIL_VALUE(), false);
   assert_values_a_b_OP_EQUAL_equal_c(BOOL_VALUE(true), BOOL_VALUE(false), false);
   assert_values_a_b_OP_EQUAL_equal_c(BOOL_VALUE(false), NIL_VALUE(), false);
@@ -517,6 +518,7 @@ static void test_OP_NOT_EQUAL(void **const _) {
   // unequal values
   assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(0), NUMBER_VALUE(1), true);
   assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(0), BOOL_VALUE(true), true);
+  assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(1), BOOL_VALUE(false), true);
   assert_values_a_b_OP_NOT_EQUAL_equal_c(NUMBER_VALUE(0), NIL_VALUE(), true);
   assert_values_a_b_OP_NOT_EQUAL_equal_c(BOOL_VALUE(true), BOOL_VALUE(false), true);
   assert_values_a_b_OP_NOT_EQUAL_equal_c(BOOL_VALUE(false), NIL_VALUE(), true);
@@ -531,11 +533,13 @@ static void test_OP_LESS(void **const _) {
   )
 
   // ascending numbers
+  assert_numbers_a_b_OP_LESS_equal_c(-10, -5, true);
   assert_numbers_a_b_OP_LESS_equal_c(-5, 0, true);
   assert_numbers_a_b_OP_LESS_equal_c(0, 5, true);
   assert_numbers_a_b_OP_LESS_equal_c(5, 10, true);
 
   // descending numbers
+  assert_numbers_a_b_OP_LESS_equal_c(-5, -10, false);
   assert_numbers_a_b_OP_LESS_equal_c(0, -5, false);
   assert_numbers_a_b_OP_LESS_equal_c(5, 0, false);
   assert_numbers_a_b_OP_LESS_equal_c(10, 5, false);
@@ -558,11 +562,13 @@ static void test_OP_LESS_EQUAL(void **const _) {
   )
 
   // ascending numbers
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(-10, -5, true);
   assert_numbers_a_b_OP_LESS_EQUAL_equal_c(-5, 0, true);
   assert_numbers_a_b_OP_LESS_EQUAL_equal_c(0, 5, true);
   assert_numbers_a_b_OP_LESS_EQUAL_equal_c(5, 10, true);
 
   // descending numbers
+  assert_numbers_a_b_OP_LESS_EQUAL_equal_c(-5, -10, false);
   assert_numbers_a_b_OP_LESS_EQUAL_equal_c(0, -5, false);
   assert_numbers_a_b_OP_LESS_EQUAL_equal_c(5, 0, false);
   assert_numbers_a_b_OP_LESS_EQUAL_equal_c(10, 5, false);
@@ -585,11 +591,13 @@ static void test_OP_GREATER(void **const _) {
   )
 
   // ascending numbers
+  assert_numbers_a_b_OP_GREATER_equal_c(-10, -5, false);
   assert_numbers_a_b_OP_GREATER_equal_c(-5, 0, false);
   assert_numbers_a_b_OP_GREATER_equal_c(0, 5, false);
   assert_numbers_a_b_OP_GREATER_equal_c(5, 10, false);
 
   // descending numbers
+  assert_numbers_a_b_OP_GREATER_equal_c(-5, -10, true);
   assert_numbers_a_b_OP_GREATER_equal_c(0, -5, true);
   assert_numbers_a_b_OP_GREATER_equal_c(5, 0, true);
   assert_numbers_a_b_OP_GREATER_equal_c(10, 5, true);
@@ -612,11 +620,13 @@ static void test_OP_GREATER_EQUAL(void **const _) {
   )
 
   // ascending numbers
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(-10, -5, false);
   assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(-5, 0, false);
   assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(0, 5, false);
   assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(5, 10, false);
 
   // descending numbers
+  assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(-5, -10, true);
   assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(0, -5, true);
   assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(5, 0, true);
   assert_numbers_a_b_OP_GREATER_EQUAL_equal_c(10, 5, true);
