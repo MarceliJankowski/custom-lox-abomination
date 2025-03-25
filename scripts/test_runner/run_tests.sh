@@ -228,12 +228,7 @@ run_e2e_tests() {
   local -r e2e_testfile_stderr_tmpfile=$(make_tmpfile "cla-e2e-testfile-stderr")
 
   local did_e2e_testfile_failure_occur=$FALSE
-  local -r sorted_e2e_testfile_paths=$(
-    find "${TESTS_DIR}/e2e" -type f -name '*_test.cla' |
-      awk -F '/' '{ print $NF, $0 }' |
-      sort -n |
-      cut -d ' ' -f2-
-  )
+  local -r sorted_e2e_testfile_paths=$(find "${TESTS_DIR}/e2e" -type f -name '*_test.cla' | sort -V)
 
   log_if_verbose "Running E2E tests..."
 
