@@ -1,1 +1,1 @@
-!=1; #ASSERT_SYNTAX_ERROR 1 1 Expected expression at '!='
+!= 1; #ASSERT_SYNTAX_ERROR 1 1 Expected expression at '!='
