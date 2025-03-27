@@ -1,0 +1,1 @@
+1 !=; #ASSERT_SYNTAX_ERROR 1 5 Expected expression at ';'
