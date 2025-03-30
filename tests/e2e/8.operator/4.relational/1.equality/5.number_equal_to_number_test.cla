@@ -1,0 +1,11 @@
+print 1 == 1; #ASSERT_STDOUT_LINE true
+print 1 == 1.0; #ASSERT_STDOUT_LINE true
+print 1.0 == 1.0; #ASSERT_STDOUT_LINE true
+
+print 1 == 1 == true; #ASSERT_STDOUT_LINE true
+
+print 0 == 1; #ASSERT_STDOUT_LINE false
+print 0 == 1.0; #ASSERT_STDOUT_LINE false
+print 0.0 == 1.0; #ASSERT_STDOUT_LINE false
+
+print 1 == 1 == 1; #ASSERT_STDOUT_LINE false
