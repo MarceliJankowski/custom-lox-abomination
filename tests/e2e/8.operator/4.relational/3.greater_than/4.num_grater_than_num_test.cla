@@ -9,5 +9,5 @@ print -1 > 0; #ASSERT_STDOUT_LINE false
 print -2 > -1; #ASSERT_STDOUT_LINE false
 
 print 1 > 1; #ASSERT_STDOUT_LINE false
-print 1.0 > 1.0; #ASSERT_STDOUT_LINE false
 print 1 > 1.0; #ASSERT_STDOUT_LINE false
+print 1.0 > 1.0; #ASSERT_STDOUT_LINE false
