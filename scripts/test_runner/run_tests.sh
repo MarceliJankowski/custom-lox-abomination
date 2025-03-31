@@ -200,6 +200,54 @@ run_test_executables() {
   [[ $did_test_executable_failure_occur -eq $TRUE ]] && handle_test_type_fail "$test_type"
 }
 
+# @desc write to stdout sorted e2e_testfile_paths (requisite path segment prefix is used as the sorting key)
+get_sorted_e2e_testfile_paths() {
+  [[ $# -ne 0 ]] && internal_error "get_sorted_e2e_testfile_paths() expects no arguments"
+
+  local -r e2e_testfile_dir_path="${TESTS_DIR}/e2e"
+  local -r e2e_testfile_paths=($(find "$e2e_testfile_dir_path" -type f -name '*_test.cla' -printf "%P "))
+  local sorted_e2e_testfile_paths=()
+
+  sort_e2e_testfile_paths() {
+    [[ $# -lt 2 ]] &&
+      internal_error "sort_e2e_testfile_paths() expects 'path_segment_index' and 'e2e_testfile_paths' arguments"
+
+    local -r path_segment_index=$1
+    shift
+    local -r e2e_testfile_paths=("$@")
+
+    # base case
+    if [[ ${#e2e_testfile_paths[@]} -eq 1 ]]; then
+      sorted_e2e_testfile_paths+=("${e2e_testfile_dir_path}/${e2e_testfile_paths[0]}")
+      return
+    fi
+
+    local e2e_testfile_paths_grouped_by_segment_prefix=()
+
+    local e2e_testfile_path
+    for e2e_testfile_path in "${e2e_testfile_paths[@]}"; do
+      local path_segments
+      IFS='/' read -ra path_segments <<<"$e2e_testfile_path"
+      local path_segment="${path_segments[path_segment_index]}"
+
+      local segment_prefix="${path_segment%%.*}"
+      [[ ! "$segment_prefix" =~ ^-?[1-9][0-9]*$ ]] &&
+        internal_error "Expected segment prefix '${segment_prefix}' in '${e2e_testfile_path}' path to be a positive integer"
+
+      e2e_testfile_paths_grouped_by_segment_prefix[segment_prefix]+="$e2e_testfile_path "
+    done
+
+    local e2e_testfile_path_group
+    for e2e_testfile_path_group in "${e2e_testfile_paths_grouped_by_segment_prefix[@]}"; do
+      sort_e2e_testfile_paths $((path_segment_index + 1)) $e2e_testfile_path_group
+    done
+  }
+
+  sort_e2e_testfile_paths 0 "${e2e_testfile_paths[@]}"
+
+  echo "${sorted_e2e_testfile_paths[@]}"
+}
+
 ##################################################
 #              RUN-TESTS FUNCTIONS               #
 ##################################################
@@ -228,12 +276,7 @@ run_e2e_tests() {
   local -r e2e_testfile_stderr_tmpfile=$(make_tmpfile "cla-e2e-testfile-stderr")
 
   local did_e2e_testfile_failure_occur=$FALSE
-  local -r sorted_e2e_testfile_paths=$(
-    find "${TESTS_DIR}/e2e" -type f -name '*_test.cla' |
-      awk -F '/' '{ print $NF, $0 }' |
-      sort -n |
-      cut -d ' ' -f2-
-  )
+  local -r sorted_e2e_testfile_paths=$(get_sorted_e2e_testfile_paths)
 
   log_if_verbose "Running E2E tests..."
 
