@@ -1,0 +1,1 @@
+print 1 >= true; #ASSERT_EXECUTION_ERROR 1 Expected greater-than-or-equal operands to be numbers (got 'number' and 'bool')
