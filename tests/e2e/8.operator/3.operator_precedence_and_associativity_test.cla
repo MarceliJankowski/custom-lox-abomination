@@ -1,4 +1,4 @@
-# '+' and '-' belong to the same precedence group and are left-associative
+# binary '+' and '-' belong to the same precedence group and are left-associative
 print 2 + 3 - 5; #ASSERT_STDOUT_LINE 0
 print 2 - 3 + 5; #ASSERT_STDOUT_LINE 4
 
@@ -7,10 +7,45 @@ print 8 / 5 * 4 % 2; #ASSERT_STDOUT_LINE 0.4
 print 8 % 5 / 4 * 2; #ASSERT_STDOUT_LINE 1.5
 print 8 * 5 % 4 / 2; #ASSERT_STDOUT_LINE 0
 
+# '==' and '!=' belong to the same precedence group and are left-associative
+print 1 == 1 == true; #ASSERT_STDOUT_LINE true
+print 1 != 1 != false; #ASSERT_STDOUT_LINE false
+print 1 != 1 == true; #ASSERT_STDOUT_LINE false
+print 1 == 1 != false; #ASSERT_STDOUT_LINE true
+
+# relational precedence group - can not test with only num support for relational operators
+
 # '*' precedence group is higher than that of '+'
 print 2 + 3 * 4; #ASSERT_STDOUT_LINE 14
 
 # '()' control expression evaluation order, overriding operator precedence
 print (2 * (6 - (2 + 2))); #ASSERT_STDOUT_LINE 4
 
-# '!' is not yet tested, this will change once relational operators are introduced
+# relational group has higher precedence than equality group
+print 1 > 2 == false; #ASSERT_STDOUT_LINE true
+print false == 1 > 2; #ASSERT_STDOUT_LINE true
+
+print 2 < 1 == false; #ASSERT_STDOUT_LINE true
+print false == 2 < 1; #ASSERT_STDOUT_LINE true
+
+print 1 >= 2 == false; #ASSERT_STDOUT_LINE true
+print false == 1 >= 2; #ASSERT_STDOUT_LINE true
+
+print 2 <= 1 == false; #ASSERT_STDOUT_LINE true
+print false == 2 <= 1; #ASSERT_STDOUT_LINE true
+
+# arithmetic group has higher precedence than relational group
+print 2 + 1 > 2; #ASSERT_STDOUT_LINE true
+print 2 > 1 + 2; #ASSERT_STDOUT_LINE false
+
+print 2 + 1 < 2; #ASSERT_STDOUT_LINE false
+print 2 < 1 + 2; #ASSERT_STDOUT_LINE true
+
+print 2 + 1 >= 2; #ASSERT_STDOUT_LINE true
+print 2 >= 1 + 2; #ASSERT_STDOUT_LINE false
+
+print 2 + 1 <= 2; #ASSERT_STDOUT_LINE false
+print 2 <= 1 + 2; #ASSERT_STDOUT_LINE true
+
+# not has higher precedence than relational group
+print !false == true ; #ASSERT_STDOUT_LINE true
