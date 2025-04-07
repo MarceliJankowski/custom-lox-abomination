@@ -8,7 +8,7 @@ print 8 % 5 / 4 * 2; #ASSERT_STDOUT_LINE 1.5
 print 8 * 5 % 4 / 2; #ASSERT_STDOUT_LINE 0
 
 # '==', '!=' belong to equality precedence group and are left-associative
-print 1 == 2 != false; #ASSERT_STDOUT_LINE false
+print 1 == 1 != false; #ASSERT_STDOUT_LINE true
 print 1 != 2 == false; #ASSERT_STDOUT_LINE false
 
 # UNTESTABLE: '<', '<=', '>', '>=' belong to comparison precedence group and are left-associative
