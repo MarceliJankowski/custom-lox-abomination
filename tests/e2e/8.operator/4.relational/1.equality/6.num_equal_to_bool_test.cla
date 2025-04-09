@@ -1,0 +1,5 @@
+print 0 == false; #ASSERT_STDOUT_LINE false
+print 1 == true; #ASSERT_STDOUT_LINE false
+
+print 0 == true; #ASSERT_STDOUT_LINE false
+print 1 == false; #ASSERT_STDOUT_LINE false
