@@ -1,0 +1,1 @@
+print nil <= true; #ASSERT_EXECUTION_ERROR 1 Expected less-than-or-equal operands to be numbers (got 'nil' and 'bool')

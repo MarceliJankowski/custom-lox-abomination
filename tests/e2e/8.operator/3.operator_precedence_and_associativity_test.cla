@@ -1,16 +1,49 @@
-# '+' and '-' belong to the same precedence group and are left-associative
+# '+', '-' belong to term precedence group and are left-associative
 print 2 + 3 - 5; #ASSERT_STDOUT_LINE 0
 print 2 - 3 + 5; #ASSERT_STDOUT_LINE 4
 
-# '*', '/', and '%' all belong to the same precedence group and are left-associative
+# '*', '/', '%' belong to factor precedence group and are left-associative
 print 8 / 5 * 4 % 2; #ASSERT_STDOUT_LINE 0.4
 print 8 % 5 / 4 * 2; #ASSERT_STDOUT_LINE 1.5
 print 8 * 5 % 4 / 2; #ASSERT_STDOUT_LINE 0
 
-# '*' precedence group is higher than that of '+'
+# '==', '!=' belong to equality precedence group and are left-associative
+print 1 == 1 != false; #ASSERT_STDOUT_LINE true
+print 1 != 2 == false; #ASSERT_STDOUT_LINE false
+
+# UNTESTABLE: '<', '<=', '>', '>=' belong to comparison precedence group and are left-associative
+
+# factor precedence group > term precedence group
 print 2 + 3 * 4; #ASSERT_STDOUT_LINE 14
+
+# term precedence group > comparison precedence group
+print 1 + 2 > 2; #ASSERT_STDOUT_LINE true
+print 2 > 1 + 2; #ASSERT_STDOUT_LINE false
+
+print 1 + 2 >= 3; #ASSERT_STDOUT_LINE true
+print 1 >= 1 + 2; #ASSERT_STDOUT_LINE false
+
+print 1 + 2 < 3; #ASSERT_STDOUT_LINE false
+print 1 < 1 + 2; #ASSERT_STDOUT_LINE true
+
+print 1 + 2 <= 2; #ASSERT_STDOUT_LINE false
+print 2 <= 1 + 2; #ASSERT_STDOUT_LINE true
+
+# comparison precedence group > equality precedence group
+print 1 > 2 == false; #ASSERT_STDOUT_LINE true
+print false == 1 > 2; #ASSERT_STDOUT_LINE true
+
+print 1 >= 2 == false; #ASSERT_STDOUT_LINE true
+print false == 1 >= 2; #ASSERT_STDOUT_LINE true
+
+print 2 < 1 == false; #ASSERT_STDOUT_LINE true
+print false == 2 < 1; #ASSERT_STDOUT_LINE true
+
+print 2 <= 1 == false; #ASSERT_STDOUT_LINE true
+print false == 2 <= 1; #ASSERT_STDOUT_LINE true
+
+# unary-prefix predecence group > equality precedence group
+print !false == true; #ASSERT_STDOUT_LINE true
 
 # '()' control expression evaluation order, overriding operator precedence
 print (2 * (6 - (2 + 2))); #ASSERT_STDOUT_LINE 4
-
-# '!' is not yet tested, this will change once relational operators are introduced
