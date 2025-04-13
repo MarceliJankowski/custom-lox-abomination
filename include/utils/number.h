@@ -3,6 +3,6 @@
 
 #include <stdbool.h>
 
-bool is_integer(double number);
+bool number_is_integer(double number);
 
 #endif // NUMBER_H

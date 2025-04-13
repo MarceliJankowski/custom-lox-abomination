@@ -44,14 +44,14 @@ static void print_manual(void) {
     "       %d  Error occurred during compilation.\n"
     "\n"
     "       %d  Error occurred during bytecode execution.\n",
-    INVALID_ARG_ERROR_CODE, MEMORY_ERROR_CODE, IO_ERROR_CODE, COMPILATION_ERROR_CODE, EXECUTION_ERROR_CODE
+    ERROR_CODE_INVALID_ARG, ERROR_CODE_MEMORY, ERROR_CODE_IO, ERROR_CODE_COMPILATION, ERROR_CODE_EXECUTION
   );
 }
 
 static void enter_repl(void) {
   g_source_file = "repl";
   g_static_error_stream = tmpfile();
-  if (g_static_error_stream == NULL) IO_ERROR("%s", strerror(errno));
+  if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
 
   Chunk chunk;
   struct {
@@ -67,7 +67,7 @@ static void enter_repl(void) {
     for (;;) {
       int const character = getchar();
       if (character == EOF) {
-        if (ferror(stdin)) IO_ERROR("Failed to read character from stdin");
+        if (ferror(stdin)) ERROR_IO("Failed to read character from stdin");
 
         // stdin EOF indicator was set
         printf("\n");
@@ -80,12 +80,12 @@ static void enter_repl(void) {
     DARRAY_APPEND(&input, buffer, '\0');
 
     // interpret input.buffer
-    CompilationStatus const compilation_status = compiler_compile(input.buffer, &chunk);
-    if (compilation_status == COMPILATION_SUCCESS) vm_run(&chunk);
+    CompilerStatus const compilation_status = compiler_compile(input.buffer, &chunk);
+    if (compilation_status == COMPILER_SUCCESS) vm_run(&chunk);
     else {
-      if (compilation_status == COMPILATION_FAILURE) {
-        if (fflush(g_static_error_stream)) IO_ERROR("%s", strerror(errno));
-        char *const static_errors = read_binary_stream_resource_content(g_static_error_stream);
+      if (compilation_status == COMPILER_FAILURE) {
+        if (fflush(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
+        char *const static_errors = io_read_binary_stream_resource_content(g_static_error_stream);
 
         fprintf(stderr, "%s", static_errors);
         free(static_errors);
@@ -93,9 +93,9 @@ static void enter_repl(void) {
 
       // clear static errors
       g_static_error_stream = freopen(NULL, "w+b", g_static_error_stream);
-      if (g_static_error_stream == NULL) IO_ERROR("%s", strerror(errno));
+      if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
 
-      if (compilation_status == COMPILATION_UNEXPECTED_EOF) {
+      if (compilation_status == COMPILER_UNEXPECTED_EOF) {
         chunk_free(&chunk);
 
         // decrement count so that next input character overwrites current NUL terminator
@@ -117,23 +117,23 @@ static void enter_repl(void) {
 clean_up:
   free(input.buffer);
   chunk_free(&chunk);
-  if (fclose(g_static_error_stream)) IO_ERROR("%s", strerror(errno));
+  if (fclose(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
 }
 
 static void interpret_cla_file(char const *const filepath) {
   assert(filepath != NULL);
 
   g_source_file = filepath;
-  char *const source_code = read_file(filepath);
+  char *const source_code = io_read_file(filepath);
   Chunk chunk;
   chunk_init(&chunk);
 
   // interpret source_code
-  if (compiler_compile(source_code, &chunk) != COMPILATION_SUCCESS) {
-    main_exit_code = COMPILATION_ERROR_CODE;
+  if (compiler_compile(source_code, &chunk) != COMPILER_SUCCESS) {
+    main_exit_code = ERROR_CODE_COMPILATION;
     goto clean_up;
   }
-  if (!vm_run(&chunk)) main_exit_code = EXECUTION_ERROR_CODE;
+  if (!vm_run(&chunk)) main_exit_code = ERROR_CODE_EXECUTION;
 
 clean_up:
   chunk_free(&chunk);
@@ -147,12 +147,12 @@ static inline void process_flag_component(char const *flag_component) {
 
   flag_component++; // advance past beginning '-'
 
-  if (*flag_component == '\0') INVALID_ARG_ERROR("Incomplete command-line flag supplied: '-'");
+  if (*flag_component == '\0') ERROR_INVALID_ARG("Incomplete command-line flag supplied: '-'");
   if (*flag_component == '-') {
     char const *long_flag = ++flag_component;
 
     if (strcmp(long_flag, "help") == 0) cli_options.help = true;
-    else INVALID_ARG_ERROR("Invalid command-line flag supplied: '--%s'", long_flag);
+    else ERROR_INVALID_ARG("Invalid command-line flag supplied: '--%s'", long_flag);
     return;
   }
 
@@ -162,7 +162,7 @@ static inline void process_flag_component(char const *flag_component) {
         cli_options.help = true;
         break;
       }
-      default: INVALID_ARG_ERROR("Invalid command-line flag supplied: '%c'", flag_component[-1]);
+      default: ERROR_INVALID_ARG("Invalid command-line flag supplied: '%c'", flag_component[-1]);
     }
   }
 }
@@ -177,7 +177,7 @@ int main(int const argc, char const *const argv[]) {
   for (int i = 1; i < argc; i++) {
     if (*argv[i] == '-') process_flag_component(argv[i]);
     else {
-      if (cla_filepath_arg != NULL) INVALID_ARG_ERROR("Excessive CLA filepath supplied: '%s'", argv[i]);
+      if (cla_filepath_arg != NULL) ERROR_INVALID_ARG("Excessive CLA filepath supplied: '%s'", argv[i]);
       cla_filepath_arg = argv[i];
     }
   }

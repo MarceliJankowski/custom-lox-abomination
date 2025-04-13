@@ -13,7 +13,7 @@
 #define DEBUG_VM
 #endif
 
-void debug_token(Token const *token);
+void debug_token(LexerToken const *token);
 void debug_disassemble_chunk(Chunk const *chunk, char const *name);
 int32_t debug_disassemble_instruction(Chunk const *chunk, int32_t offset);
 
