@@ -16,7 +16,7 @@ typedef struct {
     Value *values;
     int32_t capacity, count;
   } stack;
-} VirtualMachine;
+} VM;
 
 extern int32_t const *const t_vm_stack_count;
 

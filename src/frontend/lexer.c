@@ -76,8 +76,8 @@ static inline char lexer_peek_next(void) {
 
 /**@desc make `token_type` token
 @return constructed token*/
-static Token lexer_make_token(TokenType const token_type) {
-  Token const token = {
+static LexerToken lexer_make_token(LexerTokenType const token_type) {
+  LexerToken const token = {
     .type = token_type,
     .line = lexer.line,
     .column = lexer.lexeme_start_column,
@@ -94,11 +94,11 @@ static Token lexer_make_token(TokenType const token_type) {
 
 /**@desc make error token with `message` lexeme
 @return constructed error token*/
-static Token lexer_make_error_token(char const *const message) {
+static LexerToken lexer_make_error_token(char const *const message) {
   assert(message != NULL);
 
-  Token const error_token = {
-    .type = TOKEN_ERROR,
+  LexerToken const error_token = {
+    .type = LEXER_TOKEN_ERROR,
     .line = lexer.line,
     .column = lexer.lexeme_start_column,
     .lexeme = message,
@@ -114,9 +114,9 @@ static Token lexer_make_error_token(char const *const message) {
 
 /**@desc make EOF token
 @return EOF token*/
-static Token lexer_make_eof_token(void) {
-  Token const eof_token = {
-    .type = TOKEN_EOF,
+static LexerToken lexer_make_eof_token(void) {
+  LexerToken const eof_token = {
+    .type = LEXER_TOKEN_EOF,
     .line = lexer.line,
     .column = lexer.lexeme_start_column,
     .lexeme = "EOF",
@@ -132,7 +132,7 @@ static Token lexer_make_eof_token(void) {
 
 /**@desc tokenize string literal
 @return string literal token*/
-static Token lexer_tokenize_string_literal(void) {
+static LexerToken lexer_tokenize_string_literal(void) {
   // advance until closing quote
   while (lexer_peek() != '"') {
     if (lexer_reached_end()) return lexer_make_error_token("Unterminated string literal");
@@ -141,12 +141,12 @@ static Token lexer_tokenize_string_literal(void) {
 
   lexer_advance(); // advance past closing quote
 
-  return lexer_make_token(TOKEN_STRING);
+  return lexer_make_token(LEXER_TOKEN_STRING);
 }
 
 /**@desc tokenize numeric literal
 @return numeric literal token*/
-static Token lexer_tokenize_numeric_literal(void) {
+static LexerToken lexer_tokenize_numeric_literal(void) {
   // advance past integer part
   while (is_digit(lexer_peek())) lexer_advance();
 
@@ -157,15 +157,15 @@ static Token lexer_tokenize_numeric_literal(void) {
     while (is_digit(lexer_peek())) lexer_advance();
   }
 
-  return lexer_make_token(TOKEN_NUMBER);
+  return lexer_make_token(LEXER_TOKEN_NUMBER);
 }
 
 /**@desc make either identifier or `keyword_type` (reserved identifier) token
 @return `keyword_type` token if lexer.lexeme offsetted by `keyword_beginning_length` matches `keyword_rest`,
 identifier token otherwise*/
-static Token lexer_make_identifier_token(
+static LexerToken lexer_make_identifier_token(
   int const keyword_beginning_length, int const keyword_rest_length, const char *const keyword_rest,
-  TokenType const keyword_type
+  LexerTokenType const keyword_type
 ) {
   assert(keyword_rest != NULL);
   assert(keyword_beginning_length > 0);
@@ -178,50 +178,50 @@ static Token lexer_make_identifier_token(
   return lexer_make_token(keyword_type);
 
 identifier:
-  return lexer_make_token(TOKEN_IDENTIFIER);
+  return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
 }
 
 /**@desc tokenize identifier literal; handles both regular and reserved identifiers (keywords)
 @return regular or reserved identifier token*/
-static Token lexer_tokenize_identifier_literal(void) {
+static LexerToken lexer_tokenize_identifier_literal(void) {
   // advance past identifier literal
   while (can_constitute_identifier_literal(lexer_peek())) lexer_advance();
 
   // determine if it's a regular or reserved identifier (algorithm mimics trie data structure)
-  static_assert(TOKEN_KEYWORD_COUNT == 16, "Exhaustive keyword token handling");
+  static_assert(LEXER_TOKEN_KEYWORD_COUNT == 16, "Exhaustive keyword token handling");
   switch (*lexer.lexeme) {
-    case 'a': return lexer_make_identifier_token(1, 2, "nd", TOKEN_AND);
-    case 'c': return lexer_make_identifier_token(1, 4, "lass", TOKEN_CLASS);
-    case 'e': return lexer_make_identifier_token(1, 3, "lse", TOKEN_ELSE);
+    case 'a': return lexer_make_identifier_token(1, 2, "nd", LEXER_TOKEN_AND);
+    case 'c': return lexer_make_identifier_token(1, 4, "lass", LEXER_TOKEN_CLASS);
+    case 'e': return lexer_make_identifier_token(1, 3, "lse", LEXER_TOKEN_ELSE);
     case 'f': {
       if (lexer.char_cursor - lexer.lexeme <= 1) break;
       switch (lexer.lexeme[1]) {
-        case 'a': return lexer_make_identifier_token(2, 3, "lse", TOKEN_FALSE);
-        case 'o': return lexer_make_identifier_token(2, 1, "r", TOKEN_FOR);
-        case 'u': return lexer_make_identifier_token(2, 1, "n", TOKEN_FUN);
+        case 'a': return lexer_make_identifier_token(2, 3, "lse", LEXER_TOKEN_FALSE);
+        case 'o': return lexer_make_identifier_token(2, 1, "r", LEXER_TOKEN_FOR);
+        case 'u': return lexer_make_identifier_token(2, 1, "n", LEXER_TOKEN_FUN);
       }
       break;
     }
-    case 'i': return lexer_make_identifier_token(1, 1, "f", TOKEN_IF);
-    case 'n': return lexer_make_identifier_token(1, 2, "il", TOKEN_NIL);
-    case 'o': return lexer_make_identifier_token(1, 1, "r", TOKEN_OR);
-    case 'p': return lexer_make_identifier_token(1, 4, "rint", TOKEN_PRINT);
-    case 'r': return lexer_make_identifier_token(1, 5, "eturn", TOKEN_RETURN);
-    case 's': return lexer_make_identifier_token(1, 4, "uper", TOKEN_SUPER);
+    case 'i': return lexer_make_identifier_token(1, 1, "f", LEXER_TOKEN_IF);
+    case 'n': return lexer_make_identifier_token(1, 2, "il", LEXER_TOKEN_NIL);
+    case 'o': return lexer_make_identifier_token(1, 1, "r", LEXER_TOKEN_OR);
+    case 'p': return lexer_make_identifier_token(1, 4, "rint", LEXER_TOKEN_PRINT);
+    case 'r': return lexer_make_identifier_token(1, 5, "eturn", LEXER_TOKEN_RETURN);
+    case 's': return lexer_make_identifier_token(1, 4, "uper", LEXER_TOKEN_SUPER);
     case 't': {
       if (lexer.char_cursor - lexer.lexeme <= 1) break;
       switch (lexer.lexeme[1]) {
-        case 'h': return lexer_make_identifier_token(2, 2, "is", TOKEN_THIS);
-        case 'r': return lexer_make_identifier_token(2, 2, "ue", TOKEN_TRUE);
+        case 'h': return lexer_make_identifier_token(2, 2, "is", LEXER_TOKEN_THIS);
+        case 'r': return lexer_make_identifier_token(2, 2, "ue", LEXER_TOKEN_TRUE);
       }
       break;
     }
-    case 'v': return lexer_make_identifier_token(1, 2, "ar", TOKEN_VAR);
-    case 'w': return lexer_make_identifier_token(1, 4, "hile", TOKEN_WHILE);
+    case 'v': return lexer_make_identifier_token(1, 2, "ar", LEXER_TOKEN_VAR);
+    case 'w': return lexer_make_identifier_token(1, 4, "hile", LEXER_TOKEN_WHILE);
   }
 
   // regular identifier
-  return lexer_make_token(TOKEN_IDENTIFIER);
+  return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
 }
 
 /**@desc advance past all whitespace characters*/
@@ -252,7 +252,7 @@ static void lexer_skip_whitespace(void) {
 
 /**@desc scan lexer source code for next lexeme, bundle it up with metadata, and produce new token
 @return produced token*/
-Token lexer_scan(void) {
+LexerToken lexer_scan(void) {
   lexer_skip_whitespace();
 
   // reset lexeme
@@ -268,30 +268,30 @@ Token lexer_scan(void) {
   if (is_digit(previous_char)) return lexer_tokenize_numeric_literal();
   if (can_begin_identifier_literal(previous_char)) return lexer_tokenize_identifier_literal();
 
-  static_assert(TOKEN_SINGLE_CHAR_COUNT == 18, "Exhaustive single-character token handling");
-  static_assert(TOKEN_MULTI_CHAR_COUNT == 4, "Exhaustive multi-character token handling");
+  static_assert(LEXER_TOKEN_SINGLE_CHAR_COUNT == 18, "Exhaustive single-character token handling");
+  static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 4, "Exhaustive multi-character token handling");
   switch (previous_char) {
     // single-character tokens
-    case '+': return lexer_make_token(TOKEN_PLUS);
-    case '-': return lexer_make_token(TOKEN_MINUS);
-    case '*': return lexer_make_token(TOKEN_STAR);
-    case '/': return lexer_make_token(TOKEN_SLASH);
-    case '%': return lexer_make_token(TOKEN_PERCENT);
-    case '(': return lexer_make_token(TOKEN_OPEN_PAREN);
-    case ')': return lexer_make_token(TOKEN_CLOSE_PAREN);
-    case '{': return lexer_make_token(TOKEN_OPEN_CURLY_BRACE);
-    case '}': return lexer_make_token(TOKEN_CLOSE_CURLY_BRACE);
-    case '.': return lexer_make_token(TOKEN_DOT);
-    case ',': return lexer_make_token(TOKEN_COMMA);
-    case '?': return lexer_make_token(TOKEN_QUESTION);
-    case ':': return lexer_make_token(TOKEN_COLON);
-    case ';': return lexer_make_token(TOKEN_SEMICOLON);
+    case '+': return lexer_make_token(LEXER_TOKEN_PLUS);
+    case '-': return lexer_make_token(LEXER_TOKEN_MINUS);
+    case '*': return lexer_make_token(LEXER_TOKEN_STAR);
+    case '/': return lexer_make_token(LEXER_TOKEN_SLASH);
+    case '%': return lexer_make_token(LEXER_TOKEN_PERCENT);
+    case '(': return lexer_make_token(LEXER_TOKEN_OPEN_PAREN);
+    case ')': return lexer_make_token(LEXER_TOKEN_CLOSE_PAREN);
+    case '{': return lexer_make_token(LEXER_TOKEN_OPEN_CURLY_BRACE);
+    case '}': return lexer_make_token(LEXER_TOKEN_CLOSE_CURLY_BRACE);
+    case '.': return lexer_make_token(LEXER_TOKEN_DOT);
+    case ',': return lexer_make_token(LEXER_TOKEN_COMMA);
+    case '?': return lexer_make_token(LEXER_TOKEN_QUESTION);
+    case ':': return lexer_make_token(LEXER_TOKEN_COLON);
+    case ';': return lexer_make_token(LEXER_TOKEN_SEMICOLON);
 
     // single-character or possibly multi-character tokens
-    case '=': return lexer_make_token(lexer_match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
-    case '!': return lexer_make_token(lexer_match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
-    case '>': return lexer_make_token(lexer_match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
-    case '<': return lexer_make_token(lexer_match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+    case '=': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_EQUAL_EQUAL : LEXER_TOKEN_EQUAL);
+    case '!': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_BANG_EQUAL : LEXER_TOKEN_BANG);
+    case '>': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_GREATER_EQUAL : LEXER_TOKEN_GREATER);
+    case '<': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_LESS_EQUAL : LEXER_TOKEN_LESS);
 
     default: return lexer_make_error_token("Unexpected character");
   }

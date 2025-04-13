@@ -11,9 +11,9 @@ void assert_binary_stream_resource_content(FILE *const binary_stream, char const
   assert(binary_stream != NULL);
   assert(expected_resource_content != NULL);
 
-  if (fflush(binary_stream)) IO_ERROR("%s", strerror(errno));
+  if (fflush(binary_stream)) ERROR_IO("%s", strerror(errno));
 
-  char *const resource_content = read_binary_stream_resource_content(binary_stream);
+  char *const resource_content = io_read_binary_stream_resource_content(binary_stream);
 
   assert_string_equal(resource_content, expected_resource_content);
 
@@ -25,7 +25,7 @@ void clear_binary_stream_resource_content(FILE *binary_stream) {
   assert(binary_stream != NULL);
 
   binary_stream = freopen(NULL, "w+b", binary_stream);
-  if (binary_stream == NULL) IO_ERROR("%s", strerror(errno));
+  if (binary_stream == NULL) ERROR_IO("%s", strerror(errno));
 }
 
 /**@desc assert `value_a` and `value_b` equality*/
@@ -42,13 +42,13 @@ void assert_value_equality(Value const value_a, Value const value_b) {
       break;
     }
     case VALUE_NUMBER: {
-      if (is_integer(value_a.payload.number) && is_integer(value_b.payload.number)) {
+      if (number_is_integer(value_a.payload.number) && number_is_integer(value_b.payload.number)) {
         assert_double_equal(value_a.payload.number, value_b.payload.number, 0);
       } else {
         assert_double_equal(value_a.payload.number, value_b.payload.number, 1e-9);
       }
       break;
     }
-    default: INTERNAL_ERROR("Unknown ValueType '%d'", value_a.type);
+    default: ERROR_INTERNAL("Unknown ValueType '%d'", value_a.type);
   }
 }
