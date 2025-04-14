@@ -1,8 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define COMMON_COMMON_STRINGIZE_HELPER(token) #token
-#define COMMON_STRINGIZE(token) COMMON_COMMON_STRINGIZE_HELPER(token)
+#define COMMON__COMMON_STRINGIZE_HELPER(token) #token
+#define COMMON_STRINGIZE(token) COMMON__COMMON_STRINGIZE_HELPER(token)
 
 #define COMMON_COMMA ,
 #define COMMON_MS " - " // Message Separator
