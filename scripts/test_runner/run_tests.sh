@@ -255,7 +255,7 @@ get_sorted_e2e_testfile_paths() {
 run_unit_tests() {
   [[ $# -ne 0 ]] && internal_error "run_unit_tests() expects no arguments"
 
-  local -r unit_test_filepaths=$(find "${TESTS_DIR}/unit" -type f -name '*_spec.c')
+  local -r unit_test_filepaths=$(find "${TESTS_DIR}/internal/unit" -type f -name '*_spec.c')
 
   run_test_executables "$UNIT_TEST_TYPE" "$unit_test_filepaths"
 }
@@ -263,7 +263,7 @@ run_unit_tests() {
 run_component_tests() {
   [[ $# -ne 0 ]] && internal_error "run_component_tests() expects no arguments"
 
-  local -r component_test_filepaths=$(find "${TESTS_DIR}/component" -type f -name '*_test.c')
+  local -r component_test_filepaths=$(find "${TESTS_DIR}/internal/component" -type f -name '*_test.c')
 
   run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_filepaths"
 }

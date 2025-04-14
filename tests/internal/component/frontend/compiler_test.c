@@ -2,7 +2,7 @@
 
 #include "backend/chunk.h"
 #include "common.h"
-#include "component/component_test_utils.h"
+#include "component/component_test.h"
 #include "global.h"
 #include "utils/error.h"
 #include "utils/io.h"
@@ -39,7 +39,7 @@ static CompilerStatus compile(char const *const source_code) {
   chunk_reset(&chunk);
   chunk_code_offset = 0;
   chunk_constant_instruction_index = 0;
-  clear_binary_stream_resource_content(g_static_error_stream);
+  component_test_clear_binary_stream_resource_content(g_static_error_stream);
 
   return compiler_compile(source_code, &chunk);
 }
@@ -77,7 +77,7 @@ static void assert_static_error(
       ) < 0)
     ERROR_IO("%s", strerror(errno));
 
-  assert_binary_stream_resource_content(g_static_error_stream, expected_static_error);
+  component_test_assert_binary_stream_resource_content(g_static_error_stream, expected_static_error);
 
   free(expected_static_error);
 }
@@ -92,11 +92,11 @@ static void assert_static_error(
   assert_int_equal(chunk_get_instruction_line(&chunk, chunk_code_offset), expected_line)
 
 #define assert_opcode(expected_opcode) assert_int_equal(next_chunk_code_byte(), expected_opcode)
-#define assert_opcodes(...) APPLY_TO_EACH_ARG(assert_opcode, ChunkOpCode, __VA_ARGS__)
+#define assert_opcodes(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(assert_opcode, ChunkOpCode, __VA_ARGS__)
 
 static void assert_chunk_constant(int32_t const constant_index, Value const expected_constant) {
   assert_int_equal(chunk_constant_instruction_index, constant_index);
-  assert_value_equality(chunk.constants.values[constant_index], expected_constant);
+  component_test_assert_value_equality(chunk.constants.values[constant_index], expected_constant);
   chunk_constant_instruction_index++;
 }
 
@@ -118,7 +118,8 @@ static void assert_constant_instruction(Value const expected_constant) {
   if (chunk_constant_instruction_index > UCHAR_MAX) assert_OP_CONSTANT_2B_instruction(expected_constant);
   else assert_OP_CONSTANT_instruction(expected_constant);
 }
-#define assert_constant_instructions(...) APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
+#define assert_constant_instructions(...) \
+  COMPONENT_TEST_APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
 
 static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator) {
   assert(operator!= NULL);

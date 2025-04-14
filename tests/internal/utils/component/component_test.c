@@ -1,4 +1,4 @@
-#include "component_test_utils.h"
+#include "component_test.h"
 
 #include "utils/error.h"
 #include "utils/io.h"
@@ -7,7 +7,9 @@
 #include <assert.h>
 
 /**@desc assert `binary_stream` resource content being equal to `expected_resource_content`*/
-void assert_binary_stream_resource_content(FILE *const binary_stream, char const *const expected_resource_content) {
+void component_test_assert_binary_stream_resource_content(
+  FILE *const binary_stream, char const *const expected_resource_content
+) {
   assert(binary_stream != NULL);
   assert(expected_resource_content != NULL);
 
@@ -21,7 +23,7 @@ void assert_binary_stream_resource_content(FILE *const binary_stream, char const
 }
 
 /**@desc clear `binary_stream` resource content*/
-void clear_binary_stream_resource_content(FILE *binary_stream) {
+void component_test_clear_binary_stream_resource_content(FILE *binary_stream) {
   assert(binary_stream != NULL);
 
   binary_stream = freopen(NULL, "w+b", binary_stream);
@@ -29,7 +31,7 @@ void clear_binary_stream_resource_content(FILE *binary_stream) {
 }
 
 /**@desc assert `value_a` and `value_b` equality*/
-void assert_value_equality(Value const value_a, Value const value_b) {
+void component_test_assert_value_equality(Value const value_a, Value const value_b) {
   assert_int_equal(value_a.type, value_b.type);
 
   static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
