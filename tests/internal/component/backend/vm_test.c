@@ -2,7 +2,7 @@
 
 #include "backend/chunk.h"
 #include "backend/value.h"
-#include "component/component_test_utils.h"
+#include "component/component_test.h"
 #include "global.h"
 #include "utils/error.h"
 
@@ -19,8 +19,8 @@ static Chunk chunk;
 // *---------------------------------------------*
 
 static bool run(void) {
-  clear_binary_stream_resource_content(g_execution_error_stream);
-  clear_binary_stream_resource_content(g_runtime_output_stream);
+  component_test_clear_binary_stream_resource_content(g_execution_error_stream);
+  component_test_clear_binary_stream_resource_content(g_runtime_output_stream);
 
   return vm_run(&chunk);
 }
@@ -35,23 +35,24 @@ static void reset_test_case_env(void) {
 
 #define assert_empty_stack() assert_int_equal(*t_vm_stack_count, 0)
 
-#define stack_pop_assert(expected_value) assert_value_equality(vm_stack_pop(), expected_value)
-#define stack_pop_assert_many(...) APPLY_TO_EACH_ARG(stack_pop_assert, Value, __VA_ARGS__)
+#define stack_pop_assert(expected_value) component_test_assert_value_equality(vm_stack_pop(), expected_value)
+#define stack_pop_assert_many(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(stack_pop_assert, Value, __VA_ARGS__)
 
 #define append_constant_instruction(constant) chunk_append_constant_instruction(&chunk, constant, 1)
-#define append_constant_instructions(...) APPLY_TO_EACH_ARG(append_constant_instruction, Value, __VA_ARGS__)
+#define append_constant_instructions(...) \
+  COMPONENT_TEST_APPLY_TO_EACH_ARG(append_constant_instruction, Value, __VA_ARGS__)
 
 #define append_instruction(opcode) chunk_append_instruction(&chunk, opcode, 1)
-#define append_instructions(...) APPLY_TO_EACH_ARG(append_instruction, ChunkOpCode, __VA_ARGS__)
+#define append_instructions(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(append_instruction, ChunkOpCode, __VA_ARGS__)
 
 #define assert_execution_error(expected_error_message)                                         \
-  assert_binary_stream_resource_content(                                                       \
+  component_test_assert_binary_stream_resource_content(                                        \
     g_execution_error_stream,                                                                  \
     "[EXECUTION_ERROR]" COMMON_MS __FILE__ COMMON_PS "1" COMMON_MS expected_error_message "\n" \
   )
 
 #define assert_runtime_output(expected_output) \
-  assert_binary_stream_resource_content(g_runtime_output_stream, expected_output "\n")
+  component_test_assert_binary_stream_resource_content(g_runtime_output_stream, expected_output "\n")
 
 #define assert_invalid_binary_numeric_operator_operand_types(operator_instruction, operator_descriptor)          \
   do {                                                                                                           \
