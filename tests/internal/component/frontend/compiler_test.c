@@ -44,9 +44,9 @@ static CompilerStatus compile(char const *const source_code) {
   return compiler_compile(source_code, &chunk);
 }
 
-#define compile_assert_success(source_code) assert_int_equal(compile(source_code), COMPILER_SUCCESS)
-#define compile_assert_failure(source_code) assert_int_equal(compile(source_code), COMPILER_FAILURE)
-#define compile_assert_unexpected_eof(source_code) assert_int_equal(compile(source_code), COMPILER_UNEXPECTED_EOF)
+#define COMPILE_ASSERT_SUCCESS(source_code) assert_int_equal(compile(source_code), COMPILER_SUCCESS)
+#define COMPILE_ASSERT_FAILURE(source_code) assert_int_equal(compile(source_code), COMPILER_FAILURE)
+#define COMPILE_ASSERT_UNEXPECTED_EOF(source_code) assert_int_equal(compile(source_code), COMPILER_UNEXPECTED_EOF)
 
 static void assert_static_error(
   char const *const error_type, int const line, int const column, char const *const expected_error_message
@@ -82,17 +82,17 @@ static void assert_static_error(
   free(expected_static_error);
 }
 
-#define assert_lexical_error(...) assert_static_error("[LEXICAL_ERROR]", __VA_ARGS__)
-#define assert_syntax_error(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
-#define assert_semantic_error(...) assert_static_error("[SEMANTIC_ERROR]", __VA_ARGS__)
+#define ASSERT_LEXICAL_ERROR(...) assert_static_error("[LEXICAL_ERROR]", __VA_ARGS__)
+#define ASSERT_SYNTAX_ERROR(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
+#define ASSERT_SEMANTIC_ERROR(...) assert_static_error("[SEMANTIC_ERROR]", __VA_ARGS__)
 
-#define next_chunk_code_byte() chunk.code[chunk_code_offset++]
+#define NEXT_CHUNK_CODE_BYTE() chunk.code[chunk_code_offset++]
 
-#define assert_instruction_line(expected_line) \
+#define ASSERT_INSTRUCTION_LINE(expected_line) \
   assert_int_equal(chunk_get_instruction_line(&chunk, chunk_code_offset), expected_line)
 
-#define assert_opcode(expected_opcode) assert_int_equal(next_chunk_code_byte(), expected_opcode)
-#define assert_opcodes(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(assert_opcode, ChunkOpCode, __VA_ARGS__)
+#define ASSERT_OPCODE(expected_opcode) assert_int_equal(NEXT_CHUNK_CODE_BYTE(), expected_opcode)
+#define ASSERT_OPCODES(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(ASSERT_OPCODE, ChunkOpCode, __VA_ARGS__)
 
 static void assert_chunk_constant(int32_t const constant_index, Value const expected_constant) {
   assert_int_equal(chunk_constant_instruction_index, constant_index);
@@ -101,15 +101,15 @@ static void assert_chunk_constant(int32_t const constant_index, Value const expe
 }
 
 static void assert_OP_CONSTANT_instruction(Value const expected_constant) {
-  assert_opcode(CHUNK_OP_CONSTANT);
-  uint32_t const constant_index = next_chunk_code_byte();
+  ASSERT_OPCODE(CHUNK_OP_CONSTANT);
+  uint32_t const constant_index = NEXT_CHUNK_CODE_BYTE();
   assert_chunk_constant(constant_index, expected_constant);
 }
 
 static void assert_OP_CONSTANT_2B_instruction(Value const expected_constant) {
-  assert_opcode(CHUNK_OP_CONSTANT_2B);
-  uint8_t const constant_index_LSB = next_chunk_code_byte();
-  uint8_t const constant_index_MSB = next_chunk_code_byte();
+  ASSERT_OPCODE(CHUNK_OP_CONSTANT_2B);
+  uint8_t const constant_index_LSB = NEXT_CHUNK_CODE_BYTE();
+  uint8_t const constant_index_MSB = NEXT_CHUNK_CODE_BYTE();
   uint32_t const constant_index = memory_concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
   assert_chunk_constant(constant_index, expected_constant);
 }
@@ -118,7 +118,7 @@ static void assert_constant_instruction(Value const expected_constant) {
   if (chunk_constant_instruction_index > UCHAR_MAX) assert_OP_CONSTANT_2B_instruction(expected_constant);
   else assert_OP_CONSTANT_instruction(expected_constant);
 }
-#define assert_constant_instructions(...) \
+#define ASSERT_CONSTANT_INSTRUCTIONS(...) \
   COMPONENT_TEST_APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
 
 static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator) {
@@ -139,58 +139,58 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
   ERROR_INTERNAL("Unknown binary operator '%s'", operator);
 }
 
-#define assert_binary_operator_syntax(operator)                                      \
+#define ASSERT_BINARY_OPERATOR_SYNTAX(operator)                                      \
   do {                                                                               \
     ChunkOpCode const operator_opcode = map_binary_operator_to_its_opcode(operator); \
     int const operator_length = strlen(operator);                                    \
                                                                                      \
-    compile_assert_failure(operator);                                                \
-    assert_syntax_error(1, 1, "Expected expression at '" operator"'");               \
+    COMPILE_ASSERT_FAILURE(operator);                                                \
+    ASSERT_SYNTAX_ERROR(1, 1, "Expected expression at '" operator"'");               \
                                                                                      \
-    compile_assert_unexpected_eof("1 " operator);                                    \
-    assert_syntax_error(1, 3 + operator_length, "Expected expression");              \
+    COMPILE_ASSERT_UNEXPECTED_EOF("1 " operator);                                    \
+    ASSERT_SYNTAX_ERROR(1, 3 + operator_length, "Expected expression");              \
                                                                                      \
-    compile_assert_success("1 " operator" 2;");                                      \
-    assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));        \
-    assert_opcodes(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
+    COMPILE_ASSERT_SUCCESS("1 " operator" 2;");                                      \
+    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));        \
+    ASSERT_OPCODES(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
   } while (0)
 
-#define assert_binary_operator_is_left_associative(operator)                         \
+#define ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE(operator)                         \
   do {                                                                               \
     ChunkOpCode const operator_opcode = map_binary_operator_to_its_opcode(operator); \
-    compile_assert_success("1 " operator" 2 " operator" 3;");                        \
-    assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));        \
-    assert_opcode(operator_opcode);                                                  \
+    COMPILE_ASSERT_SUCCESS("1 " operator" 2 " operator" 3;");                        \
+    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));        \
+    ASSERT_OPCODE(operator_opcode);                                                  \
     assert_constant_instruction(VALUE_MAKE_NUMBER(3));                               \
-    assert_opcodes(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
+    ASSERT_OPCODES(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
   } while (0)
 
-#define assert_binary_operators_have_the_same_precedence(operator_a, operator_b)         \
+#define ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE(operator_a, operator_b)         \
   do {                                                                                   \
     ChunkOpCode const operator_a_opcode = map_binary_operator_to_its_opcode(operator_a); \
     ChunkOpCode const operator_b_opcode = map_binary_operator_to_its_opcode(operator_b); \
                                                                                          \
-    compile_assert_success("1 " operator_a " 2 " operator_b " 3;");                      \
-    assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));            \
-    assert_opcode(operator_a_opcode);                                                    \
+    COMPILE_ASSERT_SUCCESS("1 " operator_a " 2 " operator_b " 3;");                      \
+    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));            \
+    ASSERT_OPCODE(operator_a_opcode);                                                    \
     assert_constant_instruction(VALUE_MAKE_NUMBER(3));                                   \
-    assert_opcodes(operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                    \
+    ASSERT_OPCODES(operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                    \
                                                                                          \
-    compile_assert_success("1 " operator_b " 2 " operator_a " 3;");                      \
-    assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));            \
-    assert_opcode(operator_b_opcode);                                                    \
+    COMPILE_ASSERT_SUCCESS("1 " operator_b " 2 " operator_a " 3;");                      \
+    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));            \
+    ASSERT_OPCODE(operator_b_opcode);                                                    \
     assert_constant_instruction(VALUE_MAKE_NUMBER(3));                                   \
-    assert_opcodes(operator_a_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                    \
+    ASSERT_OPCODES(operator_a_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                    \
   } while (0)
 
-#define assert_binary_operator_a_has_higher_precedence(operator_a, operator_b)                      \
+#define ASSERT_BINARY_OPERATOR_A_HAS_HIGHER_PRECEDENCE(operator_a, operator_b)                      \
   do {                                                                                              \
     ChunkOpCode const operator_a_opcode = map_binary_operator_to_its_opcode(operator_a);            \
     ChunkOpCode const operator_b_opcode = map_binary_operator_to_its_opcode(operator_b);            \
                                                                                                     \
-    compile_assert_success("1 " operator_b " 2 " operator_a " 3;");                                 \
-    assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3)); \
-    assert_opcodes(operator_a_opcode, operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);            \
+    COMPILE_ASSERT_SUCCESS("1 " operator_b " 2 " operator_a " 3;");                                 \
+    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3)); \
+    ASSERT_OPCODES(operator_a_opcode, operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);            \
   } while (0)
 
 // *---------------------------------------------*
@@ -221,58 +221,58 @@ static int teardown_test_group_env(void **const _) {
 static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive OpCode handling");
 
 static void test_lexical_error_reporting(void **const _) {
-  compile_assert_failure("\"abc");
-  assert_lexical_error(1, 1, "Unterminated string literal");
+  COMPILE_ASSERT_FAILURE("\"abc");
+  ASSERT_LEXICAL_ERROR(1, 1, "Unterminated string literal");
 
-  compile_assert_failure("@");
-  assert_lexical_error(1, 1, "Unexpected character");
+  COMPILE_ASSERT_FAILURE("@");
+  ASSERT_LEXICAL_ERROR(1, 1, "Unexpected character");
 }
 
 static void test_line_tracking(void **const _) {
-  compile_assert_success("nil;");
-  assert_instruction_line(1);
+  COMPILE_ASSERT_SUCCESS("nil;");
+  ASSERT_INSTRUCTION_LINE(1);
 
-  compile_assert_success("\nnil;");
-  assert_instruction_line(2);
+  COMPILE_ASSERT_SUCCESS("\nnil;");
+  ASSERT_INSTRUCTION_LINE(2);
 
-  compile_assert_success("\n\nnil;");
-  assert_instruction_line(3);
+  COMPILE_ASSERT_SUCCESS("\n\nnil;");
+  ASSERT_INSTRUCTION_LINE(3);
 }
 
 static void test_expr_stmt_lacking_semicolon_terminator(void **const _) {
-  compile_assert_unexpected_eof("nil");
-  assert_syntax_error(1, 4, "Expected ';' terminating expression statement");
+  COMPILE_ASSERT_UNEXPECTED_EOF("nil");
+  ASSERT_SYNTAX_ERROR(1, 4, "Expected ';' terminating expression statement");
 }
 
 static void test_nil_literal(void **const _) {
-  compile_assert_success("nil;");
-  assert_opcodes(CHUNK_OP_NIL, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("nil;");
+  ASSERT_OPCODES(CHUNK_OP_NIL, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_bool_literal(void **const _) {
-  compile_assert_success("false;");
-  assert_opcodes(CHUNK_OP_FALSE, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("false;");
+  ASSERT_OPCODES(CHUNK_OP_FALSE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("true;");
-  assert_opcodes(CHUNK_OP_TRUE, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("true;");
+  ASSERT_OPCODES(CHUNK_OP_TRUE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_numeric_literal(void **const _) {
-  compile_assert_success("55;");
+  COMPILE_ASSERT_SUCCESS("55;");
   assert_constant_instruction(VALUE_MAKE_NUMBER(55));
-  assert_opcodes(CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("-55;");
+  COMPILE_ASSERT_SUCCESS("-55;");
   assert_constant_instruction(VALUE_MAKE_NUMBER(55));
-  assert_opcodes(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("10.25;");
+  COMPILE_ASSERT_SUCCESS("10.25;");
   assert_constant_instruction(VALUE_MAKE_NUMBER(10.25));
-  assert_opcodes(CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("-10.25;");
+  COMPILE_ASSERT_SUCCESS("-10.25;");
   assert_constant_instruction(VALUE_MAKE_NUMBER(10.25));
-  assert_opcodes(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_OP_CONSTANT_2B_being_generated(void **const _) {
@@ -285,124 +285,124 @@ static void test_OP_CONSTANT_2B_being_generated(void **const _) {
   source_code[sizeof(source_code) - 2] = ';';
   source_code[sizeof(source_code) - 1] = '\0';
 
-  compile_assert_success(source_code);
+  COMPILE_ASSERT_SUCCESS(source_code);
   for (size_t i = 0; i < MEMORY_BYTE_STATE_COUNT; i++) {
     assert_OP_CONSTANT_instruction(VALUE_MAKE_NUMBER(1));
-    assert_opcode(CHUNK_OP_POP);
+    ASSERT_OPCODE(CHUNK_OP_POP);
   }
   assert_OP_CONSTANT_2B_instruction(VALUE_MAKE_NUMBER(2));
-  assert_opcodes(CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_arithmetic_operators(void **const _) {
-  assert_binary_operator_syntax("+");
-  assert_binary_operator_syntax("*");
-  assert_binary_operator_syntax("/");
-  assert_binary_operator_syntax("%");
+  ASSERT_BINARY_OPERATOR_SYNTAX("+");
+  ASSERT_BINARY_OPERATOR_SYNTAX("*");
+  ASSERT_BINARY_OPERATOR_SYNTAX("/");
+  ASSERT_BINARY_OPERATOR_SYNTAX("%");
 
   // '-' is a unary/binary operator; hence it cannot use binary-operator-specific assertions
-  compile_assert_unexpected_eof("-");
-  assert_syntax_error(1, 2, "Expected expression");
+  COMPILE_ASSERT_UNEXPECTED_EOF("-");
+  ASSERT_SYNTAX_ERROR(1, 2, "Expected expression");
 
-  compile_assert_unexpected_eof("2 -");
-  assert_syntax_error(1, 4, "Expected expression");
+  COMPILE_ASSERT_UNEXPECTED_EOF("2 -");
+  ASSERT_SYNTAX_ERROR(1, 4, "Expected expression");
 
-  compile_assert_success("1 - 2;");
-  assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
-  assert_opcodes(CHUNK_OP_SUBTRACT, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("1 - 2;");
+  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_OPCODES(CHUNK_OP_SUBTRACT, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_arithmetic_operator_associativity(void **const _) {
-  assert_binary_operator_is_left_associative("+");
-  assert_binary_operator_is_left_associative("-");
-  assert_binary_operator_is_left_associative("*");
-  assert_binary_operator_is_left_associative("/");
-  assert_binary_operator_is_left_associative("%");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("+");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("-");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("*");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("/");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("%");
 }
 
 static void test_arithmetic_operator_precedence(void **const _) {
-  assert_binary_operators_have_the_same_precedence("+", "-");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE("+", "-");
 
-  assert_binary_operators_have_the_same_precedence("*", "/");
-  assert_binary_operators_have_the_same_precedence("/", "%");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE("*", "/");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE("/", "%");
 
-  assert_binary_operator_a_has_higher_precedence("*", "+");
+  ASSERT_BINARY_OPERATOR_A_HAS_HIGHER_PRECEDENCE("*", "+");
 }
 
 static void test_grouping_expr(void **const _) {
-  compile_assert_failure(")");
-  assert_syntax_error(1, 1, "Expected expression at ')'");
+  COMPILE_ASSERT_FAILURE(")");
+  ASSERT_SYNTAX_ERROR(1, 1, "Expected expression at ')'");
 
-  compile_assert_unexpected_eof("(");
-  assert_syntax_error(1, 2, "Expected expression");
+  COMPILE_ASSERT_UNEXPECTED_EOF("(");
+  ASSERT_SYNTAX_ERROR(1, 2, "Expected expression");
 
-  compile_assert_success("(1);");
+  COMPILE_ASSERT_SUCCESS("(1);");
   assert_constant_instruction(VALUE_MAKE_NUMBER(1));
-  assert_opcodes(CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("(1 + 2);");
-  assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
-  assert_opcodes(CHUNK_OP_ADD, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("(1 + 2);");
+  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_OPCODES(CHUNK_OP_ADD, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("(1 + 2) * 3;");
-  assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
-  assert_opcode(CHUNK_OP_ADD);
+  COMPILE_ASSERT_SUCCESS("(1 + 2) * 3;");
+  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_OPCODE(CHUNK_OP_ADD);
   assert_constant_instruction(VALUE_MAKE_NUMBER(3));
-  assert_opcodes(CHUNK_OP_MULTIPLY, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_MULTIPLY, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
-  compile_assert_success("(1 + 2) * (3 / 4);");
-  assert_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
-  assert_opcode(CHUNK_OP_ADD);
-  assert_constant_instructions(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(4));
-  assert_opcodes(CHUNK_OP_DIVIDE, CHUNK_OP_MULTIPLY, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("(1 + 2) * (3 / 4);");
+  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_OPCODE(CHUNK_OP_ADD);
+  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(4));
+  ASSERT_OPCODES(CHUNK_OP_DIVIDE, CHUNK_OP_MULTIPLY, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_logical_operators(void **const _) {
-  compile_assert_unexpected_eof("!");
-  assert_syntax_error(1, 2, "Expected expression");
+  COMPILE_ASSERT_UNEXPECTED_EOF("!");
+  ASSERT_SYNTAX_ERROR(1, 2, "Expected expression");
 
-  compile_assert_success("!true;");
-  assert_opcodes(CHUNK_OP_TRUE, CHUNK_OP_NOT, CHUNK_OP_POP, CHUNK_OP_RETURN);
+  COMPILE_ASSERT_SUCCESS("!true;");
+  ASSERT_OPCODES(CHUNK_OP_TRUE, CHUNK_OP_NOT, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
 static void test_relational_operators(void **const _) {
-  assert_binary_operator_syntax("==");
-  assert_binary_operator_syntax("!=");
-  assert_binary_operator_syntax("<");
-  assert_binary_operator_syntax("<=");
-  assert_binary_operator_syntax("<");
-  assert_binary_operator_syntax("<=");
+  ASSERT_BINARY_OPERATOR_SYNTAX("==");
+  ASSERT_BINARY_OPERATOR_SYNTAX("!=");
+  ASSERT_BINARY_OPERATOR_SYNTAX("<");
+  ASSERT_BINARY_OPERATOR_SYNTAX("<=");
+  ASSERT_BINARY_OPERATOR_SYNTAX("<");
+  ASSERT_BINARY_OPERATOR_SYNTAX("<=");
 }
 
 static void test_relational_operator_associativity(void **const _) {
-  assert_binary_operator_is_left_associative("==");
-  assert_binary_operator_is_left_associative("!=");
-  assert_binary_operator_is_left_associative("<");
-  assert_binary_operator_is_left_associative("<=");
-  assert_binary_operator_is_left_associative(">");
-  assert_binary_operator_is_left_associative(">=");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("==");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("!=");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("<");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE("<=");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE(">");
+  ASSERT_BINARY_OPERATOR_IS_LEFT_ASSOCIATIVE(">=");
 }
 
 static void test_relational_operator_precedence(void **const _) {
-  assert_binary_operators_have_the_same_precedence("==", "!=");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE("==", "!=");
 
-  assert_binary_operators_have_the_same_precedence("<", "<=");
-  assert_binary_operators_have_the_same_precedence("<=", ">");
-  assert_binary_operators_have_the_same_precedence(">", ">=");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE("<", "<=");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE("<=", ">");
+  ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE(">", ">=");
 
-  assert_binary_operator_a_has_higher_precedence(">", "==");
+  ASSERT_BINARY_OPERATOR_A_HAS_HIGHER_PRECEDENCE(">", "==");
 }
 
 static void test_print_stmt(void **const _) {
-  compile_assert_unexpected_eof("print");
-  assert_syntax_error(1, 6, "Expected expression");
+  COMPILE_ASSERT_UNEXPECTED_EOF("print");
+  ASSERT_SYNTAX_ERROR(1, 6, "Expected expression");
 
-  compile_assert_unexpected_eof("print 5");
-  assert_syntax_error(1, 8, "Expected ';' terminating print statement");
+  COMPILE_ASSERT_UNEXPECTED_EOF("print 5");
+  ASSERT_SYNTAX_ERROR(1, 8, "Expected ';' terminating print statement");
 
-  compile_assert_success("print 5;");
+  COMPILE_ASSERT_SUCCESS("print 5;");
   assert_constant_instruction(VALUE_MAKE_NUMBER(5));
-  assert_opcodes(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
+  ASSERT_OPCODES(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
 }
 
 int main(void) {

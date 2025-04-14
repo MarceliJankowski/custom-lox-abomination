@@ -26,10 +26,9 @@ void vm_stack_push(Value value);
 Value vm_stack_pop(void);
 bool vm_run(Chunk const *chunk);
 
-#define vm_reset() \
-  do {             \
-    vm_free();     \
-    vm_init();     \
-  } while (0)
+inline void vm_reset(void) {
+  vm_free();
+  vm_init();
+}
 
 #endif // VM_H

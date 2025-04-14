@@ -32,25 +32,25 @@ static LexerToken scan_assert_all(
   return token;
 }
 
-#define scan_assert_eof() scan_assert(LEXER_TOKEN_EOF, "EOF")
-#define scan_assert_all_eof(expected_line, expected_column) \
+#define SCAN_ASSERT_EOF() scan_assert(LEXER_TOKEN_EOF, "EOF")
+#define SCAN_ASSERT_ALL_EOF(expected_line, expected_column) \
   scan_assert_all(LEXER_TOKEN_EOF, "EOF", expected_line, expected_column)
 
 static inline void init_scan_assert(char const *const lexeme, LexerTokenType const expected_type) {
   lexer_init(lexeme);
   scan_assert(expected_type, lexeme);
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 }
 
-static inline void init_scan_assert_eof(char const *const lexeme) {
+static inline void init_SCAN_ASSERT_EOF(char const *const lexeme) {
   lexer_init(lexeme);
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 }
 
 static inline void init_scan_assert_error(char const *const source_code, char const *const error_lexeme) {
   lexer_init(source_code);
   scan_assert(LEXER_TOKEN_ERROR, error_lexeme);
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 }
 
 // *---------------------------------------------*
@@ -61,16 +61,16 @@ static void test_eof_token(void **const _) {
   lexer_init("");
 
   // continually returns EOF token upon reaching NUL byte
-  for (int i = 0; i < 3; i++) scan_assert_eof();
+  for (int i = 0; i < 3; i++) SCAN_ASSERT_EOF();
 }
 
 static void test_whitespace(void **const _) {
   // skips whitespace
-  init_scan_assert_eof(" ");
-  init_scan_assert_eof("\t");
-  init_scan_assert_eof("\r");
-  init_scan_assert_eof("\n");
-  init_scan_assert_eof(" \t \r \n ");
+  init_SCAN_ASSERT_EOF(" ");
+  init_SCAN_ASSERT_EOF("\t");
+  init_SCAN_ASSERT_EOF("\r");
+  init_SCAN_ASSERT_EOF("\n");
+  init_SCAN_ASSERT_EOF(" \t \r \n ");
 }
 
 static void test_unexpected_char(void **const _) {
@@ -123,22 +123,22 @@ static void test_numeric_literal(void **const _) {
   lexer_init("-55");
   scan_assert(LEXER_TOKEN_MINUS, "-");
   scan_assert(LEXER_TOKEN_NUMBER, "55");
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 
   lexer_init("-10.25");
   scan_assert(LEXER_TOKEN_MINUS, "-");
   scan_assert(LEXER_TOKEN_NUMBER, "10.25");
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 
   lexer_init("4.");
   scan_assert(LEXER_TOKEN_NUMBER, "4");
   scan_assert(LEXER_TOKEN_DOT, ".");
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 
   lexer_init(".5");
   scan_assert(LEXER_TOKEN_DOT, ".");
   scan_assert(LEXER_TOKEN_NUMBER, "5");
-  scan_assert_eof();
+  SCAN_ASSERT_EOF();
 }
 
 static void test_identifier_literal(void **const _) {
@@ -200,8 +200,8 @@ static void test_keyword_tokens(void **const _) {
 }
 
 static void test_comment(void **const _) {
-  init_scan_assert_eof("# comment");
-  init_scan_assert_eof("# comment... # continues...");
+  init_SCAN_ASSERT_EOF("# comment");
+  init_SCAN_ASSERT_EOF("# comment... # continues...");
   lexer_init("# comment spans single line\n +"), scan_assert(LEXER_TOKEN_PLUS, "+");
 }
 
@@ -219,7 +219,7 @@ static void test_input_source_code_1(void **const _) {
   scan_assert_all(LEXER_TOKEN_MINUS, "-", 1, 14);
   scan_assert_all(LEXER_TOKEN_MINUS, "-", 1, 16);
   scan_assert_all(LEXER_TOKEN_NUMBER, "4", 1, 17);
-  scan_assert_all_eof(1, 18);
+  SCAN_ASSERT_ALL_EOF(1, 18);
 }
 
 static void test_input_source_code_2(void **const _) {
@@ -242,7 +242,7 @@ static void test_input_source_code_2(void **const _) {
   scan_assert_all(LEXER_TOKEN_PLUS, "+", 3, 9);
   scan_assert_all(LEXER_TOKEN_IDENTIFIER, "y", 3, 11);
   scan_assert_all(LEXER_TOKEN_SEMICOLON, ";", 3, 12);
-  scan_assert_all_eof(3, 13);
+  SCAN_ASSERT_ALL_EOF(3, 13);
 }
 
 static void test_input_source_code_3(void **const _) {
@@ -273,7 +273,7 @@ static void test_input_source_code_3(void **const _) {
   scan_assert_all(LEXER_TOKEN_NUMBER, "7.5", 4, 16);
   scan_assert_all(LEXER_TOKEN_CLOSE_PAREN, ")", 4, 19);
   scan_assert_all(LEXER_TOKEN_SEMICOLON, ";", 4, 20);
-  scan_assert_all_eof(4, 21);
+  SCAN_ASSERT_ALL_EOF(4, 21);
 }
 
 int main(void) {
