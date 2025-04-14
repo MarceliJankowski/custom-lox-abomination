@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void chunk_reset(Chunk *chunk);
+
 /**@desc initialize bytecode `chunk`*/
 void chunk_init(Chunk *const chunk) {
   assert(chunk != NULL);

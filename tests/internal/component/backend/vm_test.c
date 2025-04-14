@@ -30,87 +30,87 @@ static void reset_test_case_env(void) {
   chunk_reset(&chunk);
 }
 
-#define run_assert_success() assert_true(run())
-#define run_assert_failure() assert_false(run())
+#define RUN_ASSERT_SUCCESS() assert_true(run())
+#define RUN_ASSERT_FAILURE() assert_false(run())
 
-#define assert_empty_stack() assert_int_equal(*t_vm_stack_count, 0)
+#define ASSERT_EMPTY_STACK() assert_int_equal(*t_vm_stack_count, 0)
 
-#define stack_pop_assert(expected_value) component_test_assert_value_equality(vm_stack_pop(), expected_value)
-#define stack_pop_assert_many(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(stack_pop_assert, Value, __VA_ARGS__)
+#define STACK_POP_ASSERT(expected_value) component_test_assert_value_equality(vm_stack_pop(), expected_value)
+#define STACK_POP_ASSERT_MANY(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(STACK_POP_ASSERT, Value, __VA_ARGS__)
 
-#define append_constant_instruction(constant) chunk_append_constant_instruction(&chunk, constant, 1)
-#define append_constant_instructions(...) \
-  COMPONENT_TEST_APPLY_TO_EACH_ARG(append_constant_instruction, Value, __VA_ARGS__)
+#define APPEND_CONSTANT_INSTRUCTION(constant) chunk_append_constant_instruction(&chunk, constant, 1)
+#define APPEND_CONSTANT_INSTRUCTIONS(...) \
+  COMPONENT_TEST_APPLY_TO_EACH_ARG(APPEND_CONSTANT_INSTRUCTION, Value, __VA_ARGS__)
 
-#define append_instruction(opcode) chunk_append_instruction(&chunk, opcode, 1)
-#define append_instructions(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(append_instruction, ChunkOpCode, __VA_ARGS__)
+#define APPEND_INSTRUCTION(opcode) chunk_append_instruction(&chunk, opcode, 1)
+#define APPEND_INSTRUCTIONS(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(APPEND_INSTRUCTION, ChunkOpCode, __VA_ARGS__)
 
-#define assert_execution_error(expected_error_message)                                         \
+#define ASSERT_EXECUTION_ERROR(expected_error_message)                                         \
   component_test_assert_binary_stream_resource_content(                                        \
     g_execution_error_stream,                                                                  \
     "[EXECUTION_ERROR]" COMMON_MS __FILE__ COMMON_PS "1" COMMON_MS expected_error_message "\n" \
   )
 
-#define assert_runtime_output(expected_output) \
+#define ASSERT_RUNTIME_OUTPUT(expected_output) \
   component_test_assert_binary_stream_resource_content(g_runtime_output_stream, expected_output "\n")
 
-#define assert_invalid_binary_numeric_operator_operand_types(operator_instruction, operator_descriptor)          \
+#define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)          \
   do {                                                                                                           \
     reset_test_case_env();                                                                                       \
-    append_instructions(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                      \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");     \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                      \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");     \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_instruction(CHUNK_OP_NIL);                                                                            \
-    append_constant_instruction(VALUE_MAKE_NUMBER(1));                                                           \
-    append_instructions(operator_instruction, CHUNK_OP_RETURN);                                                  \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");  \
+    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                            \
+    APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                  \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");  \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_constant_instruction(VALUE_MAKE_NUMBER(1));                                                           \
-    append_instructions(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                    \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");  \
+    APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                    \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");  \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_instructions(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                   \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");   \
+    APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                   \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");   \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_instruction(CHUNK_OP_TRUE);                                                                           \
-    append_constant_instruction(VALUE_MAKE_NUMBER(1));                                                           \
-    append_instructions(operator_instruction, CHUNK_OP_RETURN);                                                  \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')"); \
+    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                           \
+    APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                  \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')"); \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_constant_instruction(VALUE_MAKE_NUMBER(1));                                                           \
-    append_instructions(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                  \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')"); \
+    APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                  \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')"); \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_instructions(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                     \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");    \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                     \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");    \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
-    append_instructions(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                    \
-    run_assert_failure();                                                                                        \
-    assert_execution_error("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");    \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                    \
+    RUN_ASSERT_FAILURE();                                                                                        \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");    \
   } while (0)
 
-#define assert_value_is_result_of_instruction_on_values(expected_value, instruction, ...) \
+#define ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(expected_value, instruction, ...) \
   do {                                                                                    \
     reset_test_case_env();                                                                \
-    append_constant_instructions(__VA_ARGS__);                                            \
-    append_instructions(instruction, CHUNK_OP_RETURN);                                    \
-    run_assert_success();                                                                 \
-    stack_pop_assert(expected_value);                                                     \
-    assert_empty_stack();                                                                 \
+    APPEND_CONSTANT_INSTRUCTIONS(__VA_ARGS__);                                            \
+    APPEND_INSTRUCTIONS(instruction, CHUNK_OP_RETURN);                                    \
+    RUN_ASSERT_SUCCESS();                                                                 \
+    STACK_POP_ASSERT(expected_value);                                                     \
+    ASSERT_EMPTY_STACK();                                                                 \
   } while (0)
 
 // *---------------------------------------------*
@@ -156,486 +156,486 @@ static int teardown_test_case_env(void **const _) {
 static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
 
 static void test_CHUNK_OP_CONSTANT(void **const _) {
-  append_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
-  append_instruction(CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert_many(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(1));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
+  APPEND_INSTRUCTION(CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT_MANY(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(1));
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_CONSTANT_2B(void **const _) {
   // force CHUNK_OP_CONSTANT_2B usage
   for (int i = 0; i < UCHAR_MAX; i++) value_array_append(&chunk.constants, VALUE_MAKE_NUMBER(i));
 
-  append_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
-  append_instruction(CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert_many(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(1));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
+  APPEND_INSTRUCTION(CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT_MANY(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(1));
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_NIL(void **const _) {
-  append_instructions(CHUNK_OP_NIL, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_NIL());
-  assert_empty_stack();
+  APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_NIL());
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_TRUE(void **const _) {
-  append_instructions(CHUNK_OP_TRUE, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_BOOL(true));
-  assert_empty_stack();
+  APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_BOOL(true));
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_FALSE(void **const _) {
-  append_instructions(CHUNK_OP_FALSE, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_BOOL(false));
-  assert_empty_stack();
+  APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_BOOL(false));
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_PRINT(void **const _) {
-  append_constant_instruction(VALUE_MAKE_NUMBER(1));
-  append_instructions(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
-  run_assert_success();
-  assert_runtime_output("1");
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));
+  APPEND_INSTRUCTIONS(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  ASSERT_RUNTIME_OUTPUT("1");
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_POP(void **const _) {
-  append_constant_instructions(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
-  append_instructions(CHUNK_OP_POP, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_NUMBER(1));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  APPEND_INSTRUCTIONS(CHUNK_OP_POP, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_NUMBER(1));
+  ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_NEGATE(void **const _) {
-#define assert_number_constant_a_CHUNK_OP_NEGATE_equal_b(number_a, expected_number_b)  \
-  assert_value_is_result_of_instruction_on_values(                                     \
+#define ASSERT_CHUNK_OP_NEGATE(number_a, expected_number_b)                            \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                     \
     VALUE_MAKE_NUMBER(expected_number_b), CHUNK_OP_NEGATE, VALUE_MAKE_NUMBER(number_a) \
   )
 
   // signed integer negation
-  assert_number_constant_a_CHUNK_OP_NEGATE_equal_b(1, -1);
-  assert_number_constant_a_CHUNK_OP_NEGATE_equal_b(-2, 2);
+  ASSERT_CHUNK_OP_NEGATE(1, -1);
+  ASSERT_CHUNK_OP_NEGATE(-2, 2);
 
   // floating-point negation
-  assert_number_constant_a_CHUNK_OP_NEGATE_equal_b(1.25, -1.25);
+  ASSERT_CHUNK_OP_NEGATE(1.25, -1.25);
 
   // signed zero negation
-  assert_number_constant_a_CHUNK_OP_NEGATE_equal_b(0, -0);
-  assert_number_constant_a_CHUNK_OP_NEGATE_equal_b(-0, 0);
+  ASSERT_CHUNK_OP_NEGATE(0, -0);
+  ASSERT_CHUNK_OP_NEGATE(-0, 0);
 
   // negation stacking
   reset_test_case_env();
-  append_constant_instruction(VALUE_MAKE_NUMBER(2));
-  append_instructions(CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_NUMBER(2));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(2));
+  APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_NUMBER(2));
+  ASSERT_EMPTY_STACK();
 
   reset_test_case_env();
-  append_constant_instruction(VALUE_MAKE_NUMBER(3));
-  append_instructions(CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_NUMBER(-3));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(3));
+  APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_NUMBER(-3));
+  ASSERT_EMPTY_STACK();
 
   // invalid operand types
   reset_test_case_env();
-  append_instructions(CHUNK_OP_NIL, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Expected negation operand to be a number (got 'nil')");
+  APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'nil')");
 
   reset_test_case_env();
-  append_instructions(CHUNK_OP_TRUE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Expected negation operand to be a number (got 'bool')");
+  APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
   reset_test_case_env();
-  append_instructions(CHUNK_OP_FALSE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Expected negation operand to be a number (got 'bool')");
+  APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
-#undef assert_number_constant_a_CHUNK_OP_NEGATE_equal_b
+#undef ASSERT_CHUNK_OP_NEGATE
 }
 
 static void test_CHUNK_OP_ADD(void **const _) {
-#define assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(number_a, number_b, expected_number_c)                  \
-  assert_value_is_result_of_instruction_on_values(                                                               \
+#define ASSERT_CHUNK_OP_ADD(number_a, number_b, expected_number_c)                                               \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                               \
     VALUE_MAKE_NUMBER(expected_number_c), CHUNK_OP_ADD, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // integer addition and commutativity
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(1, 2, 3);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(2, 1, 3);
+  ASSERT_CHUNK_OP_ADD(1, 2, 3);
+  ASSERT_CHUNK_OP_ADD(2, 1, 3);
 
   // addition properties
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(2, 0, 2);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(2, -2, 0);
+  ASSERT_CHUNK_OP_ADD(2, 0, 2);
+  ASSERT_CHUNK_OP_ADD(2, -2, 0);
 
   // floating-point addition
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(1.7, 2.25, 3.95);
+  ASSERT_CHUNK_OP_ADD(1.7, 2.25, 3.95);
 
   // signed integer addition
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(5, -7, -2);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(-5, 7, 2);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(-5, -7, -12);
+  ASSERT_CHUNK_OP_ADD(5, -7, -2);
+  ASSERT_CHUNK_OP_ADD(-5, 7, 2);
+  ASSERT_CHUNK_OP_ADD(-5, -7, -12);
 
   // signed zero addition
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(0, 0, 0);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(0, -0, 0);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(-0, 0, 0);
-  assert_number_constants_a_b_CHUNK_OP_ADD_equal_c(-0, -0, -0);
+  ASSERT_CHUNK_OP_ADD(0, 0, 0);
+  ASSERT_CHUNK_OP_ADD(0, -0, 0);
+  ASSERT_CHUNK_OP_ADD(-0, 0, 0);
+  ASSERT_CHUNK_OP_ADD(-0, -0, -0);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_ADD, "addition");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_ADD, "addition");
 
-#undef assert_number_constants_a_b_CHUNK_OP_ADD_equal_c
+#undef ASSERT_CHUNK_OP_ADD
 }
 
 static void test_CHUNK_OP_SUBTRACT(void **const _) {
-#define assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(number_a, number_b, expected_number_c)                  \
-  assert_value_is_result_of_instruction_on_values(                                                                    \
+#define ASSERT_CHUNK_OP_SUBTRACT(number_a, number_b, expected_number_c)                                               \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                                    \
     VALUE_MAKE_NUMBER(expected_number_c), CHUNK_OP_SUBTRACT, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // integer subtraction and non-commutativity
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(4, 3, 1);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(3, 4, -1);
+  ASSERT_CHUNK_OP_SUBTRACT(4, 3, 1);
+  ASSERT_CHUNK_OP_SUBTRACT(3, 4, -1);
 
   // subtraction properties
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(2, 0, 2);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(25, 25, 0);
+  ASSERT_CHUNK_OP_SUBTRACT(2, 0, 2);
+  ASSERT_CHUNK_OP_SUBTRACT(25, 25, 0);
 
   // floating-point subtraction
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(3.75, 2.45, 1.3);
+  ASSERT_CHUNK_OP_SUBTRACT(3.75, 2.45, 1.3);
 
   // signed integer subtraction
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(-4, 3, -7);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(4, -3, 7);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(-4, -3, -1);
+  ASSERT_CHUNK_OP_SUBTRACT(-4, 3, -7);
+  ASSERT_CHUNK_OP_SUBTRACT(4, -3, 7);
+  ASSERT_CHUNK_OP_SUBTRACT(-4, -3, -1);
 
   // signed zero subtraction
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(0, 0, 0);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(0, -0, 0);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(-0, 0, -0);
-  assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c(-0, -0, 0);
+  ASSERT_CHUNK_OP_SUBTRACT(0, 0, 0);
+  ASSERT_CHUNK_OP_SUBTRACT(0, -0, 0);
+  ASSERT_CHUNK_OP_SUBTRACT(-0, 0, -0);
+  ASSERT_CHUNK_OP_SUBTRACT(-0, -0, 0);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_SUBTRACT, "subtraction");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_SUBTRACT, "subtraction");
 
-#undef assert_number_constants_a_b_CHUNK_OP_SUBTRACT_equal_c
+#undef ASSERT_CHUNK_OP_SUBTRACT
 }
 
 static void test_CHUNK_OP_MULTIPLY(void **const _) {
-#define assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(number_a, number_b, expected_number_c)                  \
-  assert_value_is_result_of_instruction_on_values(                                                                    \
+#define ASSERT_CHUNK_OP_MULTIPLY(number_a, number_b, expected_number_c)                                               \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                                    \
     VALUE_MAKE_NUMBER(expected_number_c), CHUNK_OP_MULTIPLY, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // integer multiplication and commutativity
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(5, 3, 15);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(3, 5, 15);
+  ASSERT_CHUNK_OP_MULTIPLY(5, 3, 15);
+  ASSERT_CHUNK_OP_MULTIPLY(3, 5, 15);
 
   // multiplication properties
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(125, 1, 125);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(50, 0, 0);
+  ASSERT_CHUNK_OP_MULTIPLY(125, 1, 125);
+  ASSERT_CHUNK_OP_MULTIPLY(50, 0, 0);
 
   // floating-point multiplication
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(12.34, 0.3, 3.702);
+  ASSERT_CHUNK_OP_MULTIPLY(12.34, 0.3, 3.702);
 
   // signed integer multiplication
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(-2, 4, -8);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(2, -4, -8);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(-2, -4, 8);
+  ASSERT_CHUNK_OP_MULTIPLY(-2, 4, -8);
+  ASSERT_CHUNK_OP_MULTIPLY(2, -4, -8);
+  ASSERT_CHUNK_OP_MULTIPLY(-2, -4, 8);
 
   // signed zero multiplication
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(0, 0, 0);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(0, -0, -0);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(-0, 0, -0);
-  assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c(-0, -0, 0);
+  ASSERT_CHUNK_OP_MULTIPLY(0, 0, 0);
+  ASSERT_CHUNK_OP_MULTIPLY(0, -0, -0);
+  ASSERT_CHUNK_OP_MULTIPLY(-0, 0, -0);
+  ASSERT_CHUNK_OP_MULTIPLY(-0, -0, 0);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_MULTIPLY, "multiplication");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_MULTIPLY, "multiplication");
 
-#undef assert_number_constants_a_b_CHUNK_OP_MULTIPLY_equal_c
+#undef ASSERT_CHUNK_OP_MULTIPLY
 }
 
 static void test_CHUNK_OP_DIVIDE(void **const _) {
-#define assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(number_a, number_b, expected_number_c)                  \
-  assert_value_is_result_of_instruction_on_values(                                                                  \
+#define ASSERT_CHUNK_OP_DIVIDE(number_a, number_b, expected_number_c)                                               \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                                  \
     VALUE_MAKE_NUMBER(expected_number_c), CHUNK_OP_DIVIDE, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // integer division and non-commutativity
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(8, 2, 4);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(2, 8, 0.25);
+  ASSERT_CHUNK_OP_DIVIDE(8, 2, 4);
+  ASSERT_CHUNK_OP_DIVIDE(2, 8, 0.25);
 
   // division properties
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(4, 1, 4);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(25, 25, 1);
+  ASSERT_CHUNK_OP_DIVIDE(4, 1, 4);
+  ASSERT_CHUNK_OP_DIVIDE(25, 25, 1);
 
   // floating-point division
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(4.2, 1.5, 2.8);
+  ASSERT_CHUNK_OP_DIVIDE(4.2, 1.5, 2.8);
 
   // signed integer division
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(-5, 2, -2.5);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(5, -2, -2.5);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(-5, -2, 2.5);
+  ASSERT_CHUNK_OP_DIVIDE(-5, 2, -2.5);
+  ASSERT_CHUNK_OP_DIVIDE(5, -2, -2.5);
+  ASSERT_CHUNK_OP_DIVIDE(-5, -2, 2.5);
 
   // signed zero division
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(0, 2, 0);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(0, -2, -0);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(-0, 2, -0);
-  assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c(-0, -2, 0);
+  ASSERT_CHUNK_OP_DIVIDE(0, 2, 0);
+  ASSERT_CHUNK_OP_DIVIDE(0, -2, -0);
+  ASSERT_CHUNK_OP_DIVIDE(-0, 2, -0);
+  ASSERT_CHUNK_OP_DIVIDE(-0, -2, 0);
 
   // division by zero
   reset_test_case_env();
-  append_constant_instructions(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(0));
-  append_instructions(CHUNK_OP_DIVIDE, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Illegal division by zero");
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(0));
+  APPEND_INSTRUCTIONS(CHUNK_OP_DIVIDE, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Illegal division by zero");
 
   reset_test_case_env();
-  append_constant_instructions(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(-0));
-  append_instructions(CHUNK_OP_DIVIDE, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Illegal division by zero");
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(-0));
+  APPEND_INSTRUCTIONS(CHUNK_OP_DIVIDE, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Illegal division by zero");
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_DIVIDE, "division");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_DIVIDE, "division");
 
-#undef assert_number_constants_a_b_CHUNK_OP_DIVIDE_equal_c
+#undef ASSERT_CHUNK_OP_DIVIDE
 }
 
 static void test_CHUNK_OP_MODULO(void **const _) {
-#define assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(number_a, number_b, expected_number_c)                  \
-  assert_value_is_result_of_instruction_on_values(                                                                  \
+#define ASSERT_CHUNK_OP_MODULO(number_a, number_b, expected_number_c)                                               \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                                  \
     VALUE_MAKE_NUMBER(expected_number_c), CHUNK_OP_MODULO, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // integer modulo and non-commutativity
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(8, 2, 0);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(2, 8, 2);
+  ASSERT_CHUNK_OP_MODULO(8, 2, 0);
+  ASSERT_CHUNK_OP_MODULO(2, 8, 2);
 
   // modulo properties
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(25, 25, 0);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(25, 1, 0);
+  ASSERT_CHUNK_OP_MODULO(25, 25, 0);
+  ASSERT_CHUNK_OP_MODULO(25, 1, 0);
 
   // floating-point modulo
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(4.68, 3.23, 1.45);
+  ASSERT_CHUNK_OP_MODULO(4.68, 3.23, 1.45);
 
   // signed integer modulo
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(-5, 2, -1);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(5, -2, 1);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(-5, -2, -1);
+  ASSERT_CHUNK_OP_MODULO(-5, 2, -1);
+  ASSERT_CHUNK_OP_MODULO(5, -2, 1);
+  ASSERT_CHUNK_OP_MODULO(-5, -2, -1);
 
   // signed zero modulo
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(0, 2, 0);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(0, -2, 0);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(-0, 2, -0);
-  assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c(-0, -2, -0);
+  ASSERT_CHUNK_OP_MODULO(0, 2, 0);
+  ASSERT_CHUNK_OP_MODULO(0, -2, 0);
+  ASSERT_CHUNK_OP_MODULO(-0, 2, -0);
+  ASSERT_CHUNK_OP_MODULO(-0, -2, -0);
 
   // modulo by zero
   reset_test_case_env();
-  append_constant_instructions(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(0));
-  append_instructions(CHUNK_OP_MODULO, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Illegal modulo by zero");
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(0));
+  APPEND_INSTRUCTIONS(CHUNK_OP_MODULO, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Illegal modulo by zero");
 
   reset_test_case_env();
-  append_constant_instructions(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(-0));
-  append_instructions(CHUNK_OP_MODULO, CHUNK_OP_RETURN);
-  run_assert_failure();
-  assert_execution_error("Illegal modulo by zero");
+  APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(-0));
+  APPEND_INSTRUCTIONS(CHUNK_OP_MODULO, CHUNK_OP_RETURN);
+  RUN_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Illegal modulo by zero");
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_MODULO, "modulo");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_MODULO, "modulo");
 
-#undef assert_number_constants_a_b_CHUNK_OP_MODULO_equal_c
+#undef ASSERT_CHUNK_OP_MODULO
 }
 
 static void test_CHUNK_OP_NOT(void **const _) {
-#define assert_value_a_CHUNK_OP_NOT_equals_b(value_a, expected_bool_b) \
-  assert_value_is_result_of_instruction_on_values(VALUE_MAKE_BOOL(expected_bool_b), CHUNK_OP_NOT, value_a)
+#define ASSERT_CHUNK_OP_NOT(value_a, expected_bool_b) \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(VALUE_MAKE_BOOL(expected_bool_b), CHUNK_OP_NOT, value_a)
 
   // truthy values
-  assert_value_a_CHUNK_OP_NOT_equals_b(VALUE_MAKE_NUMBER(1), false);
-  assert_value_a_CHUNK_OP_NOT_equals_b(VALUE_MAKE_NUMBER(-1), false);
-  assert_value_a_CHUNK_OP_NOT_equals_b(VALUE_MAKE_NUMBER(0), false);
-  assert_value_a_CHUNK_OP_NOT_equals_b(VALUE_MAKE_BOOL(true), false);
+  ASSERT_CHUNK_OP_NOT(VALUE_MAKE_NUMBER(1), false);
+  ASSERT_CHUNK_OP_NOT(VALUE_MAKE_NUMBER(-1), false);
+  ASSERT_CHUNK_OP_NOT(VALUE_MAKE_NUMBER(0), false);
+  ASSERT_CHUNK_OP_NOT(VALUE_MAKE_BOOL(true), false);
 
   // falsy values
-  assert_value_a_CHUNK_OP_NOT_equals_b(VALUE_MAKE_BOOL(false), true);
-  assert_value_a_CHUNK_OP_NOT_equals_b(VALUE_MAKE_NIL(), true);
+  ASSERT_CHUNK_OP_NOT(VALUE_MAKE_BOOL(false), true);
+  ASSERT_CHUNK_OP_NOT(VALUE_MAKE_NIL(), true);
 
   // "not" stacking
   reset_test_case_env();
-  append_constant_instruction(VALUE_MAKE_NUMBER(2));
-  append_instructions(CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_BOOL(true));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(2));
+  APPEND_INSTRUCTIONS(CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_BOOL(true));
+  ASSERT_EMPTY_STACK();
 
   reset_test_case_env();
-  append_constant_instruction(VALUE_MAKE_NUMBER(3));
-  append_instructions(CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_RETURN);
-  run_assert_success();
-  stack_pop_assert(VALUE_MAKE_BOOL(false));
-  assert_empty_stack();
+  APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(3));
+  APPEND_INSTRUCTIONS(CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_RETURN);
+  RUN_ASSERT_SUCCESS();
+  STACK_POP_ASSERT(VALUE_MAKE_BOOL(false));
+  ASSERT_EMPTY_STACK();
 
-#undef assert_value_a_CHUNK_OP_NOT_equals_b
+#undef ASSERT_CHUNK_OP_NOT
 }
 
 static void test_CHUNK_OP_EQUAL(void **const _) {
-#define assert_values_a_b_CHUNK_OP_EQUAL_equal_c(value_a, value_b, expected_bool_c) \
-  assert_value_is_result_of_instruction_on_values(VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_EQUAL, value_a, value_b)
+#define ASSERT_CHUNK_OP_EQUAL(value_a, value_b, expected_bool_c) \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_EQUAL, value_a, value_b)
 
   // equal values
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(1), true);
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(true), true);
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_NIL(), VALUE_MAKE_NIL(), true);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(1), true);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(true), true);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_NIL(), VALUE_MAKE_NIL(), true);
 
   // unequal values
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NUMBER(1), false);
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_NUMBER(0), VALUE_MAKE_BOOL(true), false);
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NIL(), false);
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(false), false);
-  assert_values_a_b_CHUNK_OP_EQUAL_equal_c(VALUE_MAKE_BOOL(false), VALUE_MAKE_NIL(), false);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NUMBER(1), false);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_NUMBER(0), VALUE_MAKE_BOOL(true), false);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NIL(), false);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(false), false);
+  ASSERT_CHUNK_OP_EQUAL(VALUE_MAKE_BOOL(false), VALUE_MAKE_NIL(), false);
 
-#undef assert_values_a_b_CHUNK_OP_EQUAL_equal_c
+#undef ASSERT_CHUNK_OP_EQUAL
 }
 
 static void test_CHUNK_OP_NOT_EQUAL(void **const _) {
-#define assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(value_a, value_b, expected_bool_c) \
-  assert_value_is_result_of_instruction_on_values(                                      \
-    VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_NOT_EQUAL, value_a, value_b              \
+#define ASSERT_CHUNK_OP_NOT_EQUAL(value_a, value_b, expected_bool_c)       \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                         \
+    VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_NOT_EQUAL, value_a, value_b \
   )
 
   // equal values
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(1), false);
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(true), false);
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_NIL(), VALUE_MAKE_NIL(), false);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(1), false);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(true), false);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_NIL(), VALUE_MAKE_NIL(), false);
 
   // unequal values
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NUMBER(1), true);
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_NUMBER(0), VALUE_MAKE_BOOL(true), true);
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NIL(), true);
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(false), true);
-  assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c(VALUE_MAKE_BOOL(false), VALUE_MAKE_NIL(), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NUMBER(1), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_NUMBER(0), VALUE_MAKE_BOOL(true), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_NUMBER(0), VALUE_MAKE_NIL(), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_BOOL(true), VALUE_MAKE_BOOL(false), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(VALUE_MAKE_BOOL(false), VALUE_MAKE_NIL(), true);
 
-#undef assert_values_a_b_CHUNK_OP_NOT_EQUAL_equal_c
+#undef ASSERT_CHUNK_OP_NOT_EQUAL
 }
 
 static void test_CHUNK_OP_LESS(void **const _) {
-#define assert_numbers_a_b_CHUNK_OP_LESS_equal_c(number_a, number_b, expected_bool_c)                         \
-  assert_value_is_result_of_instruction_on_values(                                                            \
+#define ASSERT_CHUNK_OP_LESS(number_a, number_b, expected_bool_c)                                             \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                            \
     VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_LESS, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // ascending numbers
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(-5, 0, true);
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(0, 5, true);
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(5, 10, true);
+  ASSERT_CHUNK_OP_LESS(-5, 0, true);
+  ASSERT_CHUNK_OP_LESS(0, 5, true);
+  ASSERT_CHUNK_OP_LESS(5, 10, true);
 
   // descending numbers
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(0, -5, false);
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(5, 0, false);
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(10, 5, false);
+  ASSERT_CHUNK_OP_LESS(0, -5, false);
+  ASSERT_CHUNK_OP_LESS(5, 0, false);
+  ASSERT_CHUNK_OP_LESS(10, 5, false);
 
   // equal numbers
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(-1, -1, false);
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(0, 0, false);
-  assert_numbers_a_b_CHUNK_OP_LESS_equal_c(2, 2, false);
+  ASSERT_CHUNK_OP_LESS(-1, -1, false);
+  ASSERT_CHUNK_OP_LESS(0, 0, false);
+  ASSERT_CHUNK_OP_LESS(2, 2, false);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_LESS, "less-than");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_LESS, "less-than");
 
-#undef assert_numbers_a_b_CHUNK_OP_LESS_equal_c
+#undef ASSERT_CHUNK_OP_LESS
 }
 
 static void test_CHUNK_OP_LESS_EQUAL(void **const _) {
-#define assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(number_a, number_b, expected_bool_c)                         \
-  assert_value_is_result_of_instruction_on_values(                                                                  \
+#define ASSERT_CHUNK_OP_LESS_EQUAL(number_a, number_b, expected_bool_c)                                             \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                                  \
     VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_LESS_EQUAL, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // ascending numbers
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(-5, 0, true);
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(0, 5, true);
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(5, 10, true);
+  ASSERT_CHUNK_OP_LESS_EQUAL(-5, 0, true);
+  ASSERT_CHUNK_OP_LESS_EQUAL(0, 5, true);
+  ASSERT_CHUNK_OP_LESS_EQUAL(5, 10, true);
 
   // descending numbers
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(0, -5, false);
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(5, 0, false);
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(10, 5, false);
+  ASSERT_CHUNK_OP_LESS_EQUAL(0, -5, false);
+  ASSERT_CHUNK_OP_LESS_EQUAL(5, 0, false);
+  ASSERT_CHUNK_OP_LESS_EQUAL(10, 5, false);
 
   // equal numbers
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(-1, -1, true);
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(0, 0, true);
-  assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c(2, 2, true);
+  ASSERT_CHUNK_OP_LESS_EQUAL(-1, -1, true);
+  ASSERT_CHUNK_OP_LESS_EQUAL(0, 0, true);
+  ASSERT_CHUNK_OP_LESS_EQUAL(2, 2, true);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_LESS_EQUAL, "less-than-or-equal");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_LESS_EQUAL, "less-than-or-equal");
 
-#undef assert_numbers_a_b_CHUNK_OP_LESS_EQUAL_equal_c
+#undef ASSERT_CHUNK_OP_LESS_EQUAL
 }
 
 static void test_CHUNK_OP_GREATER(void **const _) {
-#define assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(number_a, number_b, expected_bool_c)                         \
-  assert_value_is_result_of_instruction_on_values(                                                               \
+#define ASSERT_CHUNK_OP_GREATER(number_a, number_b, expected_bool_c)                                             \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                               \
     VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_GREATER, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // ascending numbers
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(-5, 0, false);
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(0, 5, false);
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(5, 10, false);
+  ASSERT_CHUNK_OP_GREATER(-5, 0, false);
+  ASSERT_CHUNK_OP_GREATER(0, 5, false);
+  ASSERT_CHUNK_OP_GREATER(5, 10, false);
 
   // descending numbers
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(0, -5, true);
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(5, 0, true);
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(10, 5, true);
+  ASSERT_CHUNK_OP_GREATER(0, -5, true);
+  ASSERT_CHUNK_OP_GREATER(5, 0, true);
+  ASSERT_CHUNK_OP_GREATER(10, 5, true);
 
   // equal numbers
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(-1, -1, false);
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(0, 0, false);
-  assert_numbers_a_b_CHUNK_OP_GREATER_equal_c(2, 2, false);
+  ASSERT_CHUNK_OP_GREATER(-1, -1, false);
+  ASSERT_CHUNK_OP_GREATER(0, 0, false);
+  ASSERT_CHUNK_OP_GREATER(2, 2, false);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_GREATER, "greater-than");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_GREATER, "greater-than");
 
-#undef assert_numbers_a_b_CHUNK_OP_GREATER_equal_c
+#undef ASSERT_CHUNK_OP_GREATER
 }
 
 static void test_CHUNK_OP_GREATER_EQUAL(void **const _) {
-#define assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(number_a, number_b, expected_bool_c)                         \
-  assert_value_is_result_of_instruction_on_values(                                                                     \
+#define ASSERT_CHUNK_OP_GREATER_EQUAL(number_a, number_b, expected_bool_c)                                             \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                                     \
     VALUE_MAKE_BOOL(expected_bool_c), CHUNK_OP_GREATER_EQUAL, VALUE_MAKE_NUMBER(number_a), VALUE_MAKE_NUMBER(number_b) \
   )
 
   // ascending numbers
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(-5, 0, false);
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(0, 5, false);
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(5, 10, false);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(-5, 0, false);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(0, 5, false);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(5, 10, false);
 
   // descending numbers
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(0, -5, true);
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(5, 0, true);
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(10, 5, true);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(0, -5, true);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(5, 0, true);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(10, 5, true);
 
   // equal numbers
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(-1, -1, true);
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(0, 0, true);
-  assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c(2, 2, true);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(-1, -1, true);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(0, 0, true);
+  ASSERT_CHUNK_OP_GREATER_EQUAL(2, 2, true);
 
   // invalid operand types
-  assert_invalid_binary_numeric_operator_operand_types(CHUNK_OP_GREATER_EQUAL, "greater-than-or-equal");
+  ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(CHUNK_OP_GREATER_EQUAL, "greater-than-or-equal");
 
-#undef assert_numbers_a_b_CHUNK_OP_GREATER_EQUAL_equal_c
+#undef ASSERT_CHUNK_OP_GREATER_EQUAL
 }
 
 int main(void) {
