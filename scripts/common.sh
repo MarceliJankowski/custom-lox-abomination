@@ -48,6 +48,18 @@ log_action() {
   echo -e "[ACTION] - ${message}..."
 }
 
+# @desc determine whether `cmd` is available in PATH
+# @return TRUE if it is, FALSE otherwise
+is_cmd_available() {
+  [[ $# -ne 1 ]] && internal_error "is_cmd_available() expects 'cmd' argument"
+
+  local -r cmd="$1"
+
+  command -v "$cmd" &>/dev/null || return $FALSE # unavailable
+
+  return $TRUE # available
+}
+
 ##################################################
 #                GLOBAL VARIABLES                #
 ##################################################
