@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/../scripts_common.sh"
+source "$(dirname "$0")/../common.sh"
 
 ##################################################
 #                GLOBAL VARIABLES                #
@@ -44,7 +44,7 @@ symlink_git_hook() {
 #                    SYMLINKS                    #
 ##################################################
 
-log_action "Symlinking git_pre_commit.sh hook"
-symlink_git_hook git_pre_commit.sh pre-commit
+log_action "Symlinking pre_commit.sh hook"
+symlink_git_hook pre_commit.sh pre-commit
 
 exit 0
