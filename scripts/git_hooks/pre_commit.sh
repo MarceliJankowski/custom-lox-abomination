@@ -51,6 +51,18 @@ abort_action_pipeline() {
 #                ACTION PIPELINE                 #
 ##################################################
 
+log_action "Checking required formatter availability and version conformance"
+if ! is_cmd_available "clang-format"; then
+  error "clang-format is unavailable" $GENERIC_ERROR_CODE
+elif [[ $(clang-format --version) != "clang-format version 19."* ]]; then
+  error "clang-format version doesn't conform to required '^19.0.0'" $GENERIC_ERROR_CODE
+fi
+if ! is_cmd_available "stylua"; then
+  error "stylua is unavailable" $GENERIC_ERROR_CODE
+elif [[ $(stylua --version) != "stylua 2."* ]]; then
+  error "stylua version doesn't conform to required '^2.0.0'" $GENERIC_ERROR_CODE
+fi
+
 if [[ $RUN_STASH_ACTION -eq $TRUE ]]; then
   log_action "Stashing unstaged changes and untracked files"
   git stash save --keep-index --include-untracked 'git-pre-commit-frame' 1>/dev/null ||
