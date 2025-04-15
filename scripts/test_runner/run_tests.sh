@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/../scripts_common.sh"
+source "$(dirname "$0")/../common.sh"
 
 # to get info on this script run it with '-h' flag
 

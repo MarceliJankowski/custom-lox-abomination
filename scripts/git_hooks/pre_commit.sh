@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$(dirname $(readlink -e "$0"))/../scripts_common.sh"
+source "$(dirname $(readlink -e "$0"))/../common.sh"
 
 ##################################################
 #                GLOBAL VARIABLES                #
