@@ -205,7 +205,7 @@ get_sorted_e2e_testfile_paths() {
   [[ $# -ne 0 ]] && internal_error "get_sorted_e2e_testfile_paths() expects no arguments"
 
   local -r e2e_testfile_dir_path="${TESTS_DIR}/e2e"
-  local -r e2e_testfile_paths=($(find "$e2e_testfile_dir_path" -type f -name '*_test.cla' -printf "%P "))
+  local -r e2e_testfile_paths=($(find "$e2e_testfile_dir_path" -type f -name '*.test.cla' -printf "%P "))
   local sorted_e2e_testfile_paths=()
 
   sort_e2e_testfile_paths() {
