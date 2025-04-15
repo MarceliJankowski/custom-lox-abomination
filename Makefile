@@ -16,7 +16,7 @@ FIND ?= find
 ECHO ?= echo
 MKDIR := mkdir -p
 RM := rm -rf
-GENERATE_COMPILATION_DATABASE := ${SCRIPTS_DIR}/generate_compilation_database.sh
+GENERATE_COMPILATION_DATABASE := ${SCRIPTS_DIR}/miscellaneous/generate_compilation_database.sh
 RUN_TESTS := ${SCRIPTS_DIR}/test_runner/run_tests.sh
 
 CC ?=
