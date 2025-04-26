@@ -24,6 +24,7 @@ CFLAGS ?=
 CPPFLAGS ?=
 TARGET_ARCH ?=
 LDFLAGS ?=
+LDLIBS ?=
 
 # this variable gets used by script executing targets for argument passing
 ARGS ?=
@@ -53,10 +54,8 @@ component_tests_dir := ${internal_tests_dir}/component
 
 compile_cflags := -Wall -Wextra -Werror -std=c17 -pedantic
 compile_cppflags := -I ${INCLUDE_DIR}
-link_flags := -lm
-
-compile = $(strip ${CC} -c -MMD -MP ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${TARGET_ARCH})
-link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS} ${link_flags} ${LDFLAGS} ${TARGET_ARCH})
+link_flags :=
+link_libs := -lm
 
 sources := $(shell ${FIND} ${SRC_DIR} -type f -name '*.c')
 source_objects := $(patsubst %.c,%.o,${sources})
@@ -90,12 +89,11 @@ clean_targets := clean ${clean_build_targets}
 ##################################################
 
 release: compile_cflags += ${RELEASE_CFLAGS}
-release: link_flags += ${RELEASE_LDFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
 test-executables: compile_cppflags += -I ${test_utils_dir}
 test-executables: compile_cflags += -Wno-unused-parameter
-test-executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
+test-executables: link_libs += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
 # fix clang failing to link test executables (this happens when some but not all objects are compiled with '-flto' flag)
 ifeq "${CC}" "clang"
@@ -106,6 +104,27 @@ endif
 #                   FUNCTIONS                    #
 ##################################################
 
+# $(call compile,source_file,output_file)
+define compile
+$(strip ${CC} \
+  -c -MMD -MP \
+  ${compile_cppflags} ${CPPFLAGS} \
+  ${compile_cflags} ${CFLAGS} \
+  ${TARGET_ARCH} \
+  ${1} -o ${2})
+endef
+
+# $(call link,object_files,output_file)
+define link
+$(strip ${CC} \
+  ${compile_cppflags} ${CPPFLAGS} \
+  ${compile_cflags} ${CFLAGS} \
+  ${TARGET_ARCH} \
+  ${link_flags} ${LDFLAGS} \
+  ${1} -o ${2} \
+  ${link_libs} ${LDLIBS})
+endef
+
 # $(call generate_rule_building_objects_for_given_build,build)
 define generate_rule_building_objects_for_given_build
 # prevent make from deleting object files
@@ -113,7 +132,7 @@ define generate_rule_building_objects_for_given_build
 
 ${BUILD_DIR}/$1/%.o: %.c
 	@ ${MKDIR} $$(dir $$@)
-	$${compile} $$< -o $$@
+	$$(call compile,$$<,$$@)
 endef
 
 # $(call generate_rule_cleaning_given_build,build)
@@ -128,7 +147,7 @@ endef
 
 define make_target_dir_and_link_prerequisites_into_target
 	@ ${MKDIR} $(dir $@)
-	${link} $^ -o $@
+	$(call link,$^,$@)
 endef
 
 ##################################################
