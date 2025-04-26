@@ -5,8 +5,8 @@
 
 #include <stdio.h>
 
-#define PUTS_BREAK(string)                \
-  fputs(string, g_runtime_output_stream); \
+#define PUTS_BREAK(string_literal)                     \
+  fputs(string_literal "\n", g_runtime_output_stream); \
   break
 
 #define PRINTF_BREAK(...)                        \

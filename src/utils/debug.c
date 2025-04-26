@@ -112,8 +112,6 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
     default: INTERNAL_ERROR("Unknown simple instruction opcode '%d'", opcode);
   }
 
-  printf("'\n");
-
   return offset + 1;
 }
 
