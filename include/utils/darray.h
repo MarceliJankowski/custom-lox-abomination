@@ -1,6 +1,8 @@
 #ifndef DARRAY_H
 #define DARRAY_H
 
+#include "error.h"
+
 #include <stdlib.h>
 
 #define DARRAY_INIT(darray_ptr, array_name) \
@@ -19,6 +21,7 @@
   do {                                                                                                     \
     (darray_ptr)->capacity = DARRAY_GROW_CAPACITY((darray_ptr)->capacity);                                 \
     (darray_ptr)->array_name = realloc((darray_ptr)->array_name, (element_size) * (darray_ptr)->capacity); \
+    if ((darray_ptr)->array_name == NULL) ERROR_MEMORY("%s", strerror(errno));                             \
   } while (0)
 
 #define DARRAY_APPEND_BOILERPLATE(darray_ptr, array_name, element, darray_resize_macro)                              \
