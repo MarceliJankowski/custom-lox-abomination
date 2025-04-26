@@ -16,7 +16,7 @@ FIND ?= find
 ECHO ?= echo
 MKDIR := mkdir -p
 RM := rm -rf
-GENERATE_COMPILATION_DATABASE := ${SCRIPTS_DIR}/generate_compilation_database.sh
+GENERATE_COMPILATION_DATABASE := ${SCRIPTS_DIR}/miscellaneous/generate_compilation_database.sh
 RUN_TESTS := ${SCRIPTS_DIR}/test_runner/run_tests.sh
 
 CC ?=
@@ -46,6 +46,11 @@ DEFAULT_TARGET ?= help
 #               INTERNAL VARIABLES               #
 ##################################################
 
+internal_tests_dir := ${TESTS_DIR}/internal
+test_utils_dir := ${internal_tests_dir}/utils
+unit_tests_dir := ${internal_tests_dir}/unit
+component_tests_dir := ${internal_tests_dir}/component
+
 compile_cflags := -Wall -Wextra -Werror -std=c17 -pedantic
 compile_cppflags := -I ${INCLUDE_DIR}
 link_flags := -lm
@@ -56,21 +61,21 @@ link = $(strip ${CC} ${compile_cppflags} ${CPPFLAGS} ${compile_cflags} ${CFLAGS}
 sources := $(shell ${FIND} ${SRC_DIR} -type f -name '*.c')
 source_objects := $(patsubst %.c,%.o,${sources})
 
-unit_tests := $(shell ${FIND} ${TESTS_DIR}/unit -type f -name '*.c')
+unit_tests := $(shell ${FIND} ${unit_tests_dir} -type f -name '*.c')
 unit_test_executables := $(patsubst %.c,${BIN_DIR}/tests/unit/%,${unit_tests})
 
-component_tests := $(shell ${FIND} ${TESTS_DIR}/component -type f -name '*.c')
+component_tests := $(shell ${FIND} ${component_tests_dir} -type f -name '*.c')
 component_test_executables := $(patsubst %.c,${BIN_DIR}/tests/component/%,${component_tests})
 
 # release objects that component tests depend on; 'main.o' is excluded because each test file defines its own entry point
 component_test_release_objects := $(addprefix ${BUILD_DIR}/release/,$(filter-out ${SRC_DIR}/main.o,${source_objects}))
 
-common_test_utils := $(shell ${FIND} ${TESTS_DIR}/utils/common -type f -name '*.c')
-unit_test_utils := ${shared_test_utils} $(shell ${FIND} ${TESTS_DIR}/utils/unit -type f -name '*.c')
-component_test_utils := ${shared_test_utils} $(shell ${FIND} ${TESTS_DIR}/utils/component -type f -name '*.c')
+common_test_utils := $(shell ${FIND} ${test_utils_dir}/common -type f -name '*.c')
+unit_test_utils := ${common_test_utils} $(shell ${FIND} ${test_utils_dir}/unit -type f -name '*.c')
+component_test_utils := ${common_test_utils} $(shell ${FIND} ${test_utils_dir}/component -type f -name '*.c')
 
-unit_test_makefiles := $(shell ${FIND} ${TESTS_DIR}/unit -type f -name '*.mk')
-unit_test_mk_target_prefix := ${BIN_DIR}/tests/unit/${TESTS_DIR}/unit
+unit_test_makefiles := $(shell ${FIND} ${unit_test_dir} -type f -name '*.mk')
+unit_test_mk_target_prefix := ${BIN_DIR}/tests/unit/${unit_tests_dir}
 unit_test_mk_prerequisite_prefix := ${BUILD_DIR}/release/${SRC_DIR}
 
 # compiler generated makefiles tracking header dependencies
@@ -88,7 +93,7 @@ release: compile_cflags += ${RELEASE_CFLAGS}
 release: link_flags += ${RELEASE_LDFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
 debug: compile_cflags += ${DEBUG_CFLAGS}
-test-executables: compile_cppflags += -I ${TESTS_DIR}/utils
+test-executables: compile_cppflags += -I ${test_utils_dir}
 test-executables: compile_cflags += -Wno-unused-parameter
 test-executables: link_flags += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 

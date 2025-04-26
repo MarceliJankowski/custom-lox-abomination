@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void chunk_reset(Chunk *chunk);
+
 /**@desc initialize bytecode `chunk`*/
 void chunk_init(Chunk *const chunk) {
   assert(chunk != NULL);
@@ -97,15 +99,15 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, in
   uint32_t const constant_index = chunk_append_constant(chunk, value);
 
   if (constant_index > 0xFFFFul)
-    MEMORY_ERROR(FILE_LINE_FORMAT M_S "Exceeded chunk constant pool limit", g_source_file, line);
+    ERROR_MEMORY(COMMON_FILE_LINE_FORMAT COMMON_MS "Exceeded chunk constant pool limit", g_source_file, line);
 
   if (constant_index > UCHAR_MAX) {
-    chunk_append_instruction(chunk, OP_CONSTANT_2B, line);
-    chunk_append_multibyte_operand(chunk, 2, get_byte(constant_index, 0), get_byte(constant_index, 1));
+    chunk_append_instruction(chunk, CHUNK_OP_CONSTANT_2B, line);
+    chunk_append_multibyte_operand(chunk, 2, memory_get_byte(constant_index, 0), memory_get_byte(constant_index, 1));
     return;
   }
 
-  chunk_append_instruction(chunk, OP_CONSTANT, line);
+  chunk_append_instruction(chunk, CHUNK_OP_CONSTANT, line);
   chunk_append_operand(chunk, constant_index);
 }
 
@@ -121,40 +123,40 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
   int32_t instruction_index = 0;
   int32_t loop_offset = 0;
 
-  static_assert(OP_OPCODE_COUNT == 21, "Exhaustive opcode handling");
+  static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
   while (loop_offset < offset) {
     switch (chunk->code[loop_offset]) {
-      case OP_RETURN:
-      case OP_PRINT:
-      case OP_POP:
-      case OP_NEGATE:
-      case OP_ADD:
-      case OP_SUBTRACT:
-      case OP_MULTIPLY:
-      case OP_DIVIDE:
-      case OP_MODULO:
-      case OP_NOT:
-      case OP_NIL:
-      case OP_TRUE:
-      case OP_FALSE:
-      case OP_EQUAL:
-      case OP_NOT_EQUAL:
-      case OP_LESS:
-      case OP_LESS_EQUAL:
-      case OP_GREATER:
-      case OP_GREATER_EQUAL: {
+      case CHUNK_OP_RETURN:
+      case CHUNK_OP_PRINT:
+      case CHUNK_OP_POP:
+      case CHUNK_OP_NEGATE:
+      case CHUNK_OP_ADD:
+      case CHUNK_OP_SUBTRACT:
+      case CHUNK_OP_MULTIPLY:
+      case CHUNK_OP_DIVIDE:
+      case CHUNK_OP_MODULO:
+      case CHUNK_OP_NOT:
+      case CHUNK_OP_NIL:
+      case CHUNK_OP_TRUE:
+      case CHUNK_OP_FALSE:
+      case CHUNK_OP_EQUAL:
+      case CHUNK_OP_NOT_EQUAL:
+      case CHUNK_OP_LESS:
+      case CHUNK_OP_LESS_EQUAL:
+      case CHUNK_OP_GREATER:
+      case CHUNK_OP_GREATER_EQUAL: {
         loop_offset += 1;
         break;
       }
-      case OP_CONSTANT: {
+      case CHUNK_OP_CONSTANT: {
         loop_offset += 2;
         break;
       }
-      case OP_CONSTANT_2B: {
+      case CHUNK_OP_CONSTANT_2B: {
         loop_offset += 3;
         break;
       }
-      default: INTERNAL_ERROR("Unknown opcode '%d'", chunk->code[loop_offset]);
+      default: ERROR_INTERNAL("Unknown chunk opcode '%d'", chunk->code[loop_offset]);
     }
 
     instruction_index++;
@@ -168,5 +170,5 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
     if (instruction_count > instruction_index) return chunk->lines.line_counts[i].line;
   }
 
-  INTERNAL_ERROR("Failed to retrieve line corresponding to bytecode instruction");
+  ERROR_INTERNAL("Failed to retrieve line corresponding to bytecode instruction");
 }

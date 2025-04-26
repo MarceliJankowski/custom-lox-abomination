@@ -8,44 +8,44 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INVALID_ARG_ERROR_CODE 1
-#define MEMORY_ERROR_CODE 2
-#define IO_ERROR_CODE 3
-#define COMPILATION_ERROR_CODE 4
-#define EXECUTION_ERROR_CODE 5
-#define ERROR_CODE_COUNT EXECUTION_ERROR_CODE
+#define ERROR_CODE_INVALID_ARG 1
+#define ERROR_CODE_MEMORY 2
+#define ERROR_CODE_IO 3
+#define ERROR_CODE_COMPILATION 4
+#define ERROR_CODE_EXECUTION 5
+#define ERROR_CODE_COUNT ERROR_CODE_EXECUTION
 
-#define INTERNAL_FILE_LINE __FILE__ P_S STRINGIZE(__LINE__)
+#define ERROR__FILE_LINE __FILE__ COMMON_PS COMMON_STRINGIZE(__LINE__)
 
 #ifdef DEBUG
-#define DEBUG_INTERNAL_FILE_LINE INTERNAL_FILE_LINE M_S
+#define ERROR__DEBUG_FILE_LINE ERROR__FILE_LINE COMMON_MS
 #else
-#define DEBUG_INTERNAL_FILE_LINE
+#define ERROR__DEBUG_FILE_LINE
 #endif
 
-#define ERROR_BOILERPLATE_PRINT_ARGS(...)                                                                  \
-  fprintf(stderr, M_S);                                                                                    \
+#define ERROR__BOILERPLATE_PRINT_ARGS(...)                                                                 \
+  fprintf(stderr, COMMON_MS);                                                                              \
   fprintf(stderr, __VA_ARGS__); /* separate fprintf call so that message can also be passed as a pointer*/ \
   fprintf(stderr, "\n")
 
-#define ERROR_BOILERPLATE(error_code, message_prefix, ...)    \
-  do {                                                        \
-    fprintf(stderr, DEBUG_INTERNAL_FILE_LINE message_prefix); \
-    ERROR_BOILERPLATE_PRINT_ARGS(__VA_ARGS__);                \
-    exit(error_code);                                         \
+#define ERROR__BOILERPLATE(error_code, message_prefix, ...) \
+  do {                                                      \
+    fprintf(stderr, ERROR__DEBUG_FILE_LINE message_prefix); \
+    ERROR__BOILERPLATE_PRINT_ARGS(__VA_ARGS__);             \
+    exit(error_code);                                       \
   } while (0)
 
-#define INTERNAL_ERROR(...)                                     \
-  do {                                                          \
-    fprintf(stderr, "[INTERNAL_ERROR]" M_S INTERNAL_FILE_LINE); \
-    ERROR_BOILERPLATE_PRINT_ARGS(__VA_ARGS__);                  \
-    abort();                                                    \
+#define ERROR_INTERNAL(...)                                         \
+  do {                                                              \
+    fprintf(stderr, "[ERROR_INTERNAL]" COMMON_MS ERROR__FILE_LINE); \
+    ERROR__BOILERPLATE_PRINT_ARGS(__VA_ARGS__);                     \
+    abort();                                                        \
   } while (0)
 
-#define INVALID_ARG_ERROR(...) ERROR_BOILERPLATE(INVALID_ARG_ERROR_CODE, "[INVALID_ARG_ERROR]", __VA_ARGS__)
+#define ERROR_INVALID_ARG(...) ERROR__BOILERPLATE(ERROR_CODE_INVALID_ARG, "[ERROR_INVALID_ARG]", __VA_ARGS__)
 
-#define IO_ERROR(...) ERROR_BOILERPLATE(IO_ERROR_CODE, "[IO_ERROR]", __VA_ARGS__)
+#define ERROR_IO(...) ERROR__BOILERPLATE(ERROR_CODE_IO, "[ERROR_IO]", __VA_ARGS__)
 
-#define MEMORY_ERROR(...) ERROR_BOILERPLATE(MEMORY_ERROR_CODE, "[MEMORY_ERROR]", __VA_ARGS__)
+#define ERROR_MEMORY(...) ERROR__BOILERPLATE(ERROR_CODE_MEMORY, "[ERROR_MEMORY]", __VA_ARGS__)
 
 #endif // ERROR_H

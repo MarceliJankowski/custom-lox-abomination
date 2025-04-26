@@ -27,15 +27,15 @@ typedef struct {
   int32_t capacity, count;
 } ValueArray;
 
-#define NIL_VALUE() ((Value){VALUE_NIL, {.number = 0}})
-#define BOOL_VALUE(value) ((Value){VALUE_BOOL, {.boolean = value}})
-#define NUMBER_VALUE(value) ((Value){VALUE_NUMBER, {.number = value}})
+#define VALUE_MAKE_NIL() ((Value){VALUE_NIL, {.number = 0}})
+#define VALUE_MAKE_BOOL(value) ((Value){VALUE_BOOL, {.boolean = value}})
+#define VALUE_MAKE_NUMBER(value) ((Value){VALUE_NUMBER, {.number = value}})
 
-#define IS_BOOL_VALUE(value) ((value).type == VALUE_BOOL)
-#define IS_NIL_VALUE(value) ((value).type == VALUE_NIL)
-#define IS_NUMBER_VALUE(value) ((value).type == VALUE_NUMBER)
+#define VALUE_IS_BOOL(value) ((value).type == VALUE_BOOL)
+#define VALUE_IS_NIL(value) ((value).type == VALUE_NIL)
+#define VALUE_IS_NUMBER(value) ((value).type == VALUE_NUMBER)
 
-#define IS_FALSY_VALUE(value) IS_NIL_VALUE(value) || (IS_BOOL_VALUE(value) && !value.payload.boolean)
+#define VALUE_IS_FALSY(value) VALUE_IS_NIL(value) || (VALUE_IS_BOOL(value) && !value.payload.boolean)
 
 extern char const *const value_type_to_string_table[];
 

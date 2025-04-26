@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/../scripts_common.sh"
+source "$(dirname "$0")/../common.sh"
 
 # to get info on this script run it with '-h' flag
 
@@ -205,7 +205,7 @@ get_sorted_e2e_testfile_paths() {
   [[ $# -ne 0 ]] && internal_error "get_sorted_e2e_testfile_paths() expects no arguments"
 
   local -r e2e_testfile_dir_path="${TESTS_DIR}/e2e"
-  local -r e2e_testfile_paths=($(find "$e2e_testfile_dir_path" -type f -name '*_test.cla' -printf "%P "))
+  local -r e2e_testfile_paths=($(find "$e2e_testfile_dir_path" -type f -name '*.test.cla' -printf "%P "))
   local sorted_e2e_testfile_paths=()
 
   sort_e2e_testfile_paths() {
@@ -255,7 +255,7 @@ get_sorted_e2e_testfile_paths() {
 run_unit_tests() {
   [[ $# -ne 0 ]] && internal_error "run_unit_tests() expects no arguments"
 
-  local -r unit_test_filepaths=$(find "${TESTS_DIR}/unit" -type f -name '*_spec.c')
+  local -r unit_test_filepaths=$(find "${TESTS_DIR}/internal/unit" -type f -name '*_spec.c')
 
   run_test_executables "$UNIT_TEST_TYPE" "$unit_test_filepaths"
 }
@@ -263,7 +263,7 @@ run_unit_tests() {
 run_component_tests() {
   [[ $# -ne 0 ]] && internal_error "run_component_tests() expects no arguments"
 
-  local -r component_test_filepaths=$(find "${TESTS_DIR}/component" -type f -name '*_test.c')
+  local -r component_test_filepaths=$(find "${TESTS_DIR}/internal/component" -type f -name '*_test.c')
 
   run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_filepaths"
 }

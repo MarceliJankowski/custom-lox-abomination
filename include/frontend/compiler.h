@@ -5,8 +5,8 @@
 
 #include <stdbool.h>
 
-typedef enum { COMPILATION_SUCCESS, COMPILATION_FAILURE, COMPILATION_UNEXPECTED_EOF } CompilationStatus;
+typedef enum { COMPILER_SUCCESS, COMPILER_FAILURE, COMPILER_UNEXPECTED_EOF } CompilerStatus;
 
-CompilationStatus compiler_compile(char const *source_code, Chunk *chunk);
+CompilerStatus compiler_compile(char const *source_code, Chunk *chunk);
 
 #endif // COMPILER_H
