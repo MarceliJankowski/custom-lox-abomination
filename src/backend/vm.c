@@ -1,5 +1,6 @@
 #include "backend/vm.h"
 
+#include "backend/gc.h"
 #include "backend/value.h"
 #include "global.h"
 #include "utils/debug.h"
@@ -20,38 +21,36 @@
 static VM vm;
 
 /**@desc exposes vm.stack.count (meant solely for automated tests)*/
-int32_t const *const t_vm_stack_count = &vm.stack.count;
+size_t const *const t_vm_stack_count = &vm.stack.count;
 
 // *---------------------------------------------*
 // *                  UTILITIES                  *
 // *---------------------------------------------*
 
-#define VM_STACK_TOP_FRAME STACK_TOP_FRAME(&vm.stack, values)
+#define VM_STACK_TOP STACK_TOP(&vm.stack)
 
 void vm_reset(void);
 
 /**@desc initialize virtual machine*/
 void vm_init(void) {
-  STACK_INIT(Value, &vm.stack, values, VM_STACK_INITIAL_CAPACITY);
+  STACK_INIT(&vm.stack, sizeof(Value), gc_memory_manage);
+  vm.stack.min_growth_capacity = VM_STACK_MIN_GROWTH_CAPACITY;
 }
 
 /**@desc free virtual machine*/
 void vm_free(void) {
-  STACK_FREE(&vm.stack, values);
+  STACK_FREE(&vm.stack);
 }
 
 /**@desc push `value` on top of virtual machine stack*/
 void vm_stack_push(Value const value) {
-  STACK_PUSH(&vm.stack, values, value);
+  STACK_PUSH(&vm.stack, value);
 }
 
 /**@desc pop value from virtual machine stack
 @return popped value*/
 Value vm_stack_pop(void) {
-  Value popped_value;
-  STACK_POP(&vm.stack, values, &popped_value);
-
-  return popped_value;
+  return STACK_POP(&vm.stack);
 }
 
 /**@desc handle bytecode execution error at `instruction_offset` with `format` message and `format_args`
@@ -84,7 +83,7 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
 @return true if execution succeeded, false otherwise*/
 bool vm_execute(void) {
 #define READ_BYTE() (*vm.ip++)
-#define GET_INSTRUCTION_OFFSET(instruction_byte_length) (vm.ip - vm.chunk->code - (instruction_byte_length))
+#define GET_INSTRUCTION_OFFSET(instruction_byte_length) (vm.ip - vm.chunk->code.data - (instruction_byte_length))
 #define ASSERT_MIN_VM_STACK_COUNT(expected_min_vm_stack_count) \
   assert(vm.stack.count >= (expected_min_vm_stack_count) && "Attempt to access nonexistent stack frame")
 
@@ -95,14 +94,14 @@ bool vm_execute(void) {
   for (;;) {
 #ifdef DEBUG_VM
     printf("[ ");
-    for (int32_t i = 0; i < vm.stack.count;) {
-      value_print(vm.stack.values[i]);
+    for (size_t i = 0; i < vm.stack.count;) {
+      value_print(vm.stack.data[i]);
       if (++i < vm.stack.count) printf(", ");
     }
     puts(" ]");
-    debug_disassemble_instruction(vm.chunk, vm.ip - vm.chunk->code);
+    debug_disassemble_instruction(vm.chunk, vm.ip - vm.chunk->code.data);
 #endif
-    assert(vm.ip < vm.chunk->code + vm.chunk->count && "Instruction pointer out of bounds");
+    assert(vm.ip < vm.chunk->code.data + vm.chunk->code.count && "Instruction pointer out of bounds");
     uint8_t const opcode = READ_BYTE();
 
     static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
@@ -120,7 +119,7 @@ bool vm_execute(void) {
         break;
       }
       case CHUNK_OP_CONSTANT: {
-        Value constant = vm.chunk->constants.values[READ_BYTE()];
+        Value constant = vm.chunk->constants.data[READ_BYTE()];
         vm_stack_push(constant);
         break;
       }
@@ -128,7 +127,7 @@ bool vm_execute(void) {
         uint8_t const constant_index_LSB = READ_BYTE();
         uint8_t const constant_index_MSB = READ_BYTE();
         uint32_t const constant_index = memory_concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
-        Value const constant = vm.chunk->constants.values[constant_index];
+        Value const constant = vm.chunk->constants.data[constant_index];
 
         vm_stack_push(constant);
         break;
@@ -148,153 +147,153 @@ bool vm_execute(void) {
       case CHUNK_OP_NEGATE: {
         ASSERT_MIN_VM_STACK_COUNT(1);
 
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected negation operand to be a number (got '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type]
+            value_type_to_string_table[VM_STACK_TOP.type]
           );
         }
-        VM_STACK_TOP_FRAME.payload.number = -VM_STACK_TOP_FRAME.payload.number;
+        VM_STACK_TOP.payload.number = -VM_STACK_TOP.payload.number;
         break;
       }
       case CHUNK_OP_ADD: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected addition operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME.payload.number = VM_STACK_TOP_FRAME.payload.number + second_operand.payload.number;
+        VM_STACK_TOP.payload.number = VM_STACK_TOP.payload.number + second_operand.payload.number;
         break;
       }
       case CHUNK_OP_SUBTRACT: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected subtraction operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME.payload.number = VM_STACK_TOP_FRAME.payload.number - second_operand.payload.number;
+        VM_STACK_TOP.payload.number = VM_STACK_TOP.payload.number - second_operand.payload.number;
         break;
       }
       case CHUNK_OP_MULTIPLY: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected multiplication operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME.payload.number = VM_STACK_TOP_FRAME.payload.number * second_operand.payload.number;
+        VM_STACK_TOP.payload.number = VM_STACK_TOP.payload.number * second_operand.payload.number;
         break;
       }
       case CHUNK_OP_DIVIDE: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected division operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
         if (second_operand.payload.number == 0)
           return vm_error_at(GET_INSTRUCTION_OFFSET(1), "Illegal division by zero");
-        VM_STACK_TOP_FRAME.payload.number = VM_STACK_TOP_FRAME.payload.number / second_operand.payload.number;
+        VM_STACK_TOP.payload.number = VM_STACK_TOP.payload.number / second_operand.payload.number;
         break;
       }
       case CHUNK_OP_MODULO: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected modulo operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
         if (second_operand.payload.number == 0) return vm_error_at(GET_INSTRUCTION_OFFSET(1), "Illegal modulo by zero");
-        VM_STACK_TOP_FRAME.payload.number = fmod(VM_STACK_TOP_FRAME.payload.number, second_operand.payload.number);
+        VM_STACK_TOP.payload.number = fmod(VM_STACK_TOP.payload.number, second_operand.payload.number);
         break;
       }
       case CHUNK_OP_NOT: {
         ASSERT_MIN_VM_STACK_COUNT(1);
 
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(VALUE_IS_FALSY(VM_STACK_TOP_FRAME));
+        VM_STACK_TOP = VALUE_MAKE_BOOL(VALUE_IS_FALSY(VM_STACK_TOP));
         break;
       }
       case CHUNK_OP_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(value_equals(VM_STACK_TOP_FRAME, second_operand));
+        VM_STACK_TOP = VALUE_MAKE_BOOL(value_equals(VM_STACK_TOP, second_operand));
         break;
       }
       case CHUNK_OP_NOT_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(!value_equals(VM_STACK_TOP_FRAME, second_operand));
+        VM_STACK_TOP = VALUE_MAKE_BOOL(!value_equals(VM_STACK_TOP, second_operand));
         break;
       }
       case CHUNK_OP_LESS: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected less-than operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(VM_STACK_TOP_FRAME.payload.number < second_operand.payload.number);
+        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number < second_operand.payload.number);
         break;
       }
       case CHUNK_OP_LESS_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected less-than-or-equal operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(VM_STACK_TOP_FRAME.payload.number <= second_operand.payload.number);
+        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number <= second_operand.payload.number);
         break;
       }
       case CHUNK_OP_GREATER: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected greater-than operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(VM_STACK_TOP_FRAME.payload.number > second_operand.payload.number);
+        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number > second_operand.payload.number);
         break;
       }
       case CHUNK_OP_GREATER_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP_FRAME) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected greater-than-or-equal operands to be numbers (got '%s' and '%s')",
-            value_type_to_string_table[VM_STACK_TOP_FRAME.type], value_type_to_string_table[second_operand.type]
+            value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP_FRAME = VALUE_MAKE_BOOL(VM_STACK_TOP_FRAME.payload.number >= second_operand.payload.number);
+        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number >= second_operand.payload.number);
         break;
       }
       default: ERROR_INTERNAL("Unknown chunk opcode '%d'", opcode);
@@ -315,7 +314,7 @@ bool vm_run(Chunk const *const chunk) {
 
   // reset vm
   vm.chunk = chunk;
-  vm.ip = chunk->code;
+  vm.ip = chunk->code.data;
 
   // execute chunk
   return vm_execute();

@@ -81,7 +81,7 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
   assert(name != NULL);
 
   printf("\n== %s ==\n", name);
-  for (int32_t offset = 0; offset < chunk->count;) offset = debug_disassemble_instruction(chunk, offset);
+  for (size_t offset = 0; offset < chunk->code.count;) offset = debug_disassemble_instruction(chunk, offset);
 }
 
 /**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
@@ -121,20 +121,21 @@ static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t cons
   assert(chunk != NULL);
 
   if (opcode == CHUNK_OP_CONSTANT) {
-    uint8_t const constant_index = chunk->code[offset + 1];
+    uint8_t const constant_index = chunk->code.data[offset + 1];
 
     printf("CHUNK_OP_CONSTANT %d '", constant_index);
-    value_print(chunk->constants.values[constant_index]);
+    value_print(chunk->constants.data[constant_index]);
     printf("'\n");
 
     return offset + 2;
   }
 
   if (opcode == CHUNK_OP_CONSTANT_2B) {
-    unsigned int const constant_index = memory_concatenate_bytes(2, chunk->code[offset + 2], chunk->code[offset + 1]);
+    unsigned int const constant_index =
+      memory_concatenate_bytes(2, chunk->code.data[offset + 2], chunk->code.data[offset + 1]);
 
     printf("CHUNK_OP_CONSTANT_2B %d '", constant_index);
-    value_print(chunk->constants.values[constant_index]);
+    value_print(chunk->constants.data[constant_index]);
     printf("'\n");
 
     return offset + 3;
@@ -151,7 +152,7 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
 
   printf(COMMON_FILE_LINE_FORMAT " ", g_source_file, chunk_get_instruction_line(chunk, offset));
 
-  uint8_t const opcode = chunk->code[offset];
+  uint8_t const opcode = chunk->code.data[offset];
 
   static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive chunk opcode handling");
   switch (opcode) {

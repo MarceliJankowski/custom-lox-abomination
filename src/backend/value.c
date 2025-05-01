@@ -23,25 +23,25 @@ char const *const value_type_to_string_table[] = {
 // *               VALUE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc initialize `value_array`*/
-void value_array_init(ValueArray *const value_array) {
-  assert(value_array != NULL);
+/**@desc initialize `value_list`*/
+void value_list_init(ValueList *const value_list) {
+  assert(value_list != NULL);
 
-  GC_DARRAY_INIT(value_array, values);
+  DARRAY_INIT(value_list, sizeof(Value), gc_memory_manage);
 }
 
-/**@desc free `value_array`*/
-void value_array_free(ValueArray *const value_array) {
-  assert(value_array != NULL);
+/**@desc free `value_list`*/
+void value_list_free(ValueList *const value_list) {
+  assert(value_list != NULL);
 
-  GC_FREE_ARRAY(ValueArray, value_array->values, value_array->capacity);
+  DARRAY_FREE(value_list);
 }
 
-/**@desc append `value` to `value_array`*/
-void value_array_append(ValueArray *const value_array, Value const value) {
-  assert(value_array != NULL);
+/**@desc append `value` to `value_list`*/
+void value_list_append(ValueList *const value_list, Value const value) {
+  assert(value_list != NULL);
 
-  GC_DARRAY_APPEND(value_array, values, value);
+  DARRAY_APPEND(value_list, value);
 }
 
 /**@desc print `value`*/

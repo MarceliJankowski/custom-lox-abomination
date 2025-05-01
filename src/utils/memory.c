@@ -1,9 +1,41 @@
 #include "utils/memory.h"
 
+#include "utils/error.h"
+
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
+void *memory_allocate(MemoryManagerFn *memory_manager, size_t new_size);
+void *memory_reallocate(MemoryManagerFn *memory_manager, void *object, size_t old_size, size_t new_size);
+void *memory_deallocate(MemoryManagerFn *memory_manager, void *object, size_t old_size);
 uint8_t memory_get_byte(uint32_t object, int index);
+
+/**@desc standard MemoryManagerFn implementation
+@see MemoryManagerFn for further documentation*/
+void *memory_manage(void *const object, size_t const old_size, size_t const new_size) {
+  assert(
+    !(object == NULL && old_size > 0 && new_size != 0) && "Invalid operation; can't allocate object with existing size"
+  );
+  assert(
+    !(object != NULL && old_size == new_size && new_size != 0) &&
+    "Invalid operation; can't determine whether to shrink or expand object"
+  );
+  assert(
+    !(object != NULL && old_size == 0 && new_size != 0) &&
+    "Invalid operation; existing object of size 0 can only be deallocated"
+  );
+
+  if (new_size == 0) {
+    free(object);
+    return NULL;
+  }
+
+  void *const reallocated_object = realloc(object, new_size);
+  if (reallocated_object == NULL) ERROR_MEMORY("%s", strerror(errno));
+
+  return reallocated_object;
+}
 
 /**@desc concatenate `byte_count` uint8_t `bytes`; `bytes` go from MSB to LSB
 @return uint32_t formed from `bytes` concatenation*/

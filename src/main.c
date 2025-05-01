@@ -4,6 +4,7 @@
 #include "utils/darray.h"
 #include "utils/error.h"
 #include "utils/io.h"
+#include "utils/memory.h"
 
 #include <errno.h>
 #include <stdbool.h>
@@ -54,10 +55,7 @@ static void enter_repl(void) {
   if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
 
   Chunk chunk;
-  struct {
-    char *buffer;
-    int32_t capacity, count;
-  } input = {0};
+  DARRAY_DEFINE(char, input, memory_manage);
 
   printf("> ");
   for (;;) {
@@ -74,13 +72,13 @@ static void enter_repl(void) {
         goto clean_up;
       }
 
-      DARRAY_APPEND(&input, buffer, character);
+      DARRAY_APPEND(&input, character);
       if (character == '\n') break;
     }
-    DARRAY_APPEND(&input, buffer, '\0');
+    DARRAY_APPEND(&input, '\0');
 
     // interpret input.buffer
-    CompilerStatus const compilation_status = compiler_compile(input.buffer, &chunk);
+    CompilerStatus const compilation_status = compiler_compile(input.data, &chunk);
     if (compilation_status == COMPILER_SUCCESS) vm_run(&chunk);
     else {
       if (compilation_status == COMPILER_FAILURE) {
@@ -115,7 +113,7 @@ static void enter_repl(void) {
   }
 
 clean_up:
-  free(input.buffer);
+  DARRAY_FREE(&input);
   chunk_free(&chunk);
   if (fclose(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
 }

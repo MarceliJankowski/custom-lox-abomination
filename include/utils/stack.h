@@ -1,54 +1,21 @@
 #ifndef STACK_H
 #define STACK_H
 
-#include "error.h"
+#include "darray.h"
 
 #include <assert.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
 
-#define STACK_INIT(frame_type, stack_ptr, array_name, initial_capacity)        \
-  do {                                                                         \
-    (stack_ptr)->capacity = initial_capacity;                                  \
-    (stack_ptr)->count = 0;                                                    \
-    (stack_ptr)->array_name = malloc((initial_capacity) * sizeof(frame_type)); \
-    if ((stack_ptr)->array_name == NULL) ERROR_MEMORY("%s", strerror(errno));  \
-  } while (0)
+#define STACK_TYPE(...) DARRAY_TYPE(__VA_ARGS__)
+#define STACK_INIT(...) DARRAY_INIT(__VA_ARGS__)
+#define STACK_DEFINE(...) DARRAY_DEFINE(__VA_ARGS__)
+#define STACK_FREE(...) DARRAY_FREE(__VA_ARGS__)
+#define STACK_GROW_CAPACITY(...) DARRAY_GROW_CAPACITY(__VA_ARGS__)
+#define STACK_RESIZE(...) DARRAY_RESIZE(__VA_ARGS__)
+#define STACK_PUSH(...) DARRAY_APPEND(__VA_ARGS__)
 
-#define STACK_CAPACITY_GROWTH_FACTOR 2
-#define STACK_RESIZE(stack_ptr, array_name, frame_size)                                             \
-  do {                                                                                              \
-    size_t const old_capacity = (stack_ptr)->capacity;                                              \
-    (stack_ptr)->capacity = (old_capacity) * STACK_CAPACITY_GROWTH_FACTOR;                          \
-    (stack_ptr)->array_name = realloc((stack_ptr)->array_name, (stack_ptr)->capacity * frame_size); \
-    if ((stack_ptr)->array_name == NULL) ERROR_MEMORY("%s", strerror(errno));                       \
-  } while (0)
+#define STACK_POP(stack_ptr) \
+  assert((stack_ptr)->count > 0 && "Attempt to pop object off an empty stack"), (stack_ptr)->data[--(stack_ptr)->count]
 
-#define STACK_PUSH(stack_ptr, array_name, frame)                                                         \
-  do {                                                                                                   \
-    /* check if stack needs resizing */                                                                  \
-    if ((stack_ptr)->count == (stack_ptr)->capacity) STACK_RESIZE(stack_ptr, array_name, sizeof(frame)); \
-    /* push frame */                                                                                     \
-    (stack_ptr)->array_name[(stack_ptr)->count] = frame;                                                 \
-    (stack_ptr)->count++;                                                                                \
-  } while (0)
-
-#define STACK_POP(stack_ptr, array_name, object_ptr)                             \
-  do {                                                                           \
-    assert((stack_ptr)->count > 0 && "Attempt to pop frame off an empty stack"); \
-    (stack_ptr)->count--;                                                        \
-    *(object_ptr) = (stack_ptr)->array_name[(stack_ptr)->count];                 \
-  } while (0)
-
-#define STACK_TOP_FRAME(stack_ptr, array_name) (stack_ptr)->array_name[(stack_ptr)->count - 1]
-
-#define STACK_FREE(stack_ptr, array_name) \
-  do {                                    \
-    free((stack_ptr)->array_name);        \
-    (stack_ptr)->capacity = 0;            \
-    (stack_ptr)->count = 0;               \
-    (stack_ptr)->array_name = NULL;       \
-  } while (0)
+#define STACK_TOP(stack_ptr) (stack_ptr)->data[(stack_ptr)->count - 1]
 
 #endif // STACK_H

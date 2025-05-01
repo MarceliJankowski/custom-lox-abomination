@@ -33,11 +33,11 @@ typedef enum {
 } Precedence;
 
 /**@desc function handling (compiling) specified TokenType*/
-typedef void (*TokenHandler)(void);
+typedef void(TokenHandlerFn)(void);
 
 typedef struct {
-  TokenHandler nud; // null-denotation (requires no-context)
-  TokenHandler led; // left-denotation (requires left-context subexpression)
+  TokenHandlerFn *nud; // null-denotation (requires no-context)
+  TokenHandlerFn *led; // left-denotation (requires left-context subexpression)
   Precedence precedence;
 } ParseRule;
 
@@ -45,11 +45,11 @@ typedef struct {
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-static void compiler_binary_expr(void);
-static void compiler_unary_expr(void);
-static void compiler_grouping_expr(void);
-static void compiler_numeric_literal(void);
-static void compiler_invariable_literal(void);
+static TokenHandlerFn compiler_binary_expr;
+static TokenHandlerFn compiler_unary_expr;
+static TokenHandlerFn compiler_grouping_expr;
+static TokenHandlerFn compiler_numeric_literal;
+static TokenHandlerFn compiler_invariable_literal;
 
 // *---------------------------------------------*
 // *               STATIC OBJECTS                *

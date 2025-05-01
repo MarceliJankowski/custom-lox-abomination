@@ -1,6 +1,7 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
+#include "utils/darray.h"
 #include "value.h"
 
 #include <assert.h>
@@ -55,15 +56,11 @@ typedef struct {
 
 /**@desc bytecode chunk*/
 typedef struct {
-  ValueArray constants;
-  struct {
-    int32_t capacity, count;
-    ChunkLineCount *line_counts;
-  } lines;
   /**@desc dynamic array of Chunk instructions and their operands.
   Each instruction is encoded as 1 byte long ChunkOpCode.*/
-  uint8_t *code;
-  int32_t capacity, count;
+  DARRAY_TYPE(uint8_t) code;
+  DARRAY_TYPE(ChunkLineCount) lines;
+  ValueList constants;
 } Chunk;
 
 void chunk_init(Chunk *chunk);

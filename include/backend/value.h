@@ -1,6 +1,8 @@
 #ifndef VALUE_H
 #define VALUE_H
 
+#include "utils/darray.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -22,10 +24,7 @@ typedef struct {
 } Value;
 
 /**@desc dynamic array used for storing CLA values*/
-typedef struct {
-  Value *values;
-  int32_t capacity, count;
-} ValueArray;
+typedef DARRAY_TYPE(Value) ValueList;
 
 #define VALUE_MAKE_NIL() ((Value){VALUE_NIL, {.number = 0}})
 #define VALUE_MAKE_BOOL(value) ((Value){VALUE_BOOL, {.boolean = value}})
@@ -39,9 +38,9 @@ typedef struct {
 
 extern char const *const value_type_to_string_table[];
 
-void value_array_init(ValueArray *array);
-void value_array_append(ValueArray *array, Value value);
-void value_array_free(ValueArray *array);
+void value_list_init(ValueList *value_list);
+void value_list_append(ValueList *value_list, Value value);
+void value_list_free(ValueList *value_list);
 void value_print(Value value);
 bool value_equals(Value value_a, Value value_b);
 

@@ -165,7 +165,7 @@ static void test_CHUNK_OP_CONSTANT(void **const _) {
 
 static void test_CHUNK_OP_CONSTANT_2B(void **const _) {
   // force CHUNK_OP_CONSTANT_2B usage
-  for (int i = 0; i < UCHAR_MAX; i++) value_array_append(&chunk.constants, VALUE_MAKE_NUMBER(i));
+  for (int i = 0; i < UCHAR_MAX; i++) value_list_append(&chunk.constants, VALUE_MAKE_NUMBER(i));
 
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
   APPEND_INSTRUCTION(CHUNK_OP_RETURN);

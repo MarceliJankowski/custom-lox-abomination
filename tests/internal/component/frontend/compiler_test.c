@@ -86,7 +86,7 @@ static void assert_static_error(
 #define ASSERT_SYNTAX_ERROR(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
 #define ASSERT_SEMANTIC_ERROR(...) assert_static_error("[SEMANTIC_ERROR]", __VA_ARGS__)
 
-#define NEXT_CHUNK_CODE_BYTE() chunk.code[chunk_code_offset++]
+#define NEXT_CHUNK_CODE_BYTE() chunk.code.data[chunk_code_offset++]
 
 #define ASSERT_INSTRUCTION_LINE(expected_line) \
   assert_int_equal(chunk_get_instruction_line(&chunk, chunk_code_offset), expected_line)
@@ -96,7 +96,7 @@ static void assert_static_error(
 
 static void assert_chunk_constant(int32_t const constant_index, Value const expected_constant) {
   assert_int_equal(chunk_constant_instruction_index, constant_index);
-  component_test_assert_value_equality(chunk.constants.values[constant_index], expected_constant);
+  component_test_assert_value_equality(chunk.constants.data[constant_index], expected_constant);
   chunk_constant_instruction_index++;
 }
 

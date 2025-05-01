@@ -15,18 +15,18 @@ void chunk_reset(Chunk *chunk);
 void chunk_init(Chunk *const chunk) {
   assert(chunk != NULL);
 
-  GC_DARRAY_INIT(chunk, code);
-  GC_DARRAY_INIT(&chunk->lines, line_counts);
-  value_array_init(&chunk->constants);
+  DARRAY_INIT(&chunk->code, sizeof(uint8_t), gc_memory_manage);
+  DARRAY_INIT(&chunk->lines, sizeof(ChunkLineCount), gc_memory_manage);
+  value_list_init(&chunk->constants);
 }
 
 /**@desc free `chunk`*/
 void chunk_free(Chunk *const chunk) {
   assert(chunk != NULL);
 
-  GC_FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
-  GC_FREE_ARRAY(ChunkLineCount, chunk->lines.line_counts, chunk->lines.capacity);
-  value_array_free(&chunk->constants);
+  DARRAY_FREE(&chunk->code);
+  DARRAY_FREE(&chunk->lines);
+  value_list_free(&chunk->constants);
 }
 
 /**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
@@ -35,21 +35,20 @@ static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_
   assert(line >= 1 && "Expected lines to begin at 1");
 
   ChunkLineCount const line_count = {.line = line, .count = 1};
-  GC_DARRAY_APPEND(&chunk->lines, line_counts, line_count);
+  DARRAY_APPEND(&chunk->lines, line_count);
 }
 
 /**@desc append instruction `opcode` and corresponding `line` to `chunk`*/
 void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t const line) {
   assert(chunk != NULL);
 
-  GC_DARRAY_APPEND(chunk, code, opcode);
+  DARRAY_APPEND(&chunk->code, opcode);
 
   // check if this is the first line/instruction in a chunk
   if (chunk->lines.count == 0) chunk_create_and_append_line_count(chunk, line);
 
   // check if line matches the latest ChunkLineCount line
-  else if (line == chunk->lines.line_counts[chunk->lines.count - 1].line)
-    chunk->lines.line_counts[chunk->lines.count - 1].count++;
+  else if (line == chunk->lines.data[chunk->lines.count - 1].line) chunk->lines.data[chunk->lines.count - 1].count++;
 
   // this is the first chunk instruction located at line
   else chunk_create_and_append_line_count(chunk, line);
@@ -59,10 +58,10 @@ void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t 
 void chunk_append_operand(Chunk *const chunk, uint8_t const operand) {
   assert(chunk != NULL);
 
-  GC_DARRAY_APPEND(chunk, code, operand);
+  DARRAY_APPEND(&chunk->code, operand);
 }
 
-/**@desc append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk`*/
+/**@desc append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk.code`*/
 void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   assert(chunk != NULL);
   assert(byte_count >= 2 && "Expected multibyte operand");
@@ -70,14 +69,14 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   va_list bytes;
   va_start(bytes, byte_count);
 
-  // check if chunk needs resizing
-  if (chunk->count + byte_count > chunk->capacity) GC_DARRAY_RESIZE(chunk, code, sizeof(uint8_t));
+  // check if chunk.code needs resizing
+  if (chunk->code.count + byte_count > chunk->code.capacity) DARRAY_RESIZE(&chunk->code);
 
   // append bytes
   for (; byte_count > 0; byte_count--) {
     uint8_t const byte = va_arg(bytes, unsigned int);
-    chunk->code[chunk->count] = byte;
-    chunk->count++;
+    chunk->code.data[chunk->code.count] = byte;
+    chunk->code.count++;
   }
 
   va_end(bytes);
@@ -88,7 +87,7 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
 static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
   assert(chunk != NULL);
 
-  value_array_append(&chunk->constants, value);
+  value_list_append(&chunk->constants, value);
   return chunk->constants.count - 1;
 }
 
@@ -117,7 +116,7 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
   assert(chunk != NULL);
   assert(chunk->lines.count > 0 && "Expected chunk to contain at least one line");
   assert(offset >= 0 && "Expected offset to be nonnegative");
-  assert(offset < chunk->count && "Expected offset to fit within chunk code (out of bounds)");
+  assert((size_t)offset < chunk->code.count && "Expected offset to fit within chunk code (out of bounds)");
 
   // find index of instruction located at offset
   int32_t instruction_index = 0;
@@ -125,7 +124,7 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
 
   static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
   while (loop_offset < offset) {
-    switch (chunk->code[loop_offset]) {
+    switch (chunk->code.data[loop_offset]) {
       case CHUNK_OP_RETURN:
       case CHUNK_OP_PRINT:
       case CHUNK_OP_POP:
@@ -156,7 +155,7 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
         loop_offset += 3;
         break;
       }
-      default: ERROR_INTERNAL("Unknown chunk opcode '%d'", chunk->code[loop_offset]);
+      default: ERROR_INTERNAL("Unknown chunk opcode '%d'", chunk->code.data[loop_offset]);
     }
 
     instruction_index++;
@@ -165,9 +164,9 @@ int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offse
 
   // retrieve line corresponding to instruction_index
   int32_t instruction_count = 0;
-  for (int32_t i = 0; i < chunk->lines.count; i++) {
-    instruction_count += chunk->lines.line_counts[i].count;
-    if (instruction_count > instruction_index) return chunk->lines.line_counts[i].line;
+  for (size_t i = 0; i < chunk->lines.count; i++) {
+    instruction_count += chunk->lines.data[i].count;
+    if (instruction_count > instruction_index) return chunk->lines.data[i].line;
   }
 
   ERROR_INTERNAL("Failed to retrieve line corresponding to bytecode instruction");
