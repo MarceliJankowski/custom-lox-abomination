@@ -13,7 +13,7 @@ void component_test_assert_binary_stream_resource_content(
   assert(binary_stream != NULL);
   assert(expected_resource_content != NULL);
 
-  if (fflush(binary_stream)) ERROR_IO("%s", strerror(errno));
+  if (fflush(binary_stream)) ERROR_IO_ERRNO();
 
   char *const resource_content = io_read_binary_stream_resource_content(binary_stream);
 
@@ -27,7 +27,7 @@ void component_test_clear_binary_stream_resource_content(FILE *binary_stream) {
   assert(binary_stream != NULL);
 
   binary_stream = freopen(NULL, "w+b", binary_stream);
-  if (binary_stream == NULL) ERROR_IO("%s", strerror(errno));
+  if (binary_stream == NULL) ERROR_IO_ERRNO();
 }
 
 /**@desc assert `value_a` and `value_b` equality*/

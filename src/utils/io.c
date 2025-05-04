@@ -13,19 +13,19 @@ void *io_read_binary_stream_resource_content(FILE *const binary_stream) {
   assert(binary_stream != NULL);
 
   // get binary_stream resource content size
-  if (fseek(binary_stream, 0, SEEK_END)) ERROR_IO("%s", strerror(errno));
+  if (fseek(binary_stream, 0, SEEK_END)) ERROR_IO_ERRNO();
   errno = 0;
   size_t const content_size = ftell(binary_stream);
   if (errno) ERROR_IO("%s", strerror(errno));
-  if (fseek(binary_stream, 0, SEEK_SET)) ERROR_IO("%s", strerror(errno));
+  if (fseek(binary_stream, 0, SEEK_SET)) ERROR_IO_ERRNO();
 
   // allocate binary_stream resource content buffer
   char *const content_buffer = malloc(content_size + 1); // account for NUL terminator
-  if (content_buffer == NULL) ERROR_MEMORY("%s", strerror(errno));
+  if (content_buffer == NULL) ERROR_MEMORY_ERRNO();
 
   // read binary_stream resource content into allocated buffer
   size_t const bytes_read = fread(content_buffer, 1, content_size, binary_stream);
-  if (bytes_read < content_size) ERROR_IO("%s", strerror(errno));
+  if (bytes_read < content_size) ERROR_IO_ERRNO();
   content_buffer[bytes_read] = '\0';
 
   return content_buffer;
