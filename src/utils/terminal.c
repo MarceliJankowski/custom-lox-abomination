@@ -40,14 +40,14 @@ static void register_restore_terminal_parameters(void) {
   };
 
   // allow other signals to be delivered and processed while the handler is executing
-  if (sigemptyset(&terminal_signal_action.sa_mask) == -1) ERROR_SYSTEM("%s", strerror(errno));
+  if (sigemptyset(&terminal_signal_action.sa_mask) == -1) ERROR_SYSTEM_ERRNO();
 
   // register handler
   if (0 != atexit(restore_terminal_parameters)) ERROR_SYSTEM("Failed to register atexit() handler");
-  if (-1 == sigaction(SIGINT, &terminal_signal_action, NULL)) ERROR_SYSTEM("%s", strerror(errno));
-  if (-1 == sigaction(SIGTERM, &terminal_signal_action, NULL)) ERROR_SYSTEM("%s", strerror(errno));
-  if (-1 == sigaction(SIGHUP, &terminal_signal_action, NULL)) ERROR_SYSTEM("%s", strerror(errno));
-  if (-1 == sigaction(SIGQUIT, &terminal_signal_action, NULL)) ERROR_SYSTEM("%s", strerror(errno));
+  if (-1 == sigaction(SIGINT, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
+  if (-1 == sigaction(SIGTERM, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
+  if (-1 == sigaction(SIGHUP, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
+  if (-1 == sigaction(SIGQUIT, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
 }
 
 /**@desc enable noncannonical terminal mode.
@@ -58,7 +58,7 @@ void terminal_enable_noncannonical_mode(void) {
   assert(are_original_terminal_parameters_set == false);
 
   // retrieve current terminal parameters and save them as original
-  if (tcgetattr(STDIN_FILENO, &original_terminal_parameters) == -1) ERROR_SYSTEM("%s", strerror(errno));
+  if (tcgetattr(STDIN_FILENO, &original_terminal_parameters) == -1) ERROR_SYSTEM_ERRNO();
   are_original_terminal_parameters_set = true;
 
   // set terminal parameters for enabling noncannonical mode
@@ -68,7 +68,7 @@ void terminal_enable_noncannonical_mode(void) {
   new_terminal_parameters.c_cc[VTIME] = 0; // set timeout in deciseconds for noncannonical read
 
   // enable noncannonical mode
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_terminal_parameters) == -1) ERROR_SYSTEM("%s", strerror(errno));
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_terminal_parameters) == -1) ERROR_SYSTEM_ERRNO();
 
   register_restore_terminal_parameters();
 }

@@ -31,7 +31,7 @@ void *memory_manage(void *const object, size_t const old_size, size_t const new_
   }
 
   void *const reallocated_object = realloc(object, new_size);
-  if (reallocated_object == NULL) ERROR_MEMORY("%s", strerror(errno));
+  if (reallocated_object == NULL) ERROR_MEMORY_ERRNO();
 
   return reallocated_object;
 }

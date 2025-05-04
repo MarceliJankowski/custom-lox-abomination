@@ -56,7 +56,7 @@
       (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size * old_capacity, \
       (darray_ptr)->data_object_size * (darray_ptr)->capacity                                          \
     );                                                                                                 \
-    if ((darray_ptr)->data == NULL) ERROR_MEMORY("%s", strerror(errno));                               \
+    if ((darray_ptr)->data == NULL) ERROR_MEMORY_ERRNO();                                              \
   } while (0)
 
 #define DARRAY_APPEND(darray_ptr, data_object)                                    \

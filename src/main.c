@@ -6,7 +6,6 @@
 #include "utils/io.h"
 #include "utils/memory.h"
 
-#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,7 +54,7 @@ static void print_manual(void) {
 static void enter_repl(void) {
   g_source_file = "repl";
   g_static_error_stream = tmpfile();
-  if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
+  if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
   Chunk chunk;
   DARRAY_DEFINE(char, input, memory_manage);
@@ -85,7 +84,7 @@ static void enter_repl(void) {
     if (compilation_status == COMPILER_SUCCESS) vm_run(&chunk);
     else {
       if (compilation_status == COMPILER_FAILURE) {
-        if (fflush(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
+        if (fflush(g_static_error_stream)) ERROR_IO_ERRNO();
         char *const static_errors = io_read_binary_stream_resource_content(g_static_error_stream);
 
         fprintf(stderr, "%s", static_errors);
@@ -94,7 +93,7 @@ static void enter_repl(void) {
 
       // clear static errors
       g_static_error_stream = freopen(NULL, "w+b", g_static_error_stream);
-      if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
+      if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
       if (compilation_status == COMPILER_UNEXPECTED_EOF) {
         chunk_free(&chunk);
@@ -118,7 +117,7 @@ static void enter_repl(void) {
 clean_up:
   DARRAY_FREE(&input);
   chunk_free(&chunk);
-  if (fclose(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
+  if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
 }
 
 static void interpret_cla_file(char const *const filepath) {
