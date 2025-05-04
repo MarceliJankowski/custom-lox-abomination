@@ -18,7 +18,7 @@ static struct {
 static int main_exit_code = EXIT_SUCCESS;
 
 static void print_manual(void) {
-  static_assert(ERROR_CODE_COUNT == 5, "Exhaustive error code handling");
+  static_assert(ERROR_CODE_COUNT == 6, "Exhaustive error code handling");
   printf(
     "NAME\n"
     "       cla - Custom Lox Abomination interpreter written in C\n"
@@ -36,16 +36,19 @@ static void print_manual(void) {
     "\n"
     "       0  cla successfully run, no errors occurred.\n"
     "\n"
+    "       %d  Error occurred during compilation.\n"
+    "\n"
+    "       %d  Error occurred during bytecode execution.\n"
+    "\n"
     "       %d  Invalid command-line argument supplied.\n"
     "\n"
     "       %d  Memory error occurred.\n"
     "\n"
     "       %d  Input/Output error occurred.\n"
     "\n"
-    "       %d  Error occurred during compilation.\n"
-    "\n"
-    "       %d  Error occurred during bytecode execution.\n",
-    ERROR_CODE_INVALID_ARG, ERROR_CODE_MEMORY, ERROR_CODE_IO, ERROR_CODE_COMPILATION, ERROR_CODE_EXECUTION
+    "       %d  Error occurred during system-level or runtime environment operation.\n",
+    ERROR_CODE_COMPILATION, ERROR_CODE_EXECUTION, ERROR_CODE_INVALID_ARG, ERROR_CODE_MEMORY, ERROR_CODE_IO,
+    ERROR_CODE_SYSTEM
   );
 }
 
