@@ -3,7 +3,6 @@
 #include "utils/error.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 void *memory_allocate(MemoryManagerFn *memory_manager, size_t new_size);
