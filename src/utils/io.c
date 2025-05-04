@@ -1,12 +1,10 @@
 #include "utils/io.h"
 
-#include "frontend/lexer.h"
-#include "utils/darray.h"
 #include "utils/error.h"
 
 #include <assert.h>
 #include <errno.h>
-#include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
 /**@desc read `binary_stream` resource content into dynamically allocated buffer
