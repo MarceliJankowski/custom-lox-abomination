@@ -69,13 +69,13 @@ static void assert_static_error(
                                               strlen(expected_error_message) + strlen(ending);
 
   char *const expected_static_error = malloc(expected_static_error_length);
-  if (expected_static_error == NULL) ERROR_MEMORY("%s", strerror(errno));
+  if (expected_static_error == NULL) ERROR_MEMORY_ERRNO();
 
   if (sprintf(
         expected_static_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column, separator_3,
         expected_error_message, ending
       ) < 0)
-    ERROR_IO("%s", strerror(errno));
+    ERROR_IO_ERRNO();
 
   component_test_assert_binary_stream_resource_content(g_static_error_stream, expected_static_error);
 
@@ -200,7 +200,7 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
 static int setup_test_group_env(void **const _) {
   g_source_file = __FILE__;
   g_static_error_stream = tmpfile(); // assert_static_error expects this stream to be binary
-  if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
+  if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
   chunk_init(&chunk);
 
@@ -208,7 +208,7 @@ static int setup_test_group_env(void **const _) {
 }
 
 static int teardown_test_group_env(void **const _) {
-  if (fclose(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
+  if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
 
   chunk_free(&chunk);
 

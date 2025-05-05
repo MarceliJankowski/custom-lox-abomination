@@ -6,7 +6,6 @@
 #include "utils/io.h"
 #include "utils/memory.h"
 
-#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,7 +17,7 @@ static struct {
 static int main_exit_code = EXIT_SUCCESS;
 
 static void print_manual(void) {
-  static_assert(ERROR_CODE_COUNT == 5, "Exhaustive error code handling");
+  static_assert(ERROR_CODE_COUNT == 6, "Exhaustive error code handling");
   printf(
     "NAME\n"
     "       cla - Custom Lox Abomination interpreter written in C\n"
@@ -36,23 +35,26 @@ static void print_manual(void) {
     "\n"
     "       0  cla successfully run, no errors occurred.\n"
     "\n"
+    "       %d  Error occurred during compilation.\n"
+    "\n"
+    "       %d  Error occurred during bytecode execution.\n"
+    "\n"
     "       %d  Invalid command-line argument supplied.\n"
     "\n"
     "       %d  Memory error occurred.\n"
     "\n"
     "       %d  Input/Output error occurred.\n"
     "\n"
-    "       %d  Error occurred during compilation.\n"
-    "\n"
-    "       %d  Error occurred during bytecode execution.\n",
-    ERROR_CODE_INVALID_ARG, ERROR_CODE_MEMORY, ERROR_CODE_IO, ERROR_CODE_COMPILATION, ERROR_CODE_EXECUTION
+    "       %d  Error occurred during system-level or runtime environment operation.\n",
+    ERROR_CODE_COMPILATION, ERROR_CODE_EXECUTION, ERROR_CODE_INVALID_ARG, ERROR_CODE_MEMORY, ERROR_CODE_IO,
+    ERROR_CODE_SYSTEM
   );
 }
 
 static void enter_repl(void) {
   g_source_file = "repl";
   g_static_error_stream = tmpfile();
-  if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
+  if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
   Chunk chunk;
   DARRAY_DEFINE(char, input, memory_manage);
@@ -82,7 +84,7 @@ static void enter_repl(void) {
     if (compilation_status == COMPILER_SUCCESS) vm_run(&chunk);
     else {
       if (compilation_status == COMPILER_FAILURE) {
-        if (fflush(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
+        if (fflush(g_static_error_stream)) ERROR_IO_ERRNO();
         char *const static_errors = io_read_binary_stream_resource_content(g_static_error_stream);
 
         fprintf(stderr, "%s", static_errors);
@@ -91,7 +93,7 @@ static void enter_repl(void) {
 
       // clear static errors
       g_static_error_stream = freopen(NULL, "w+b", g_static_error_stream);
-      if (g_static_error_stream == NULL) ERROR_IO("%s", strerror(errno));
+      if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
       if (compilation_status == COMPILER_UNEXPECTED_EOF) {
         chunk_free(&chunk);
@@ -115,7 +117,7 @@ static void enter_repl(void) {
 clean_up:
   DARRAY_FREE(&input);
   chunk_free(&chunk);
-  if (fclose(g_static_error_stream)) ERROR_IO("%s", strerror(errno));
+  if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
 }
 
 static void interpret_cla_file(char const *const filepath) {

@@ -1,7 +1,6 @@
 #include "backend/value.h"
 
 #include "backend/gc.h"
-#include "global.h"
 #include "utils/error.h"
 #include "utils/io.h"
 

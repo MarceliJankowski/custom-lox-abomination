@@ -121,17 +121,17 @@ static int setup_test_group_env(void **const _) {
   g_source_file = __FILE__;
 
   g_execution_error_stream = tmpfile();
-  if (g_execution_error_stream == NULL) ERROR_IO("%s", strerror(errno));
+  if (g_execution_error_stream == NULL) ERROR_IO_ERRNO();
 
   g_runtime_output_stream = tmpfile();
-  if (g_runtime_output_stream == NULL) ERROR_IO("%s", strerror(errno));
+  if (g_runtime_output_stream == NULL) ERROR_IO_ERRNO();
 
   return 0;
 }
 
 static int teardown_test_group_env(void **const _) {
-  if (fclose(g_execution_error_stream)) ERROR_IO("%s", strerror(errno));
-  if (fclose(g_runtime_output_stream)) ERROR_IO("%s", strerror(errno));
+  if (fclose(g_execution_error_stream)) ERROR_IO_ERRNO();
+  if (fclose(g_runtime_output_stream)) ERROR_IO_ERRNO();
 
   return 0;
 }
