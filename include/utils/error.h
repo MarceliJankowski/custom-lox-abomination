@@ -51,7 +51,19 @@
 #define ERROR_IO(...) ERROR__BOILERPLATE(ERROR_CODE_IO, "[ERROR_IO]", __VA_ARGS__)
 #define ERROR_IO_ERRNO() ERROR_IO("%s\n", strerror(errno))
 
-#define ERROR_SYSTEM(...) ERROR__BOILERPLATE(ERROR_CODE_SYSTEM, "[ERROR_SYSTEM]", __VA_ARGS__)
+#define ERROR__SYSTEM_PREFIX "[ERROR_SYSTEM]"
+#define ERROR_SYSTEM(...) ERROR__BOILERPLATE(ERROR_CODE_SYSTEM, ERROR__SYSTEM_PREFIX, __VA_ARGS__)
 #define ERROR_SYSTEM_ERRNO() ERROR_SYSTEM("%s\n", strerror(errno))
+
+#ifdef _WIN32
+#define ERROR_WINDOWS_LAST()                                                \
+  do {                                                                      \
+    fprintf(stderr, ERROR__DEBUG_FILE_LINE ERROR__SYSTEM_PREFIX COMMON_MS); \
+    error_windows_log_last();                                               \
+    exit(ERROR_CODE_SYSTEM);                                                \
+  } while (0)
+#endif
+
+void error_windows_log_last(void);
 
 #endif // ERROR_H
