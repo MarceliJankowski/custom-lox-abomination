@@ -21,7 +21,7 @@ static void restore_terminal_parameters(void) {
   assert(are_original_terminal_parameters_set == true);
 
   // due to being used as atexit() handler this function cannot exit() (second exit would trigger UB)
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_terminal_parameters) == -1) fprintf(stderr, "%s", strerror(errno));
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_terminal_parameters) == -1) fprintf(stderr, "%s\n", strerror(errno));
 }
 
 /**@desc wrapper around restore_terminal_parameters() for handling `signal_num` signal*/
