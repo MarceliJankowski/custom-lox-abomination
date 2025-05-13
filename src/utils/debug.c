@@ -12,7 +12,7 @@
 
 /**@desc print lexical `token`*/
 void debug_token(LexerToken const *const token) {
-  printf(COMMON_FILE_LINE_COLUMN_FORMAT " ", g_source_file, token->line, token->column);
+  printf(COMMON_FILE_LINE_COLUMN_FORMAT " ", g_source_file_path, token->line, token->column);
 
   static_assert(LEXER_TOKEN_TYPE_COUNT == 43, "Exhaustive LexerTokenType handling");
   switch (token->type) {
@@ -150,7 +150,7 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
   assert(chunk != NULL);
   assert(offset >= 0 && "Expected offset to be nonnegative");
 
-  printf(COMMON_FILE_LINE_FORMAT " ", g_source_file, chunk_get_instruction_line(chunk, offset));
+  printf(COMMON_FILE_LINE_FORMAT " ", g_source_file_path, chunk_get_instruction_line(chunk, offset));
 
   uint8_t const opcode = chunk->code.data[offset];
 

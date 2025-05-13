@@ -198,7 +198,7 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
 // *---------------------------------------------*
 
 static int setup_test_group_env(void **const _) {
-  g_source_file = __FILE__;
+  g_source_file_path = __FILE__;
   g_static_error_stream = tmpfile(); // assert_static_error expects this stream to be binary
   if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 

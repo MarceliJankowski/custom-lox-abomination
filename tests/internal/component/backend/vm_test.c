@@ -118,7 +118,7 @@ static void reset_test_case_env(void) {
 // *---------------------------------------------*
 
 static int setup_test_group_env(void **const _) {
-  g_source_file = __FILE__;
+  g_source_file_path = __FILE__;
 
   g_execution_error_stream = tmpfile();
   if (g_execution_error_stream == NULL) ERROR_IO_ERRNO();

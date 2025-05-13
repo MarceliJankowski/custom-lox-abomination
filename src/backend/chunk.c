@@ -98,7 +98,7 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, in
   uint32_t const constant_index = chunk_append_constant(chunk, value);
 
   if (constant_index > 0xFFFFul)
-    ERROR_MEMORY(COMMON_FILE_LINE_FORMAT COMMON_MS "Exceeded chunk constant pool limit", g_source_file, line);
+    ERROR_MEMORY(COMMON_FILE_LINE_FORMAT COMMON_MS "Exceeded chunk constant pool limit", g_source_file_path, line);
 
   if (constant_index > UCHAR_MAX) {
     chunk_append_instruction(chunk, CHUNK_OP_CONSTANT_2B, line);
