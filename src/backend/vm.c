@@ -64,7 +64,7 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
 
   fprintf(
-    g_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS, g_source_file,
+    g_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS, g_source_file_path,
     instruction_line
   );
   vfprintf(g_execution_error_stream, format, format_args);

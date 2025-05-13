@@ -3,7 +3,7 @@
 // *                   WINDOWS                   *
 // *---------------------------------------------*
 
-#include "utils/terminal.h"
+#include "cli/terminal.h"
 
 #include "utils/error.h"
 
@@ -72,8 +72,8 @@ void terminal_enable_noncannonical_mode(void) {
 // *---------------------------------------------*
 #define _POSIX_C_SOURCE 200809L
 
+#include "cli/terminal.h"
 #include "utils/error.h"
-#include "utils/terminal.h"
 
 #include <assert.h>
 #include <signal.h>

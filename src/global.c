@@ -1,6 +1,6 @@
 #include "global.h"
 
-char const *g_source_file; // TEMP
+char const *g_source_file_path; // TEMP
 
 /**@desc stream for static analysis errors*/
 FILE *g_static_error_stream;

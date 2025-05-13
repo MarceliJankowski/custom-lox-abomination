@@ -153,7 +153,7 @@ static void compiler_error_at(ErrorType const error_type, LexerToken const *cons
     default: ERROR_INTERNAL("Unknown error_type '%d'", error_type);
   }
   fprintf(
-    g_static_error_stream, COMMON_MS COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "%s", g_source_file, token->line,
+    g_static_error_stream, COMMON_MS COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "%s", g_source_file_path, token->line,
     token->column, message
   );
   if (token->type == LEXER_TOKEN_ERROR || token->type == LEXER_TOKEN_EOF) fprintf(g_static_error_stream, "\n");
@@ -316,7 +316,7 @@ static void compiler_numeric_literal(void) {
   double const value = strtod(parser.previous.lexeme, NULL);
   if (errno != 0) {
     ERROR_MEMORY(
-      COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "Out-of-range numeric literal '%.*s'", g_source_file,
+      COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "Out-of-range numeric literal '%.*s'", g_source_file_path,
       parser.previous.line, parser.previous.column, parser.previous.lexeme_length, parser.previous.lexeme
     );
   }
