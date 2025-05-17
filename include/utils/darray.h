@@ -59,14 +59,18 @@
     if ((darray_ptr)->data == NULL) ERROR_MEMORY_ERRNO();                                              \
   } while (0)
 
-#define DARRAY_APPEND(darray_ptr, data_object)                                    \
+#define DARRAY_PUSH(darray_ptr, data_object)                                      \
   do {                                                                            \
     /* resize if needed */                                                        \
     if ((darray_ptr)->count == (darray_ptr)->capacity) DARRAY_RESIZE(darray_ptr); \
                                                                                   \
-    /* append data_object */                                                      \
+    /* push data_object */                                                        \
     (darray_ptr)->data[(darray_ptr)->count] = data_object;                        \
     (darray_ptr)->count++;                                                        \
   } while (0)
+
+#define DARRAY_POP(darray_ptr)                                                     \
+  ((assert((darray_ptr)->count > 0 && "Attempt to pop from empty dynamic array")), \
+   (darray_ptr)->data[--(darray_ptr)->count])
 
 #endif // DARRAY_H

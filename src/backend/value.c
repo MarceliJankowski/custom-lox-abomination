@@ -40,7 +40,7 @@ void value_list_free(ValueList *const value_list) {
 void value_list_append(ValueList *const value_list, Value const value) {
   assert(value_list != NULL);
 
-  DARRAY_APPEND(value_list, value);
+  DARRAY_PUSH(value_list, value);
 }
 
 /**@desc print `value`*/

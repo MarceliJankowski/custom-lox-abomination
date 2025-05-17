@@ -37,10 +37,10 @@ void repl_enter(void) {
         goto clean_up;
       }
 
-      DARRAY_APPEND(&input, character);
+      DARRAY_PUSH(&input, character);
       if (character == '\n') break;
     }
-    DARRAY_APPEND(&input, '\0');
+    DARRAY_PUSH(&input, '\0');
 
     // interpret input
     CompilerStatus const compilation_status = compiler_compile(input.data, &chunk);

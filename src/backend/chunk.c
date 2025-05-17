@@ -35,14 +35,14 @@ static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_
   assert(line >= 1 && "Expected lines to begin at 1");
 
   ChunkLineCount const line_count = {.line = line, .count = 1};
-  DARRAY_APPEND(&chunk->lines, line_count);
+  DARRAY_PUSH(&chunk->lines, line_count);
 }
 
 /**@desc append instruction `opcode` and corresponding `line` to `chunk`*/
 void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t const line) {
   assert(chunk != NULL);
 
-  DARRAY_APPEND(&chunk->code, opcode);
+  DARRAY_PUSH(&chunk->code, opcode);
 
   // check if this is the first line/instruction in a chunk
   if (chunk->lines.count == 0) chunk_create_and_append_line_count(chunk, line);
@@ -58,7 +58,7 @@ void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t 
 void chunk_append_operand(Chunk *const chunk, uint8_t const operand) {
   assert(chunk != NULL);
 
-  DARRAY_APPEND(&chunk->code, operand);
+  DARRAY_PUSH(&chunk->code, operand);
 }
 
 /**@desc append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk.code`*/
