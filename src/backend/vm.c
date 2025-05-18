@@ -38,9 +38,9 @@ void vm_init(void) {
 }
 
 /**@desc free virtual machine memory and set it to uninitialized state*/
-void vm_free(void) {
+void vm_destroy(void) {
   // free memory
-  STACK_FREE(&vm.stack);
+  STACK_DESTROY(&vm.stack);
 
   // set to uninitialized state
   vm = (VM){0};

@@ -40,7 +40,7 @@ extern char const *const value_type_to_string_table[];
 
 void value_list_init(ValueList *value_list);
 void value_list_append(ValueList *value_list, Value value);
-void value_list_free(ValueList *value_list);
+void value_list_destroy(ValueList *value_list);
 void value_print(Value value);
 bool value_equals(Value value_a, Value value_b);
 

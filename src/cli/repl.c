@@ -59,7 +59,7 @@ void repl_enter(void) {
       if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
       if (compilation_status == COMPILER_UNEXPECTED_EOF) {
-        chunk_free(&chunk);
+        chunk_destroy(&chunk);
 
         // decrement count so that next input character overwrites current NUL terminator
         assert(input.count > 0);
@@ -73,14 +73,14 @@ void repl_enter(void) {
 
     // new logical line
     input.count = 0;
-    chunk_free(&chunk);
+    chunk_destroy(&chunk);
     printf("> ");
   }
 
 clean_up:
-  DARRAY_FREE(&input);
-  chunk_free(&chunk);
-  vm_free();
+  DARRAY_DESTROY(&input);
+  chunk_destroy(&chunk);
+  vm_destroy();
   if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
 
   g_source_file_path = NULL;

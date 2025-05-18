@@ -21,13 +21,13 @@ void chunk_init(Chunk *const chunk) {
 }
 
 /**@desc free `chunk` memory and set it to uninitialized state*/
-void chunk_free(Chunk *const chunk) {
+void chunk_destroy(Chunk *const chunk) {
   assert(chunk != NULL);
 
   // free memory
-  DARRAY_FREE(&chunk->code);
-  DARRAY_FREE(&chunk->lines);
-  value_list_free(&chunk->constants);
+  DARRAY_DESTROY(&chunk->code);
+  DARRAY_DESTROY(&chunk->lines);
+  value_list_destroy(&chunk->constants);
 
   // set to uninitialized state
   *chunk = (Chunk){0};
