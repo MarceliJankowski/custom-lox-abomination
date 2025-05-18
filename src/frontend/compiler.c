@@ -365,7 +365,7 @@ static void compiler_stmt(void) {
 }
 
 /**@desc compile `source_code` into bytecode instructions and append them to `chunk`
-@return true if compilation succeeded, false otherwise*/
+@return compiler status indicating compilation result*/
 CompilerStatus compiler_compile(char const *const source_code, Chunk *const chunk) {
   assert(source_code != NULL);
   assert(chunk != NULL);

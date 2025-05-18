@@ -1,10 +1,8 @@
 #include "cli/repl.h"
 
-#include "backend/chunk.h"
-#include "backend/vm.h"
 #include "cli/terminal.h"
-#include "frontend/compiler.h"
 #include "global.h"
+#include "interpreter.h"
 #include "utils/darray.h"
 #include "utils/io.h"
 
@@ -16,16 +14,13 @@ void repl_enter(void) {
   g_static_error_stream = tmpfile();
   if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
-  vm_init();
-  Chunk chunk;
+  interpreter_init();
   DARRAY_DEFINE(char, input, memory_manage);
 
   terminal_enable_noncannonical_mode();
 
   printf("> ");
   for (;;) {
-    chunk_init(&chunk);
-
     // get line from stdin and append it to input
     for (;;) {
       int const character = getchar();
@@ -43,44 +38,37 @@ void repl_enter(void) {
     DARRAY_PUSH(&input, '\0');
 
     // interpret input
-    CompilerStatus const compilation_status = compiler_compile(input.data, &chunk);
-    if (compilation_status == COMPILER_SUCCESS) vm_run(&chunk);
-    else {
-      if (compilation_status == COMPILER_FAILURE) {
-        if (fflush(g_static_error_stream)) ERROR_IO_ERRNO();
-        char *const static_errors = io_read_binary_stream_resource_content(g_static_error_stream);
+    InterpreterStatus const interpreter_status = interpreter_interpret(input.data);
+    if (interpreter_status == INTERPRETER_COMPILER_FAILURE) {
+      if (fflush(g_static_error_stream)) ERROR_IO_ERRNO();
+      char *const static_errors = io_read_binary_stream_resource_content(g_static_error_stream);
 
-        fprintf(stderr, "%s", static_errors);
-        free(static_errors);
-      }
+      fprintf(stderr, "%s", static_errors);
+      free(static_errors);
+    }
 
-      // clear static errors
-      g_static_error_stream = freopen(NULL, "w+b", g_static_error_stream);
-      if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
+    // clear static errors
+    g_static_error_stream = freopen(NULL, "w+b", g_static_error_stream);
+    if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
 
-      if (compilation_status == COMPILER_UNEXPECTED_EOF) {
-        chunk_destroy(&chunk);
+    if (interpreter_status == INTERPRETER_COMPILER_UNEXPECTED_EOF) {
+      // decrement count so that next input character overwrites current NUL terminator
+      assert(input.count > 0);
+      input.count--;
 
-        // decrement count so that next input character overwrites current NUL terminator
-        assert(input.count > 0);
-        input.count--;
-
-        // continue logical line
-        printf("... ");
-        continue;
-      }
+      // continue logical line
+      printf("... ");
+      continue;
     }
 
     // new logical line
     input.count = 0;
-    chunk_destroy(&chunk);
     printf("> ");
   }
 
 clean_up:
   DARRAY_DESTROY(&input);
-  chunk_destroy(&chunk);
-  vm_destroy();
+  interpreter_destroy();
   if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
 
   g_source_file_path = NULL;
