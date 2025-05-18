@@ -20,13 +20,17 @@ void chunk_init(Chunk *const chunk) {
   value_list_init(&chunk->constants);
 }
 
-/**@desc free `chunk`*/
+/**@desc free `chunk` memory and set it to uninitialized state*/
 void chunk_free(Chunk *const chunk) {
   assert(chunk != NULL);
 
+  // free memory
   DARRAY_FREE(&chunk->code);
   DARRAY_FREE(&chunk->lines);
   value_list_free(&chunk->constants);
+
+  // set to uninitialized state
+  *chunk = (Chunk){0};
 }
 
 /**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
