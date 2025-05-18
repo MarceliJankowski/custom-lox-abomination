@@ -30,11 +30,11 @@ void value_list_init(ValueList *const value_list) {
 }
 
 /**@desc free `value_list` memory and set it to uninitialized state*/
-void value_list_free(ValueList *const value_list) {
+void value_list_destroy(ValueList *const value_list) {
   assert(value_list != NULL);
 
   // free memory
-  DARRAY_FREE(value_list);
+  DARRAY_DESTROY(value_list);
 
   // set to uninitialized state
   *value_list = (ValueList){0};

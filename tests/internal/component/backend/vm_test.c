@@ -144,8 +144,8 @@ static int setup_test_case_env(void **const _) {
 }
 
 static int teardown_test_case_env(void **const _) {
-  vm_free();
-  chunk_free(&chunk);
+  vm_destroy();
+  chunk_destroy(&chunk);
 
   return 0;
 }

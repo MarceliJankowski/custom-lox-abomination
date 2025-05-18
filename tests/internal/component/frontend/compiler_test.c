@@ -210,7 +210,7 @@ static int setup_test_group_env(void **const _) {
 static int teardown_test_group_env(void **const _) {
   if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
 
-  chunk_free(&chunk);
+  chunk_destroy(&chunk);
 
   return 0;
 }

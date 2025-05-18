@@ -25,8 +25,8 @@ ErrorCode file_interpret(char const *const source_file_path) {
   if (!vm_run(&chunk)) error_code = ERROR_CODE_EXECUTION;
 
 clean_up:
-  chunk_free(&chunk);
-  vm_free();
+  chunk_destroy(&chunk);
+  vm_destroy();
   free(source_code);
 
   return error_code;

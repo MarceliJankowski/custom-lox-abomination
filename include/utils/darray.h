@@ -32,7 +32,7 @@
   DARRAY_TYPE(data_type) darray_name;                             \
   DARRAY_INIT(&darray_name, sizeof(data_type), memory_manager_ptr)
 
-#define DARRAY_FREE(darray_ptr)                                                                                \
+#define DARRAY_DESTROY(darray_ptr)                                                                             \
   do {                                                                                                         \
     /* free memory */                                                                                          \
     memory_deallocate(                                                                                         \
