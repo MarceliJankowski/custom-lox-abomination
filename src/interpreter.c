@@ -44,7 +44,7 @@ InterpreterStatus interpreter_interpret(char const *const source_code) {
   }
 
   // execute source_code
-  if (!vm_run(&chunk)) interpreter_status = INTERPRETER_VM_FAILURE;
+  if (!vm_execute(&chunk)) interpreter_status = INTERPRETER_VM_FAILURE;
 
 clean_up:
   chunk_destroy(&chunk);

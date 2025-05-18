@@ -18,11 +18,11 @@ static Chunk chunk;
 // *                  UTILITIES                  *
 // *---------------------------------------------*
 
-static bool run(void) {
+static bool execute(void) {
   component_test_clear_binary_stream_resource_content(g_execution_error_stream);
   component_test_clear_binary_stream_resource_content(g_runtime_output_stream);
 
-  return vm_run(&chunk);
+  return vm_execute(&chunk);
 }
 
 static void reset_test_case_env(void) {
@@ -30,8 +30,8 @@ static void reset_test_case_env(void) {
   chunk_reset(&chunk);
 }
 
-#define RUN_ASSERT_SUCCESS() assert_true(run())
-#define RUN_ASSERT_FAILURE() assert_false(run())
+#define EXECUTE_ASSERT_SUCCESS() assert_true(execute())
+#define EXECUTE_ASSERT_FAILURE() assert_false(execute())
 
 #define ASSERT_EMPTY_STACK() assert_int_equal(*t_vm_stack_count, 0)
 
@@ -58,48 +58,48 @@ static void reset_test_case_env(void) {
   do {                                                                                                           \
     reset_test_case_env();                                                                                       \
     APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                      \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");     \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                            \
     APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                  \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");  \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
     APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                    \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");  \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                   \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");   \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                           \
     APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                  \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')"); \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));                                                           \
     APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                  \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')"); \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                     \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");    \
                                                                                                                  \
     reset_test_case_env();                                                                                       \
     APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                    \
-    RUN_ASSERT_FAILURE();                                                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                    \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");    \
   } while (0)
 
@@ -108,7 +108,7 @@ static void reset_test_case_env(void) {
     reset_test_case_env();                                                                \
     APPEND_CONSTANT_INSTRUCTIONS(__VA_ARGS__);                                            \
     APPEND_INSTRUCTIONS(instruction, CHUNK_OP_RETURN);                                    \
-    RUN_ASSERT_SUCCESS();                                                                 \
+    EXECUTE_ASSERT_SUCCESS();                                                             \
     STACK_POP_ASSERT(expected_value);                                                     \
     ASSERT_EMPTY_STACK();                                                                 \
   } while (0)
@@ -158,7 +158,7 @@ static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
 static void test_CHUNK_OP_CONSTANT(void **const _) {
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
   APPEND_INSTRUCTION(CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT_MANY(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(1));
   ASSERT_EMPTY_STACK();
 }
@@ -169,28 +169,28 @@ static void test_CHUNK_OP_CONSTANT_2B(void **const _) {
 
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3));
   APPEND_INSTRUCTION(CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT_MANY(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(1));
   ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_NIL(void **const _) {
   APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_NIL());
   ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_TRUE(void **const _) {
   APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_BOOL(true));
   ASSERT_EMPTY_STACK();
 }
 
 static void test_CHUNK_OP_FALSE(void **const _) {
   APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_BOOL(false));
   ASSERT_EMPTY_STACK();
 }
@@ -198,7 +198,7 @@ static void test_CHUNK_OP_FALSE(void **const _) {
 static void test_CHUNK_OP_PRINT(void **const _) {
   APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));
   APPEND_INSTRUCTIONS(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   ASSERT_RUNTIME_OUTPUT("1");
   ASSERT_EMPTY_STACK();
 }
@@ -206,7 +206,7 @@ static void test_CHUNK_OP_PRINT(void **const _) {
 static void test_CHUNK_OP_POP(void **const _) {
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
   APPEND_INSTRUCTIONS(CHUNK_OP_POP, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_NUMBER(1));
   ASSERT_EMPTY_STACK();
 }
@@ -232,31 +232,31 @@ static void test_CHUNK_OP_NEGATE(void **const _) {
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(2));
   APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_NUMBER(2));
   ASSERT_EMPTY_STACK();
 
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(3));
   APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_NUMBER(-3));
   ASSERT_EMPTY_STACK();
 
   // invalid operand types
   reset_test_case_env();
   APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'nil')");
 
   reset_test_case_env();
   APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
   reset_test_case_env();
   APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
 #undef ASSERT_CHUNK_OP_NEGATE
@@ -396,13 +396,13 @@ static void test_CHUNK_OP_DIVIDE(void **const _) {
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(0));
   APPEND_INSTRUCTIONS(CHUNK_OP_DIVIDE, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Illegal division by zero");
 
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(-0));
   APPEND_INSTRUCTIONS(CHUNK_OP_DIVIDE, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Illegal division by zero");
 
   // invalid operand types
@@ -443,13 +443,13 @@ static void test_CHUNK_OP_MODULO(void **const _) {
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(0));
   APPEND_INSTRUCTIONS(CHUNK_OP_MODULO, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Illegal modulo by zero");
 
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(5), VALUE_MAKE_NUMBER(-0));
   APPEND_INSTRUCTIONS(CHUNK_OP_MODULO, CHUNK_OP_RETURN);
-  RUN_ASSERT_FAILURE();
+  EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Illegal modulo by zero");
 
   // invalid operand types
@@ -476,14 +476,14 @@ static void test_CHUNK_OP_NOT(void **const _) {
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(2));
   APPEND_INSTRUCTIONS(CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_BOOL(true));
   ASSERT_EMPTY_STACK();
 
   reset_test_case_env();
   APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(3));
   APPEND_INSTRUCTIONS(CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_NOT, CHUNK_OP_RETURN);
-  RUN_ASSERT_SUCCESS();
+  EXECUTE_ASSERT_SUCCESS();
   STACK_POP_ASSERT(VALUE_MAKE_BOOL(false));
   ASSERT_EMPTY_STACK();
 

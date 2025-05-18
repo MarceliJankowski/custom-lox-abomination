@@ -29,6 +29,39 @@ size_t const *const t_vm_stack_count = &vm.stack.count;
 
 #define VM_STACK_TOP STACK_TOP(&vm.stack)
 
+#define READ_INSTRUCTION_BYTE() (*vm.ip++)
+
+#define GET_INSTRUCTION_OFFSET(instruction_byte_length) (vm.ip - vm.chunk->code.data - (instruction_byte_length))
+
+#define ASSERT_MIN_VM_STACK_COUNT(expected_min_vm_stack_count) \
+  assert(vm.stack.count >= (expected_min_vm_stack_count) && "Attempt to access nonexistent vm.stack frame")
+
+/**@desc handle bytecode execution error at `instruction_offset` with `format` message and `format_args`
+@return false (meant to be forwarded as an execution failure indication)*/
+static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const format, ...) {
+  assert(instruction_offset >= 0);
+  assert(format != NULL);
+
+  va_list format_args;
+  va_start(format_args, format);
+  int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
+
+  fprintf(
+    g_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS, g_source_file_path,
+    instruction_line
+  );
+  vfprintf(g_execution_error_stream, format, format_args);
+  fprintf(g_execution_error_stream, "\n");
+
+  va_end(format_args);
+
+  return false;
+}
+
+// *---------------------------------------------*
+// *               VM FUNCTIONS                  *
+// *---------------------------------------------*
+
 void vm_reset(void);
 
 /**@desc initialize virtual machine*/
@@ -57,39 +90,14 @@ Value vm_stack_pop(void) {
   return STACK_POP(&vm.stack);
 }
 
-/**@desc handle bytecode execution error at `instruction_offset` with `format` message and `format_args`
-@return false (meant to be forwarded as an execution failure indication)*/
-static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const format, ...) {
-  assert(instruction_offset >= 0);
-  assert(format != NULL);
-
-  va_list format_args;
-  va_start(format_args, format);
-  int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
-
-  fprintf(
-    g_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS, g_source_file_path,
-    instruction_line
-  );
-  vfprintf(g_execution_error_stream, format, format_args);
-  fprintf(g_execution_error_stream, "\n");
-
-  va_end(format_args);
-
-  return false;
-}
-
-// *---------------------------------------------*
-// *        BYTECODE EXECUTION FUNCTIONS         *
-// *---------------------------------------------*
-
-/**@desc execute vm.chunk instructions
+/**@desc execute bytecode `chunk`; virtual machine state persists across `chunk` executions
 @return true if execution succeeded, false otherwise*/
-bool vm_execute(void) {
-#define READ_BYTE() (*vm.ip++)
-#define GET_INSTRUCTION_OFFSET(instruction_byte_length) (vm.ip - vm.chunk->code.data - (instruction_byte_length))
-#define ASSERT_MIN_VM_STACK_COUNT(expected_min_vm_stack_count) \
-  assert(vm.stack.count >= (expected_min_vm_stack_count) && "Attempt to access nonexistent stack frame")
+bool vm_execute(Chunk const *const chunk) {
+  assert(chunk != NULL);
+
+  // configure vm for chunk execution
+  vm.chunk = chunk;
+  vm.ip = chunk->code.data;
 
 #ifdef DEBUG_VM
   puts("\n== DEBUG_VM ==");
@@ -106,7 +114,7 @@ bool vm_execute(void) {
     debug_disassemble_instruction(vm.chunk, vm.ip - vm.chunk->code.data);
 #endif
     assert(vm.ip < vm.chunk->code.data + vm.chunk->code.count && "Instruction pointer out of bounds");
-    uint8_t const opcode = READ_BYTE();
+    uint8_t const opcode = READ_INSTRUCTION_BYTE();
 
     static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
     switch (opcode) {
@@ -123,13 +131,13 @@ bool vm_execute(void) {
         break;
       }
       case CHUNK_OP_CONSTANT: {
-        Value constant = vm.chunk->constants.data[READ_BYTE()];
+        Value constant = vm.chunk->constants.data[READ_INSTRUCTION_BYTE()];
         vm_stack_push(constant);
         break;
       }
       case CHUNK_OP_CONSTANT_2B: {
-        uint8_t const constant_index_LSB = READ_BYTE();
-        uint8_t const constant_index_MSB = READ_BYTE();
+        uint8_t const constant_index_LSB = READ_INSTRUCTION_BYTE();
+        uint8_t const constant_index_MSB = READ_INSTRUCTION_BYTE();
         uint32_t const constant_index = memory_concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
         Value const constant = vm.chunk->constants.data[constant_index];
 
@@ -305,21 +313,4 @@ bool vm_execute(void) {
   }
 
   ERROR_INTERNAL("Unreachable code executed; vm.chunk execution is expected to be terminated by OP_RETURN or error");
-
-#undef READ_BYTE
-#undef GET_INSTRUCTION_OFFSET
-#undef ASSERT_MIN_VM_STACK_COUNT
-}
-
-/**@desc run virtual machine; execute bytecode `chunk`
-@return true if execution succeeded, false otherwise*/
-bool vm_run(Chunk const *const chunk) {
-  assert(chunk != NULL);
-
-  // reset vm
-  vm.chunk = chunk;
-  vm.ip = chunk->code.data;
-
-  // execute chunk
-  return vm_execute();
 }
