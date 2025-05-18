@@ -37,9 +37,13 @@ void vm_init(void) {
   vm.stack.min_growth_capacity = VM_STACK_MIN_GROWTH_CAPACITY;
 }
 
-/**@desc free virtual machine*/
+/**@desc free virtual machine memory and set it to uninitialized state*/
 void vm_free(void) {
+  // free memory
   STACK_FREE(&vm.stack);
+
+  // set to uninitialized state
+  vm = (VM){0};
 }
 
 /**@desc push `value` on top of virtual machine stack*/
