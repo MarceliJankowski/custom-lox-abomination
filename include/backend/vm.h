@@ -22,7 +22,7 @@ void vm_init(void);
 void vm_destroy(void);
 void vm_stack_push(Value value);
 Value vm_stack_pop(void);
-bool vm_run(Chunk const *chunk);
+bool vm_execute(Chunk const *chunk);
 
 inline void vm_reset(void) {
   vm_destroy();
