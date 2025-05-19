@@ -5,12 +5,12 @@
 
 #include <stdio.h>
 
-#define IO_PUTS_BREAK(string_literal)                  \
-  fputs(string_literal "\n", g_runtime_output_stream); \
+#define IO_PUTS_BREAK(string_literal)                         \
+  fputs(string_literal "\n", g_source_program_output_stream); \
   break
 
-#define IO_PRINTF_BREAK(...)                     \
-  fprintf(g_runtime_output_stream, __VA_ARGS__); \
+#define IO_PRINTF_BREAK(...)                            \
+  fprintf(g_source_program_output_stream, __VA_ARGS__); \
   break
 
 void *io_read_binary_stream_resource_content(FILE *binary_stream);

@@ -47,11 +47,11 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
 
   fprintf(
-    g_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS, g_source_file_path,
-    instruction_line
+    g_bytecode_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS,
+    g_source_file_path, instruction_line
   );
-  vfprintf(g_execution_error_stream, format, format_args);
-  fprintf(g_execution_error_stream, "\n");
+  vfprintf(g_bytecode_execution_error_stream, format, format_args);
+  fprintf(g_bytecode_execution_error_stream, "\n");
 
   va_end(format_args);
 
@@ -123,7 +123,7 @@ bool vm_execute(Chunk const *const chunk) {
       }
       case CHUNK_OP_PRINT: {
         value_print(vm_stack_pop());
-        fprintf(g_runtime_output_stream, "\n");
+        fprintf(g_source_program_output_stream, "\n");
         break;
       }
       case CHUNK_OP_POP: {

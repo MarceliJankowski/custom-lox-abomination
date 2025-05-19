@@ -19,8 +19,8 @@ static Chunk chunk;
 // *---------------------------------------------*
 
 static bool execute(void) {
-  component_test_clear_binary_stream_resource_content(g_execution_error_stream);
-  component_test_clear_binary_stream_resource_content(g_runtime_output_stream);
+  component_test_clear_binary_stream_resource_content(g_bytecode_execution_error_stream);
+  component_test_clear_binary_stream_resource_content(g_source_program_output_stream);
 
   return vm_execute(&chunk);
 }
@@ -47,12 +47,12 @@ static void reset_test_case_env(void) {
 
 #define ASSERT_EXECUTION_ERROR(expected_error_message)                                         \
   component_test_assert_binary_stream_resource_content(                                        \
-    g_execution_error_stream,                                                                  \
+    g_bytecode_execution_error_stream,                                                         \
     "[EXECUTION_ERROR]" COMMON_MS __FILE__ COMMON_PS "1" COMMON_MS expected_error_message "\n" \
   )
 
-#define ASSERT_RUNTIME_OUTPUT(expected_output) \
-  component_test_assert_binary_stream_resource_content(g_runtime_output_stream, expected_output "\n")
+#define ASSERT_SOURCE_PROGRAM_OUTPUT(expected_output) \
+  component_test_assert_binary_stream_resource_content(g_source_program_output_stream, expected_output "\n")
 
 #define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)          \
   do {                                                                                                           \
@@ -120,18 +120,18 @@ static void reset_test_case_env(void) {
 static int setup_test_group_env(void **const _) {
   g_source_file_path = __FILE__;
 
-  g_execution_error_stream = tmpfile();
-  if (g_execution_error_stream == NULL) ERROR_IO_ERRNO();
+  g_bytecode_execution_error_stream = tmpfile();
+  if (g_bytecode_execution_error_stream == NULL) ERROR_IO_ERRNO();
 
-  g_runtime_output_stream = tmpfile();
-  if (g_runtime_output_stream == NULL) ERROR_IO_ERRNO();
+  g_source_program_output_stream = tmpfile();
+  if (g_source_program_output_stream == NULL) ERROR_IO_ERRNO();
 
   return 0;
 }
 
 static int teardown_test_group_env(void **const _) {
-  if (fclose(g_execution_error_stream)) ERROR_IO_ERRNO();
-  if (fclose(g_runtime_output_stream)) ERROR_IO_ERRNO();
+  if (fclose(g_bytecode_execution_error_stream)) ERROR_IO_ERRNO();
+  if (fclose(g_source_program_output_stream)) ERROR_IO_ERRNO();
 
   return 0;
 }
@@ -199,7 +199,7 @@ static void test_CHUNK_OP_PRINT(void **const _) {
   APPEND_CONSTANT_INSTRUCTION(VALUE_MAKE_NUMBER(1));
   APPEND_INSTRUCTIONS(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
   EXECUTE_ASSERT_SUCCESS();
-  ASSERT_RUNTIME_OUTPUT("1");
+  ASSERT_SOURCE_PROGRAM_OUTPUT("1");
   ASSERT_EMPTY_STACK();
 }
 

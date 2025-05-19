@@ -5,9 +5,9 @@
 #include "utils/error.h"
 
 int main(int const argc, char const *const *const argv) {
-  g_static_error_stream = stderr;
-  g_execution_error_stream = stderr;
-  g_runtime_output_stream = stdout;
+  g_static_analysis_error_stream = stderr;
+  g_bytecode_execution_error_stream = stderr;
+  g_source_program_output_stream = stdout;
 
   ErrorCode error_code = ERROR_CODE_SUCCESS;
 
