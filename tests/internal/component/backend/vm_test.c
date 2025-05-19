@@ -9,26 +9,8 @@
 #include <stdio.h>
 
 // *---------------------------------------------*
-// *               STATIC OBJECTS                *
+// *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
-
-static Chunk chunk;
-
-// *---------------------------------------------*
-// *                  UTILITIES                  *
-// *---------------------------------------------*
-
-static bool execute(void) {
-  component_test_clear_binary_stream_resource_content(g_bytecode_execution_error_stream);
-  component_test_clear_binary_stream_resource_content(g_source_program_output_stream);
-
-  return vm_execute(&chunk);
-}
-
-static void reset_test_case_env(void) {
-  vm_reset();
-  chunk_reset(&chunk);
-}
 
 #define EXECUTE_ASSERT_SUCCESS() assert_true(execute())
 #define EXECUTE_ASSERT_FAILURE() assert_false(execute())
@@ -112,6 +94,28 @@ static void reset_test_case_env(void) {
     STACK_POP_ASSERT(expected_value);                                                     \
     ASSERT_EMPTY_STACK();                                                                 \
   } while (0)
+
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
+static Chunk chunk;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+static bool execute(void) {
+  component_test_clear_binary_stream_resource_content(g_bytecode_execution_error_stream);
+  component_test_clear_binary_stream_resource_content(g_source_program_output_stream);
+
+  return vm_execute(&chunk);
+}
+
+static void reset_test_case_env(void) {
+  vm_reset();
+  chunk_reset(&chunk);
+}
 
 // *---------------------------------------------*
 // *                  FIXTURES                   *

@@ -4,6 +4,10 @@
 #include "frontend/compiler.h"
 #include "global.h"
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc initialize interpreter*/
 void interpreter_init(void) {
   vm_init();

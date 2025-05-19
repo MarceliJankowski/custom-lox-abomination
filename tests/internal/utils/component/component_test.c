@@ -6,6 +6,10 @@
 
 #include <assert.h>
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc assert `binary_stream` resource content being equal to `expected_resource_content`*/
 void component_test_assert_binary_stream_resource_content(
   FILE *const binary_stream, char const *const expected_resource_content

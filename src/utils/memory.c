@@ -5,10 +5,18 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
 void *memory_allocate(MemoryManagerFn *memory_manager, size_t new_size);
 void *memory_reallocate(MemoryManagerFn *memory_manager, void *object, size_t old_size, size_t new_size);
 void *memory_deallocate(MemoryManagerFn *memory_manager, void *object, size_t old_size);
 uint8_t memory_get_byte(uint32_t object, int index);
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc standard MemoryManagerFn implementation
 @see MemoryManagerFn for further documentation*/

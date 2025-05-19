@@ -45,51 +45,51 @@ typedef struct {
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-static TokenHandlerFn compiler_binary_expr;
-static TokenHandlerFn compiler_unary_expr;
-static TokenHandlerFn compiler_grouping_expr;
-static TokenHandlerFn compiler_numeric_literal;
-static TokenHandlerFn compiler_invariable_literal;
+static TokenHandlerFn compile_binary_expr;
+static TokenHandlerFn compile_unary_expr;
+static TokenHandlerFn compile_grouping_expr;
+static TokenHandlerFn compile_numeric_literal;
+static TokenHandlerFn compile_invariable_literal;
 
 // *---------------------------------------------*
-// *               STATIC OBJECTS                *
+// *          INTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
 
 static_assert(LEXER_TOKEN_TYPE_COUNT - LEXER_TOKEN_INDICATOR_COUNT == 41, "Exhaustive TokenType handling");
 static ParseRule const parse_rules[] = {
   // literals
-  [LEXER_TOKEN_NIL] = {compiler_invariable_literal, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_TRUE] = {compiler_invariable_literal, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_FALSE] = {compiler_invariable_literal, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_NUMBER] = {compiler_numeric_literal, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_NIL] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_TRUE] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_FALSE] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_NUMBER] = {compile_numeric_literal, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_STRING] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_IDENTIFIER] = {NULL, NULL, PRECEDENCE_NONE},
 
   // single-character tokens
-  [LEXER_TOKEN_PLUS] = {NULL, compiler_binary_expr, PRECEDENCE_TERM},
-  [LEXER_TOKEN_MINUS] = {compiler_unary_expr, compiler_binary_expr, PRECEDENCE_TERM},
-  [LEXER_TOKEN_STAR] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
-  [LEXER_TOKEN_SLASH] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
-  [LEXER_TOKEN_PERCENT] = {NULL, compiler_binary_expr, PRECEDENCE_FACTOR},
-  [LEXER_TOKEN_BANG] = {compiler_unary_expr, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_PLUS] = {NULL, compile_binary_expr, PRECEDENCE_TERM},
+  [LEXER_TOKEN_MINUS] = {compile_unary_expr, compile_binary_expr, PRECEDENCE_TERM},
+  [LEXER_TOKEN_STAR] = {NULL, compile_binary_expr, PRECEDENCE_FACTOR},
+  [LEXER_TOKEN_SLASH] = {NULL, compile_binary_expr, PRECEDENCE_FACTOR},
+  [LEXER_TOKEN_PERCENT] = {NULL, compile_binary_expr, PRECEDENCE_FACTOR},
+  [LEXER_TOKEN_BANG] = {compile_unary_expr, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_LESS] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
-  [LEXER_TOKEN_GREATER] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_LESS] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_GREATER] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
   [LEXER_TOKEN_DOT] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_COMMA] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_COLON] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_SEMICOLON] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_QUESTION] = {NULL, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_OPEN_PAREN] = {compiler_grouping_expr, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_OPEN_PAREN] = {compile_grouping_expr, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_CLOSE_PAREN] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_OPEN_CURLY_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_CLOSE_CURLY_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
 
   // multi-character tokens
-  [LEXER_TOKEN_EQUAL_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_EQUALITY},
-  [LEXER_TOKEN_BANG_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_EQUALITY},
-  [LEXER_TOKEN_LESS_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
-  [LEXER_TOKEN_GREATER_EQUAL] = {NULL, compiler_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_EQUAL_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_EQUALITY},
+  [LEXER_TOKEN_BANG_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_EQUALITY},
+  [LEXER_TOKEN_LESS_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_GREATER_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
 
   // reserved identifiers (keywords)
   [LEXER_TOKEN_VAR] = {NULL, NULL, PRECEDENCE_NONE},
@@ -116,11 +116,11 @@ static struct {
 } parser;
 
 // *---------------------------------------------*
-// *                  UTILITIES                  *
+// *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 /**@desc retrieve currently compiled chunk*/
-static inline Chunk *compiler_current_chunk(void) {
+static inline Chunk *get_current_chunk(void) {
   return current_chunk;
 }
 
@@ -196,21 +196,17 @@ static inline bool compiler_match(LexerTokenType const type) {
 }
 
 /**@desc generate `opcode` bytecode instruction and append it to current_chunk*/
-static inline void compiler_emit_instruction(ChunkOpCode const opcode) {
-  chunk_append_instruction(compiler_current_chunk(), opcode, parser.previous.line);
+static inline void emit_instruction(ChunkOpCode const opcode) {
+  chunk_append_instruction(get_current_chunk(), opcode, parser.previous.line);
 }
 
 /**@desc generate bytecode constant instruction and append it to current_chunk*/
-static inline void compiler_emit_constant_instruction(Value const value) {
-  chunk_append_constant_instruction(compiler_current_chunk(), value, parser.previous.line);
+static inline void emit_constant_instruction(Value const value) {
+  chunk_append_constant_instruction(get_current_chunk(), value, parser.previous.line);
 }
 
-// *---------------------------------------------*
-// *              COMPILE FUNCTIONS              *
-// *---------------------------------------------*
-
 /**@desc compile `precedence` level expression*/
-static void compiler_precedence_expr(Precedence const precedence) {
+static void compile_precedence_expr(Precedence const precedence) {
   compiler_advance();
 
   // compile head token subexpression
@@ -228,58 +224,58 @@ static void compiler_precedence_expr(Precedence const precedence) {
 }
 
 /**@desc compile expression*/
-static void compiler_expr(void) {
-  compiler_precedence_expr(PRECEDENCE_ASSIGNMENT);
+static void compile_expr(void) {
+  compile_precedence_expr(PRECEDENCE_ASSIGNMENT);
 }
 
 /**@desc compile binary expression*/
-static void compiler_binary_expr(void) {
+static void compile_binary_expr(void) {
   LexerTokenType const operator_type = parser.previous.type;
-  compiler_precedence_expr(parse_rules[operator_type].precedence + 1);
+  compile_precedence_expr(parse_rules[operator_type].precedence + 1);
 
   switch (operator_type) {
     case LEXER_TOKEN_PLUS: {
-      compiler_emit_instruction(CHUNK_OP_ADD);
+      emit_instruction(CHUNK_OP_ADD);
       break;
     }
     case LEXER_TOKEN_MINUS: {
-      compiler_emit_instruction(CHUNK_OP_SUBTRACT);
+      emit_instruction(CHUNK_OP_SUBTRACT);
       break;
     }
     case LEXER_TOKEN_STAR: {
-      compiler_emit_instruction(CHUNK_OP_MULTIPLY);
+      emit_instruction(CHUNK_OP_MULTIPLY);
       break;
     }
     case LEXER_TOKEN_SLASH: {
-      compiler_emit_instruction(CHUNK_OP_DIVIDE);
+      emit_instruction(CHUNK_OP_DIVIDE);
       break;
     }
     case LEXER_TOKEN_PERCENT: {
-      compiler_emit_instruction(CHUNK_OP_MODULO);
+      emit_instruction(CHUNK_OP_MODULO);
       break;
     }
     case LEXER_TOKEN_EQUAL_EQUAL: {
-      compiler_emit_instruction(CHUNK_OP_EQUAL);
+      emit_instruction(CHUNK_OP_EQUAL);
       break;
     }
     case LEXER_TOKEN_BANG_EQUAL: {
-      compiler_emit_instruction(CHUNK_OP_NOT_EQUAL);
+      emit_instruction(CHUNK_OP_NOT_EQUAL);
       break;
     }
     case LEXER_TOKEN_LESS: {
-      compiler_emit_instruction(CHUNK_OP_LESS);
+      emit_instruction(CHUNK_OP_LESS);
       break;
     }
     case LEXER_TOKEN_LESS_EQUAL: {
-      compiler_emit_instruction(CHUNK_OP_LESS_EQUAL);
+      emit_instruction(CHUNK_OP_LESS_EQUAL);
       break;
     }
     case LEXER_TOKEN_GREATER: {
-      compiler_emit_instruction(CHUNK_OP_GREATER);
+      emit_instruction(CHUNK_OP_GREATER);
       break;
     }
     case LEXER_TOKEN_GREATER_EQUAL: {
-      compiler_emit_instruction(CHUNK_OP_GREATER_EQUAL);
+      emit_instruction(CHUNK_OP_GREATER_EQUAL);
       break;
     }
     default: ERROR_INTERNAL("Unknown binary operator type '%d'", operator_type);
@@ -287,17 +283,17 @@ static void compiler_binary_expr(void) {
 }
 
 /**@desc compile unary expression*/
-static void compiler_unary_expr(void) {
+static void compile_unary_expr(void) {
   LexerTokenType const operator_type = parser.previous.type;
-  compiler_precedence_expr(PRECEDENCE_UNARY);
+  compile_precedence_expr(PRECEDENCE_UNARY);
 
   switch (operator_type) {
     case LEXER_TOKEN_MINUS: {
-      compiler_emit_instruction(CHUNK_OP_NEGATE);
+      emit_instruction(CHUNK_OP_NEGATE);
       break;
     }
     case LEXER_TOKEN_BANG: {
-      compiler_emit_instruction(CHUNK_OP_NOT);
+      emit_instruction(CHUNK_OP_NOT);
       break;
     }
     default: ERROR_INTERNAL("Unknown unary operator type '%d'", operator_type);
@@ -305,13 +301,13 @@ static void compiler_unary_expr(void) {
 }
 
 /**@desc compile '(...)' grouping expression*/
-static void compiler_grouping_expr(void) {
-  compiler_expr();
+static void compile_grouping_expr(void) {
+  compile_expr();
   compiler_consume(LEXER_TOKEN_CLOSE_PAREN, "Expected ')' closing grouping expression");
 }
 
 /**@desc compile numeric literal*/
-static void compiler_numeric_literal(void) {
+static void compile_numeric_literal(void) {
   errno = 0;
   double const value = strtod(parser.previous.lexeme, NULL);
   if (errno != 0) {
@@ -320,24 +316,24 @@ static void compiler_numeric_literal(void) {
       parser.previous.line, parser.previous.column, parser.previous.lexeme_length, parser.previous.lexeme
     );
   }
-  compiler_emit_constant_instruction(VALUE_MAKE_NUMBER(value));
+  emit_constant_instruction(VALUE_MAKE_NUMBER(value));
 }
 
 /**@desc compile invariable literal (one with fixed lexeme)*/
-static void compiler_invariable_literal(void) {
+static void compile_invariable_literal(void) {
   LexerTokenType const literal_type = parser.previous.type;
 
   switch (literal_type) {
     case LEXER_TOKEN_NIL: {
-      compiler_emit_instruction(CHUNK_OP_NIL);
+      emit_instruction(CHUNK_OP_NIL);
       break;
     }
     case LEXER_TOKEN_TRUE: {
-      compiler_emit_instruction(CHUNK_OP_TRUE);
+      emit_instruction(CHUNK_OP_TRUE);
       break;
     }
     case LEXER_TOKEN_FALSE: {
-      compiler_emit_instruction(CHUNK_OP_FALSE);
+      emit_instruction(CHUNK_OP_FALSE);
       break;
     }
     default: ERROR_INTERNAL("Unknown invariable literal type '%d'", literal_type);
@@ -345,24 +341,28 @@ static void compiler_invariable_literal(void) {
 }
 
 /**@desc compile expression statement*/
-static void compiler_expr_stmt(void) {
-  compiler_expr();
+static void compile_expr_stmt(void) {
+  compile_expr();
   compiler_consume(LEXER_TOKEN_SEMICOLON, "Expected ';' terminating expression statement");
-  compiler_emit_instruction(CHUNK_OP_POP); // discard expression result
+  emit_instruction(CHUNK_OP_POP); // discard expression result
 }
 
 /**@desc compile print statement*/
-static void compiler_print_stmt(void) {
-  compiler_expr();
+static void compile_print_stmt(void) {
+  compile_expr();
   compiler_consume(LEXER_TOKEN_SEMICOLON, "Expected ';' terminating print statement");
-  compiler_emit_instruction(CHUNK_OP_PRINT);
+  emit_instruction(CHUNK_OP_PRINT);
 }
 
 /**@desc compile statement*/
-static void compiler_stmt(void) {
-  if (compiler_match(LEXER_TOKEN_PRINT)) compiler_print_stmt();
-  else compiler_expr_stmt();
+static void compile_stmt(void) {
+  if (compiler_match(LEXER_TOKEN_PRINT)) compile_print_stmt();
+  else compile_expr_stmt();
 }
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc compile `source_code` into bytecode instructions and append them to `chunk`
 @return compiler status indicating compilation result*/
@@ -378,9 +378,9 @@ CompilerStatus compiler_compile(char const *const source_code, Chunk *const chun
   compiler_advance();
 
   // compile source_code
-  while (!compiler_match(LEXER_TOKEN_EOF)) compiler_stmt();
+  while (!compiler_match(LEXER_TOKEN_EOF)) compile_stmt();
 
-  compiler_emit_instruction(CHUNK_OP_RETURN); // TEMP
+  emit_instruction(CHUNK_OP_RETURN); // TEMP
 
 #ifdef DEBUG_COMPILER
   if (!parser.had_error) debug_disassemble_chunk(chunk, "DEBUG_COMPILER");

@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
 static struct {
   char const *char_cursor;
   char const *lexeme;
@@ -13,19 +17,9 @@ static struct {
   int column, lexeme_start_column;
 } lexer;
 
-/**@desc initialize lexer with `source_code`*/
-void lexer_init(char const *const source_code) {
-  assert(source_code != NULL);
-
-#ifdef DEBUG_LEXER
-  puts("== DEBUG_LEXER ==");
-#endif
-
-  lexer.lexeme = source_code;
-  lexer.char_cursor = source_code;
-  lexer.line = 1;
-  lexer.column = 1;
-}
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc determine whether given `character` is a digit*/
 static inline bool is_digit(char const character) {
@@ -248,6 +242,24 @@ static void lexer_skip_whitespace(void) {
       default: return;
     }
   }
+}
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/**@desc initialize lexer with `source_code`*/
+void lexer_init(char const *const source_code) {
+  assert(source_code != NULL);
+
+#ifdef DEBUG_LEXER
+  puts("== DEBUG_LEXER ==");
+#endif
+
+  lexer.lexeme = source_code;
+  lexer.char_cursor = source_code;
+  lexer.line = 1;
+  lexer.column = 1;
 }
 
 /**@desc scan lexer source code for next lexeme, bundle it up with metadata, and produce new token

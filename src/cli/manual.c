@@ -5,6 +5,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc print manual*/
 void manual_print(void) {
   static_assert(ERROR_CODE_COUNT == 7, "Exhaustive error code handling");

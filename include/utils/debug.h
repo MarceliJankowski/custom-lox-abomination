@@ -6,12 +6,20 @@
 
 #include <stdint.h>
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #ifdef DEBUG
 // enable all supported debug features
 #define DEBUG_LEXER
 #define DEBUG_COMPILER
 #define DEBUG_VM
 #endif
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void debug_token(LexerToken const *token);
 void debug_disassemble_chunk(Chunk const *chunk, char const *name);

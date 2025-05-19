@@ -10,14 +10,14 @@
 #include <stdio.h>
 
 // *---------------------------------------------*
-// *                  UTILITIES                  *
+// *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
 #define LOGICAL_LINE_PROMPT "> "
 #define LOGICAL_LINE_CONTINUATION_PROMPT "... "
 
 // *---------------------------------------------*
-// *              REPL FUNCTIONS                 *
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 /**@desc enter REPL interaction mode; once entered it persists until process termination*/

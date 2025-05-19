@@ -8,7 +8,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #define VM_STACK_MIN_GROWTH_CAPACITY 256
+
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
 
 typedef struct {
   Chunk const *chunk;
@@ -16,13 +24,25 @@ typedef struct {
   STACK_TYPE(Value) stack;
 } VM;
 
+// *---------------------------------------------*
+// *             OBJECT DECLARATIONS             *
+// *---------------------------------------------*
+
 extern size_t const *const t_vm_stack_count;
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void vm_init(void);
 void vm_destroy(void);
 void vm_stack_push(Value value);
 Value vm_stack_pop(void);
 bool vm_execute(Chunk const *chunk);
+
+// *---------------------------------------------*
+// *              INLINE FUNCTIONS               *
+// *---------------------------------------------*
 
 inline void vm_reset(void) {
   vm_destroy();

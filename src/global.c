@@ -1,5 +1,9 @@
 #include "global.h"
 
+// *---------------------------------------------*
+// *          EXTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
 char const *g_source_file_path; // TEMP
 
 /**@desc stream for static analysis errors*/

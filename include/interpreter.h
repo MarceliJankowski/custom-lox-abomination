@@ -1,6 +1,10 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
+
 typedef enum {
   INTERPRETER_SUCCESS,
   INTERPRETER_COMPILER_FAILURE,
@@ -8,6 +12,10 @@ typedef enum {
   INTERPRETER_VM_FAILURE,
   INTERPRETER_STATUS_COUNT,
 } InterpreterStatus;
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void interpreter_init(void);
 void interpreter_destroy(void);

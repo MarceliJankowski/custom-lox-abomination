@@ -5,6 +5,10 @@
 #include <limits.h>
 #include <stdint.h>
 
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
+
 typedef enum {
   // indicators
   LEXER_TOKEN_ERROR,
@@ -83,6 +87,10 @@ typedef struct {
   int column, lexeme_length;
   uint8_t type;
 } LexerToken;
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void lexer_init(char const *source_code);
 LexerToken lexer_scan(void);

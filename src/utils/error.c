@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <windows.h>
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc log the most recent Windows API error*/
 void error_windows_log_last(void) {
   DWORD const error_code = GetLastError();

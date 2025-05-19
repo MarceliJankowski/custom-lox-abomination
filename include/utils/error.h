@@ -8,16 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum {
-  ERROR_CODE_SUCCESS,
-  ERROR_CODE_COMPILATION,
-  ERROR_CODE_EXECUTION,
-  ERROR_CODE_INVALID_ARG,
-  ERROR_CODE_MEMORY,
-  ERROR_CODE_IO,
-  ERROR_CODE_SYSTEM,
-  ERROR_CODE_COUNT,
-} ErrorCode;
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
 
 #define ERROR__FILE_LINE __FILE__ COMMON_PS COMMON_STRINGIZE(__LINE__)
 
@@ -66,6 +59,25 @@ typedef enum {
     exit(ERROR_CODE_SYSTEM);                                                \
   } while (0)
 #endif
+
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
+
+typedef enum {
+  ERROR_CODE_SUCCESS,
+  ERROR_CODE_COMPILATION,
+  ERROR_CODE_EXECUTION,
+  ERROR_CODE_INVALID_ARG,
+  ERROR_CODE_MEMORY,
+  ERROR_CODE_IO,
+  ERROR_CODE_SYSTEM,
+  ERROR_CODE_COUNT,
+} ErrorCode;
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void error_windows_log_last(void);
 
