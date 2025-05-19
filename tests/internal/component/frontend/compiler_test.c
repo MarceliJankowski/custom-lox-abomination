@@ -39,7 +39,7 @@ static CompilerStatus compile(char const *const source_code) {
   chunk_reset(&chunk);
   chunk_code_offset = 0;
   chunk_constant_instruction_index = 0;
-  component_test_clear_binary_stream_resource_content(g_static_error_stream);
+  component_test_clear_binary_stream_resource_content(g_static_analysis_error_stream);
 
   return compiler_compile(source_code, &chunk);
 }
@@ -48,7 +48,7 @@ static CompilerStatus compile(char const *const source_code) {
 #define COMPILE_ASSERT_FAILURE(source_code) assert_int_equal(compile(source_code), COMPILER_FAILURE)
 #define COMPILE_ASSERT_UNEXPECTED_EOF(source_code) assert_int_equal(compile(source_code), COMPILER_UNEXPECTED_EOF)
 
-static void assert_static_error(
+static void assert_static_analysis_error(
   char const *const error_type, int const line, int const column, char const *const expected_error_message
 ) {
   assert(error_type != NULL);
@@ -64,27 +64,27 @@ static void assert_static_error(
   char const *const separator_3 = COMMON_MS;
   char const *const ending = "\n";
 
-  size_t const expected_static_error_length = strlen(error_type) + strlen(separator_1) + line_digit_count +
-                                              strlen(separator_2) + column_digit_count + strlen(separator_3) +
-                                              strlen(expected_error_message) + strlen(ending);
+  size_t const expected_static_analysis_error_length = strlen(error_type) + strlen(separator_1) + line_digit_count +
+                                                       strlen(separator_2) + column_digit_count + strlen(separator_3) +
+                                                       strlen(expected_error_message) + strlen(ending);
 
-  char *const expected_static_error = malloc(expected_static_error_length);
-  if (expected_static_error == NULL) ERROR_MEMORY_ERRNO();
+  char *const expected_static_analysis_error = malloc(expected_static_analysis_error_length);
+  if (expected_static_analysis_error == NULL) ERROR_MEMORY_ERRNO();
 
   if (sprintf(
-        expected_static_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column, separator_3,
-        expected_error_message, ending
+        expected_static_analysis_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column,
+        separator_3, expected_error_message, ending
       ) < 0)
     ERROR_IO_ERRNO();
 
-  component_test_assert_binary_stream_resource_content(g_static_error_stream, expected_static_error);
+  component_test_assert_binary_stream_resource_content(g_static_analysis_error_stream, expected_static_analysis_error);
 
-  free(expected_static_error);
+  free(expected_static_analysis_error);
 }
 
-#define ASSERT_LEXICAL_ERROR(...) assert_static_error("[LEXICAL_ERROR]", __VA_ARGS__)
-#define ASSERT_SYNTAX_ERROR(...) assert_static_error("[SYNTAX_ERROR]", __VA_ARGS__)
-#define ASSERT_SEMANTIC_ERROR(...) assert_static_error("[SEMANTIC_ERROR]", __VA_ARGS__)
+#define ASSERT_LEXICAL_ERROR(...) assert_static_analysis_error("[LEXICAL_ERROR]", __VA_ARGS__)
+#define ASSERT_SYNTAX_ERROR(...) assert_static_analysis_error("[SYNTAX_ERROR]", __VA_ARGS__)
+#define ASSERT_SEMANTIC_ERROR(...) assert_static_analysis_error("[SEMANTIC_ERROR]", __VA_ARGS__)
 
 #define NEXT_CHUNK_CODE_BYTE() chunk.code.data[chunk_code_offset++]
 
@@ -199,8 +199,8 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
 
 static int setup_test_group_env(void **const _) {
   g_source_file_path = __FILE__;
-  g_static_error_stream = tmpfile(); // assert_static_error expects this stream to be binary
-  if (g_static_error_stream == NULL) ERROR_IO_ERRNO();
+  g_static_analysis_error_stream = tmpfile(); // assert_static_analysis_error expects this stream to be binary
+  if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
 
   chunk_init(&chunk);
 
@@ -208,7 +208,7 @@ static int setup_test_group_env(void **const _) {
 }
 
 static int teardown_test_group_env(void **const _) {
-  if (fclose(g_static_error_stream)) ERROR_IO_ERRNO();
+  if (fclose(g_static_analysis_error_stream)) ERROR_IO_ERRNO();
 
   chunk_destroy(&chunk);
 

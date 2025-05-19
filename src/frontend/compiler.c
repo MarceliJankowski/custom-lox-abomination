@@ -139,25 +139,25 @@ static void compiler_error_at(ErrorType const error_type, LexerToken const *cons
   static_assert(ERROR_TYPE_COUNT == 3, "Exhaustive ErrorType handling");
   switch (error_type) {
     case ERROR_LEXICAL: {
-      fprintf(g_static_error_stream, "[LEXICAL_ERROR]");
+      fprintf(g_static_analysis_error_stream, "[LEXICAL_ERROR]");
       break;
     }
     case ERROR_SYNTAX: {
-      fprintf(g_static_error_stream, "[SYNTAX_ERROR]");
+      fprintf(g_static_analysis_error_stream, "[SYNTAX_ERROR]");
       break;
     }
     case ERROR_SEMANTIC: {
-      fprintf(g_static_error_stream, "[SEMANTIC_ERROR]");
+      fprintf(g_static_analysis_error_stream, "[SEMANTIC_ERROR]");
       break;
     }
     default: ERROR_INTERNAL("Unknown error_type '%d'", error_type);
   }
   fprintf(
-    g_static_error_stream, COMMON_MS COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "%s", g_source_file_path, token->line,
-    token->column, message
+    g_static_analysis_error_stream, COMMON_MS COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "%s", g_source_file_path,
+    token->line, token->column, message
   );
-  if (token->type == LEXER_TOKEN_ERROR || token->type == LEXER_TOKEN_EOF) fprintf(g_static_error_stream, "\n");
-  else fprintf(g_static_error_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);
+  if (token->type == LEXER_TOKEN_ERROR || token->type == LEXER_TOKEN_EOF) fprintf(g_static_analysis_error_stream, "\n");
+  else fprintf(g_static_analysis_error_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);
 }
 
 /**@desc handle `error_type` error at parser.previous token with `message`*/
