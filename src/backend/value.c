@@ -49,14 +49,20 @@ void value_list_append(ValueList *const value_list, Value const value) {
 
 /**@desc print `value`*/
 void value_print(Value const value) {
+#define PRINTF_BREAK(...)                               \
+  fprintf(g_source_program_output_stream, __VA_ARGS__); \
+  break
+
   static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
   switch (value.type) {
-    case VALUE_BOOL: IO_PRINTF_BREAK(value.payload.boolean ? "true" : "false");
-    case VALUE_NIL: IO_PRINTF_BREAK("nil");
-    case VALUE_NUMBER: IO_PRINTF_BREAK("%g", value.payload.number);
+    case VALUE_BOOL: PRINTF_BREAK(value.payload.boolean ? "true" : "false");
+    case VALUE_NIL: PRINTF_BREAK("nil");
+    case VALUE_NUMBER: PRINTF_BREAK("%g", value.payload.number);
 
     default: ERROR_INTERNAL("Unknown ValueType '%d'", value.type);
   }
+
+#undef PRINTF_BREAK
 }
 
 /**@desc determine whether `value_a` equals `value_b`
