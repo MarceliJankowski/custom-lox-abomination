@@ -5,6 +5,10 @@
 
 #include <assert.h>
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc interpret file located at `source_file_path`
 @return interpretation error code*/
 ErrorCode file_interpret(char const *const source_file_path) {

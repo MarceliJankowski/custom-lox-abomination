@@ -6,7 +6,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #define MEMORY_BYTE_STATE_COUNT (UCHAR_MAX + 1)
+
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
 
 typedef enum { MEMORY_LITTLE_ENDIAN, MEMORY_BIG_ENDIAN } Endianness;
 
@@ -20,8 +28,16 @@ Deallocation of non-existing objects is permitted for convenience.
 @return pointer to (re)allocated `object` or NULL if deallocation was performed*/
 typedef void *(MemoryManagerFn)(void *object, size_t old_size, size_t new_size);
 
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
 MemoryManagerFn memory_manage;
 uint32_t memory_concatenate_bytes(int byte_count, ...);
+
+// *---------------------------------------------*
+// *              INLINE FUNCTIONS               *
+// *---------------------------------------------*
 
 /**@desc use `memory_manager` to allocate object of `new_size`*/
 inline void *memory_allocate(MemoryManagerFn *const memory_manager, size_t const new_size) {

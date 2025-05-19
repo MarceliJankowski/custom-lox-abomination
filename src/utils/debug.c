@@ -10,6 +10,80 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
+@return offset to next instruction*/
+static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
+#define PUTS_BREAK(string) \
+  puts(string);            \
+  break
+
+  static_assert(CHUNK_OP_SIMPLE_OPCODE_COUNT == 19, "Exhaustive simple chunk opcode handling");
+  switch (opcode) {
+    case CHUNK_OP_RETURN: PUTS_BREAK("CHUNK_OP_RETURN");
+    case CHUNK_OP_PRINT: PUTS_BREAK("CHUNK_OP_PRINT");
+    case CHUNK_OP_POP: PUTS_BREAK("CHUNK_OP_POP");
+    case CHUNK_OP_NEGATE: PUTS_BREAK("CHUNK_OP_NEGATE");
+    case CHUNK_OP_ADD: PUTS_BREAK("CHUNK_OP_ADD");
+    case CHUNK_OP_SUBTRACT: PUTS_BREAK("CHUNK_OP_SUBTRACT");
+    case CHUNK_OP_MULTIPLY: PUTS_BREAK("CHUNK_OP_MULTIPLY");
+    case CHUNK_OP_DIVIDE: PUTS_BREAK("CHUNK_OP_DIVIDE");
+    case CHUNK_OP_MODULO: PUTS_BREAK("CHUNK_OP_MODULO");
+    case CHUNK_OP_NOT: PUTS_BREAK("CHUNK_OP_NOT");
+    case CHUNK_OP_NIL: PUTS_BREAK("CHUNK_OP_NIL");
+    case CHUNK_OP_TRUE: PUTS_BREAK("CHUNK_OP_TRUE");
+    case CHUNK_OP_FALSE: PUTS_BREAK("CHUNK_OP_FALSE");
+    case CHUNK_OP_EQUAL: PUTS_BREAK("CHUNK_OP_EQUAL");
+    case CHUNK_OP_NOT_EQUAL: PUTS_BREAK("CHUNK_OP_NOT_EQUAL");
+    case CHUNK_OP_LESS: PUTS_BREAK("CHUNK_OP_LESS");
+    case CHUNK_OP_LESS_EQUAL: PUTS_BREAK("CHUNK_OP_LESS_EQUAL");
+    case CHUNK_OP_GREATER: PUTS_BREAK("CHUNK_OP_GREATER");
+    case CHUNK_OP_GREATER_EQUAL: PUTS_BREAK("CHUNK_OP_GREATER_EQUAL");
+
+    default: ERROR_INTERNAL("Unknown chunk simple instruction opcode '%d'", opcode);
+  }
+
+  return offset + 1;
+
+#undef PUTS_BREAK
+}
+
+/**@desc print `chunk` constant instruction encoded by `opcode` and located at `offset`
+@return offset to next instruction*/
+static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t const opcode, int32_t const offset) {
+  assert(chunk != NULL);
+
+  if (opcode == CHUNK_OP_CONSTANT) {
+    uint8_t const constant_index = chunk->code.data[offset + 1];
+
+    printf("CHUNK_OP_CONSTANT %d '", constant_index);
+    value_print(chunk->constants.data[constant_index]);
+    printf("'\n");
+
+    return offset + 2;
+  }
+
+  if (opcode == CHUNK_OP_CONSTANT_2B) {
+    unsigned int const constant_index =
+      memory_concatenate_bytes(2, chunk->code.data[offset + 2], chunk->code.data[offset + 1]);
+
+    printf("CHUNK_OP_CONSTANT_2B %d '", constant_index);
+    value_print(chunk->constants.data[constant_index]);
+    printf("'\n");
+
+    return offset + 3;
+  }
+
+  ERROR_INTERNAL("Unknown chunk constant instruction opcode '%d'", opcode);
+}
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc print lexical `token`*/
 void debug_token(LexerToken const *const token) {
 #define PRINTF_BREAK(...) \
@@ -88,72 +162,6 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
 
   printf("\n== %s ==\n", name);
   for (size_t offset = 0; offset < chunk->code.count;) offset = debug_disassemble_instruction(chunk, offset);
-}
-
-/**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
-@return offset to next instruction*/
-static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
-#define PUTS_BREAK(string) \
-  puts(string);            \
-  break
-
-  static_assert(CHUNK_OP_SIMPLE_OPCODE_COUNT == 19, "Exhaustive simple chunk opcode handling");
-  switch (opcode) {
-    case CHUNK_OP_RETURN: PUTS_BREAK("CHUNK_OP_RETURN");
-    case CHUNK_OP_PRINT: PUTS_BREAK("CHUNK_OP_PRINT");
-    case CHUNK_OP_POP: PUTS_BREAK("CHUNK_OP_POP");
-    case CHUNK_OP_NEGATE: PUTS_BREAK("CHUNK_OP_NEGATE");
-    case CHUNK_OP_ADD: PUTS_BREAK("CHUNK_OP_ADD");
-    case CHUNK_OP_SUBTRACT: PUTS_BREAK("CHUNK_OP_SUBTRACT");
-    case CHUNK_OP_MULTIPLY: PUTS_BREAK("CHUNK_OP_MULTIPLY");
-    case CHUNK_OP_DIVIDE: PUTS_BREAK("CHUNK_OP_DIVIDE");
-    case CHUNK_OP_MODULO: PUTS_BREAK("CHUNK_OP_MODULO");
-    case CHUNK_OP_NOT: PUTS_BREAK("CHUNK_OP_NOT");
-    case CHUNK_OP_NIL: PUTS_BREAK("CHUNK_OP_NIL");
-    case CHUNK_OP_TRUE: PUTS_BREAK("CHUNK_OP_TRUE");
-    case CHUNK_OP_FALSE: PUTS_BREAK("CHUNK_OP_FALSE");
-    case CHUNK_OP_EQUAL: PUTS_BREAK("CHUNK_OP_EQUAL");
-    case CHUNK_OP_NOT_EQUAL: PUTS_BREAK("CHUNK_OP_NOT_EQUAL");
-    case CHUNK_OP_LESS: PUTS_BREAK("CHUNK_OP_LESS");
-    case CHUNK_OP_LESS_EQUAL: PUTS_BREAK("CHUNK_OP_LESS_EQUAL");
-    case CHUNK_OP_GREATER: PUTS_BREAK("CHUNK_OP_GREATER");
-    case CHUNK_OP_GREATER_EQUAL: PUTS_BREAK("CHUNK_OP_GREATER_EQUAL");
-
-    default: ERROR_INTERNAL("Unknown chunk simple instruction opcode '%d'", opcode);
-  }
-
-  return offset + 1;
-
-#undef PUTS_BREAK
-}
-
-/**@desc print `chunk` constant instruction encoded by `opcode` and located at `offset`
-@return offset to next instruction*/
-static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t const opcode, int32_t const offset) {
-  assert(chunk != NULL);
-
-  if (opcode == CHUNK_OP_CONSTANT) {
-    uint8_t const constant_index = chunk->code.data[offset + 1];
-
-    printf("CHUNK_OP_CONSTANT %d '", constant_index);
-    value_print(chunk->constants.data[constant_index]);
-    printf("'\n");
-
-    return offset + 2;
-  }
-
-  if (opcode == CHUNK_OP_CONSTANT_2B) {
-    unsigned int const constant_index =
-      memory_concatenate_bytes(2, chunk->code.data[offset + 2], chunk->code.data[offset + 1]);
-
-    printf("CHUNK_OP_CONSTANT_2B %d '", constant_index);
-    value_print(chunk->constants.data[constant_index]);
-    printf("'\n");
-
-    return offset + 3;
-  }
-
-  ERROR_INTERNAL("Unknown chunk constant instruction opcode '%d'", opcode);
 }
 
 /**@desc disassemble and print `chunk` instruction located at `offset`

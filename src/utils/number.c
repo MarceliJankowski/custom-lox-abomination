@@ -2,6 +2,10 @@
 
 #include <math.h>
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc determine whether `number` is an integer
 @return true if it is, false otherwise*/
 bool number_is_integer(double const number) {

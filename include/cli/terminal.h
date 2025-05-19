@@ -1,6 +1,10 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
 /**@desc enable noncannonical terminal mode.
 Once enabled, it persists until process termination.
 This function registers handlers for terminal parameter restoration upon imminent process termination.

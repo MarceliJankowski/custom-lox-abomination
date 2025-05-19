@@ -15,16 +15,7 @@
 #include <stdio.h>
 
 // *---------------------------------------------*
-// *               STATIC OBJECTS                *
-// *---------------------------------------------*
-
-static VM vm;
-
-/**@desc exposes vm.stack.count (meant solely for automated tests)*/
-size_t const *const t_vm_stack_count = &vm.stack.count;
-
-// *---------------------------------------------*
-// *                  UTILITIES                  *
+// *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
 #define VM_STACK_TOP STACK_TOP(&vm.stack)
@@ -35,6 +26,29 @@ size_t const *const t_vm_stack_count = &vm.stack.count;
 
 #define ASSERT_MIN_VM_STACK_COUNT(expected_min_vm_stack_count) \
   assert(vm.stack.count >= (expected_min_vm_stack_count) && "Attempt to access nonexistent vm.stack frame")
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
+void vm_reset(void);
+
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
+static VM vm;
+
+// *---------------------------------------------*
+// *          EXTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
+/**@desc exposes vm.stack.count (meant solely for automated tests)*/
+size_t const *const t_vm_stack_count = &vm.stack.count;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc handle bytecode execution error at `instruction_offset` with `format` message and `format_args`
 @return false (meant to be forwarded as an execution failure indication)*/
@@ -59,10 +73,8 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
 }
 
 // *---------------------------------------------*
-// *               VM FUNCTIONS                  *
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
-
-void vm_reset(void);
 
 /**@desc initialize virtual machine*/
 void vm_init(void) {

@@ -11,9 +11,17 @@
 #include <stdbool.h>
 #include <windows.h>
 
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
 static DWORD original_console_mode;
 static bool is_original_console_mode_set;
 static HANDLE stdin_handle = INVALID_HANDLE_VALUE;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc restore console mode to its original state.
 Requires original_console_mode to be first set.*/
@@ -43,6 +51,10 @@ static void register_console_mode_restoration_handlers(void) {
   if (atexit(restore_console_mode) != 0) ERROR_SYSTEM("Failed to register atexit() handler");
   if (SetConsoleCtrlHandler(console_control_event_handler, TRUE) == 0) ERROR_WINDOWS_LAST();
 }
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 void terminal_enable_noncannonical_mode(void) {
   assert(is_original_console_mode_set == false);
@@ -81,8 +93,16 @@ void terminal_enable_noncannonical_mode(void) {
 #include <termios.h>
 #include <unistd.h>
 
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
 static struct termios original_terminal_parameters;
 static bool are_original_terminal_parameters_set;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc restore terminal parameters to their original state.
 Requires original_terminal_parameters to be first set.*/
@@ -118,6 +138,10 @@ static void register_terminal_parameter_restoration_handlers(void) {
   if (-1 == sigaction(SIGHUP, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
   if (-1 == sigaction(SIGQUIT, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
 }
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 void terminal_enable_noncannonical_mode(void) {
   assert(are_original_terminal_parameters_set == false);

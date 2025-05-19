@@ -14,73 +14,12 @@
 #include <string.h>
 
 // *---------------------------------------------*
-// *               STATIC OBJECTS                *
+// *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
-
-static Chunk chunk;
-static int chunk_code_offset;
-static int chunk_constant_instruction_index;
-
-// *---------------------------------------------*
-// *                  UTILITIES                  *
-// *---------------------------------------------*
-
-static int count_non_negative_int_digits(int const non_negative_int) {
-  assert(non_negative_int >= 0);
-
-  if (non_negative_int == 0) return 1;
-
-  return log10(non_negative_int) + 1;
-}
-
-static CompilerStatus compile(char const *const source_code) {
-  assert(source_code != NULL);
-
-  chunk_reset(&chunk);
-  chunk_code_offset = 0;
-  chunk_constant_instruction_index = 0;
-  component_test_clear_binary_stream_resource_content(g_static_analysis_error_stream);
-
-  return compiler_compile(source_code, &chunk);
-}
 
 #define COMPILE_ASSERT_SUCCESS(source_code) assert_int_equal(compile(source_code), COMPILER_SUCCESS)
 #define COMPILE_ASSERT_FAILURE(source_code) assert_int_equal(compile(source_code), COMPILER_FAILURE)
 #define COMPILE_ASSERT_UNEXPECTED_EOF(source_code) assert_int_equal(compile(source_code), COMPILER_UNEXPECTED_EOF)
-
-static void assert_static_analysis_error(
-  char const *const error_type, int const line, int const column, char const *const expected_error_message
-) {
-  assert(error_type != NULL);
-  assert(line >= 0);
-  assert(column >= 0);
-  assert(expected_error_message != NULL);
-
-  int const line_digit_count = count_non_negative_int_digits(line);
-  int const column_digit_count = count_non_negative_int_digits(column);
-
-  char const *const separator_1 = COMMON_MS __FILE__ COMMON_PS;
-  char const *const separator_2 = COMMON_PS;
-  char const *const separator_3 = COMMON_MS;
-  char const *const ending = "\n";
-
-  size_t const expected_static_analysis_error_length = strlen(error_type) + strlen(separator_1) + line_digit_count +
-                                                       strlen(separator_2) + column_digit_count + strlen(separator_3) +
-                                                       strlen(expected_error_message) + strlen(ending);
-
-  char *const expected_static_analysis_error = malloc(expected_static_analysis_error_length);
-  if (expected_static_analysis_error == NULL) ERROR_MEMORY_ERRNO();
-
-  if (sprintf(
-        expected_static_analysis_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column,
-        separator_3, expected_error_message, ending
-      ) < 0)
-    ERROR_IO_ERRNO();
-
-  component_test_assert_binary_stream_resource_content(g_static_analysis_error_stream, expected_static_analysis_error);
-
-  free(expected_static_analysis_error);
-}
 
 #define ASSERT_LEXICAL_ERROR(...) assert_static_analysis_error("[LEXICAL_ERROR]", __VA_ARGS__)
 #define ASSERT_SYNTAX_ERROR(...) assert_static_analysis_error("[SYNTAX_ERROR]", __VA_ARGS__)
@@ -93,51 +32,6 @@ static void assert_static_analysis_error(
 
 #define ASSERT_OPCODE(expected_opcode) assert_int_equal(NEXT_CHUNK_CODE_BYTE(), expected_opcode)
 #define ASSERT_OPCODES(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(ASSERT_OPCODE, ChunkOpCode, __VA_ARGS__)
-
-static void assert_chunk_constant(int32_t const constant_index, Value const expected_constant) {
-  assert_int_equal(chunk_constant_instruction_index, constant_index);
-  component_test_assert_value_equality(chunk.constants.data[constant_index], expected_constant);
-  chunk_constant_instruction_index++;
-}
-
-static void assert_OP_CONSTANT_instruction(Value const expected_constant) {
-  ASSERT_OPCODE(CHUNK_OP_CONSTANT);
-  uint32_t const constant_index = NEXT_CHUNK_CODE_BYTE();
-  assert_chunk_constant(constant_index, expected_constant);
-}
-
-static void assert_OP_CONSTANT_2B_instruction(Value const expected_constant) {
-  ASSERT_OPCODE(CHUNK_OP_CONSTANT_2B);
-  uint8_t const constant_index_LSB = NEXT_CHUNK_CODE_BYTE();
-  uint8_t const constant_index_MSB = NEXT_CHUNK_CODE_BYTE();
-  uint32_t const constant_index = memory_concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
-  assert_chunk_constant(constant_index, expected_constant);
-}
-
-static void assert_constant_instruction(Value const expected_constant) {
-  if (chunk_constant_instruction_index > UCHAR_MAX) assert_OP_CONSTANT_2B_instruction(expected_constant);
-  else assert_OP_CONSTANT_instruction(expected_constant);
-}
-#define ASSERT_CONSTANT_INSTRUCTIONS(...) \
-  COMPONENT_TEST_APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
-
-static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator) {
-  assert(operator!= NULL);
-
-  if (0 == strcmp(operator, "+")) return CHUNK_OP_ADD;
-  if (0 == strcmp(operator, "-")) return CHUNK_OP_SUBTRACT;
-  if (0 == strcmp(operator, "*")) return CHUNK_OP_MULTIPLY;
-  if (0 == strcmp(operator, "/")) return CHUNK_OP_DIVIDE;
-  if (0 == strcmp(operator, "%")) return CHUNK_OP_MODULO;
-  if (0 == strcmp(operator, "==")) return CHUNK_OP_EQUAL;
-  if (0 == strcmp(operator, "!=")) return CHUNK_OP_NOT_EQUAL;
-  if (0 == strcmp(operator, "<")) return CHUNK_OP_LESS;
-  if (0 == strcmp(operator, "<=")) return CHUNK_OP_LESS_EQUAL;
-  if (0 == strcmp(operator, ">")) return CHUNK_OP_GREATER;
-  if (0 == strcmp(operator, ">=")) return CHUNK_OP_GREATER_EQUAL;
-
-  ERROR_INTERNAL("Unknown binary operator '%s'", operator);
-}
 
 #define ASSERT_BINARY_OPERATOR_SYNTAX(operator)                                      \
   do {                                                                               \
@@ -192,6 +86,116 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
     ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3)); \
     ASSERT_OPCODES(operator_a_opcode, operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);            \
   } while (0)
+
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
+static Chunk chunk;
+static int chunk_code_offset;
+static int chunk_constant_instruction_index;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+static int count_non_negative_int_digits(int const non_negative_int) {
+  assert(non_negative_int >= 0);
+
+  if (non_negative_int == 0) return 1;
+
+  return log10(non_negative_int) + 1;
+}
+
+static CompilerStatus compile(char const *const source_code) {
+  assert(source_code != NULL);
+
+  chunk_reset(&chunk);
+  chunk_code_offset = 0;
+  chunk_constant_instruction_index = 0;
+  component_test_clear_binary_stream_resource_content(g_static_analysis_error_stream);
+
+  return compiler_compile(source_code, &chunk);
+}
+
+static void assert_static_analysis_error(
+  char const *const error_type, int const line, int const column, char const *const expected_error_message
+) {
+  assert(error_type != NULL);
+  assert(line >= 0);
+  assert(column >= 0);
+  assert(expected_error_message != NULL);
+
+  int const line_digit_count = count_non_negative_int_digits(line);
+  int const column_digit_count = count_non_negative_int_digits(column);
+
+  char const *const separator_1 = COMMON_MS __FILE__ COMMON_PS;
+  char const *const separator_2 = COMMON_PS;
+  char const *const separator_3 = COMMON_MS;
+  char const *const ending = "\n";
+
+  size_t const expected_static_analysis_error_length = strlen(error_type) + strlen(separator_1) + line_digit_count +
+                                                       strlen(separator_2) + column_digit_count + strlen(separator_3) +
+                                                       strlen(expected_error_message) + strlen(ending);
+
+  char *const expected_static_analysis_error = malloc(expected_static_analysis_error_length);
+  if (expected_static_analysis_error == NULL) ERROR_MEMORY_ERRNO();
+
+  if (sprintf(
+        expected_static_analysis_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column,
+        separator_3, expected_error_message, ending
+      ) < 0)
+    ERROR_IO_ERRNO();
+
+  component_test_assert_binary_stream_resource_content(g_static_analysis_error_stream, expected_static_analysis_error);
+
+  free(expected_static_analysis_error);
+}
+
+static void assert_chunk_constant(int32_t const constant_index, Value const expected_constant) {
+  assert_int_equal(chunk_constant_instruction_index, constant_index);
+  component_test_assert_value_equality(chunk.constants.data[constant_index], expected_constant);
+  chunk_constant_instruction_index++;
+}
+
+static void assert_OP_CONSTANT_instruction(Value const expected_constant) {
+  ASSERT_OPCODE(CHUNK_OP_CONSTANT);
+  uint32_t const constant_index = NEXT_CHUNK_CODE_BYTE();
+  assert_chunk_constant(constant_index, expected_constant);
+}
+
+static void assert_OP_CONSTANT_2B_instruction(Value const expected_constant) {
+  ASSERT_OPCODE(CHUNK_OP_CONSTANT_2B);
+  uint8_t const constant_index_LSB = NEXT_CHUNK_CODE_BYTE();
+  uint8_t const constant_index_MSB = NEXT_CHUNK_CODE_BYTE();
+  uint32_t const constant_index = memory_concatenate_bytes(2, constant_index_MSB, constant_index_LSB);
+  assert_chunk_constant(constant_index, expected_constant);
+}
+
+static void assert_constant_instruction(Value const expected_constant) {
+  if (chunk_constant_instruction_index > UCHAR_MAX) assert_OP_CONSTANT_2B_instruction(expected_constant);
+  else assert_OP_CONSTANT_instruction(expected_constant);
+}
+#define ASSERT_CONSTANT_INSTRUCTIONS(...) \
+  COMPONENT_TEST_APPLY_TO_EACH_ARG(assert_constant_instruction, Value, __VA_ARGS__)
+
+static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator) {
+  assert(operator!= NULL);
+
+  if (0 == strcmp(operator, "+")) return CHUNK_OP_ADD;
+  if (0 == strcmp(operator, "-")) return CHUNK_OP_SUBTRACT;
+  if (0 == strcmp(operator, "*")) return CHUNK_OP_MULTIPLY;
+  if (0 == strcmp(operator, "/")) return CHUNK_OP_DIVIDE;
+  if (0 == strcmp(operator, "%")) return CHUNK_OP_MODULO;
+  if (0 == strcmp(operator, "==")) return CHUNK_OP_EQUAL;
+  if (0 == strcmp(operator, "!=")) return CHUNK_OP_NOT_EQUAL;
+  if (0 == strcmp(operator, "<")) return CHUNK_OP_LESS;
+  if (0 == strcmp(operator, "<=")) return CHUNK_OP_LESS_EQUAL;
+  if (0 == strcmp(operator, ">")) return CHUNK_OP_GREATER;
+  if (0 == strcmp(operator, ">=")) return CHUNK_OP_GREATER_EQUAL;
+
+  ERROR_INTERNAL("Unknown binary operator '%s'", operator);
+}
 
 // *---------------------------------------------*
 // *                  FIXTURES                   *

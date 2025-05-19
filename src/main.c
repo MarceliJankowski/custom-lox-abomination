@@ -4,6 +4,10 @@
 #include "global.h"
 #include "utils/error.h"
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 int main(int const argc, char const *const *const argv) {
   g_static_analysis_error_stream = stderr;
   g_bytecode_execution_error_stream = stderr;

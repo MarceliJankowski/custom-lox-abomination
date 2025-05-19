@@ -1,5 +1,9 @@
 #include "backend/gc.h"
 
+// *---------------------------------------------*
+// *        EXTERNAL-LINKAGE FUNCTIONS           *
+// *---------------------------------------------*
+
 /**@desc garbage collecting MemoryManagerFn implementation.
 Memory of objects tracked by garbage collector must be managed exclusively by this function (from the get-go).
 @see MemoryManagerFn for further documentation*/

@@ -9,7 +9,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
 void chunk_reset(Chunk *chunk);
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
+static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
+  assert(chunk != NULL);
+  assert(line >= 1 && "Expected lines to begin at 1");
+
+  ChunkLineCount const line_count = {.line = line, .count = 1};
+  DARRAY_PUSH(&chunk->lines, line_count);
+}
+
+/**@desc append `value` to `chunk` constant pool
+@return index of appended constant*/
+static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
+  assert(chunk != NULL);
+
+  value_list_append(&chunk->constants, value);
+  return chunk->constants.count - 1;
+}
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc initialize bytecode `chunk`*/
 void chunk_init(Chunk *const chunk) {
@@ -31,15 +61,6 @@ void chunk_destroy(Chunk *const chunk) {
 
   // set to uninitialized state
   *chunk = (Chunk){0};
-}
-
-/**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
-static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
-  assert(chunk != NULL);
-  assert(line >= 1 && "Expected lines to begin at 1");
-
-  ChunkLineCount const line_count = {.line = line, .count = 1};
-  DARRAY_PUSH(&chunk->lines, line_count);
 }
 
 /**@desc append instruction `opcode` and corresponding `line` to `chunk`*/
@@ -84,15 +105,6 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   }
 
   va_end(bytes);
-}
-
-/**@desc append `value` to `chunk` constant pool
-@return index of appended constant*/
-static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
-  assert(chunk != NULL);
-
-  value_list_append(&chunk->constants, value);
-  return chunk->constants.count - 1;
 }
 
 /**@desc append `value` constant and corresponding instruction along with its `line` to `chunk`*/

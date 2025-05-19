@@ -6,6 +6,10 @@
 
 #include <stdlib.h>
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #define DARRAY_DEFAULT_MIN_GROWTH_CAPACITY 8
 #define DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR 2
 

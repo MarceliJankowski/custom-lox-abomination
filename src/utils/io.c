@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
 /**@desc read `binary_stream` resource content into dynamically allocated buffer
 @return pointer to NUL terminated buffer with `binary_stream` resource content*/
 void *io_read_binary_stream_resource_content(FILE *const binary_stream) {

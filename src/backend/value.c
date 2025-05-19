@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // *---------------------------------------------*
-// *               STATIC OBJECTS                *
+// *         EXTERNAL-LINKAGE OBJECTS            *
 // *---------------------------------------------*
 
 static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
@@ -19,7 +19,7 @@ char const *const value_type_to_string_table[] = {
 };
 
 // *---------------------------------------------*
-// *               VALUE FUNCTIONS               *
+// *        EXTERNAL-LINKAGE FUNCTIONS           *
 // *---------------------------------------------*
 
 /**@desc initialize `value_list`*/

@@ -6,10 +6,18 @@
 #include <assert.h>
 #include <stdbool.h>
 
+// *---------------------------------------------*
+// *          INTERNAL-LINKAGE OBJECTS           *
+// *---------------------------------------------*
+
 /**@desc cli options bitfield*/
 static struct {
   unsigned int help : 1;
 } options;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc process `flag_arg` (cli argument that begins with a '-')*/
 static inline void process_flag_arg(char const *flag_arg) {
@@ -42,6 +50,10 @@ static inline void process_flag_arg(char const *flag_arg) {
     }
   }
 }
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc process cli arguments; requires forwarding process's `argc` and `argv`
 @return cli path argument if supplied, NULL otherwise*/

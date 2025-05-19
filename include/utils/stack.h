@@ -5,6 +5,10 @@
 
 #include <assert.h>
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #define STACK_TYPE(...) DARRAY_TYPE(__VA_ARGS__)
 #define STACK_INIT(...) DARRAY_INIT(__VA_ARGS__)
 #define STACK_DEFINE(...) DARRAY_DEFINE(__VA_ARGS__)

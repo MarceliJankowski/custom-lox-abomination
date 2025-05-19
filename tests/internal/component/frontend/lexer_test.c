@@ -5,7 +5,15 @@
 #include <string.h>
 
 // *---------------------------------------------*
-// *                  UTILITIES                  *
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
+#define SCAN_ASSERT_EOF() scan_assert(LEXER_TOKEN_EOF, "EOF")
+#define SCAN_ASSERT_ALL_EOF(expected_line, expected_column) \
+  scan_assert_all(LEXER_TOKEN_EOF, "EOF", expected_line, expected_column)
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 static LexerToken scan_assert(LexerTokenType const expected_type, char const *const expected_lexeme) {
@@ -31,10 +39,6 @@ static LexerToken scan_assert_all(
   assert_position(token, expected_line, expected_column);
   return token;
 }
-
-#define SCAN_ASSERT_EOF() scan_assert(LEXER_TOKEN_EOF, "EOF")
-#define SCAN_ASSERT_ALL_EOF(expected_line, expected_column) \
-  scan_assert_all(LEXER_TOKEN_EOF, "EOF", expected_line, expected_column)
 
 static inline void init_scan_assert(char const *const lexeme, LexerTokenType const expected_type) {
   lexer_init(lexeme);
