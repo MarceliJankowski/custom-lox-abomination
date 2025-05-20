@@ -8,7 +8,6 @@
 #include "utils/error.h"
 
 #include <assert.h>
-#include <stdbool.h>
 #include <windows.h>
 
 // *---------------------------------------------*
@@ -16,7 +15,7 @@
 // *---------------------------------------------*
 
 static DWORD original_console_mode;
-static bool is_original_console_mode_set;
+static bool is_noncannonical_mode_enabled;
 static HANDLE stdin_handle = INVALID_HANDLE_VALUE;
 
 // *---------------------------------------------*
@@ -24,10 +23,10 @@ static HANDLE stdin_handle = INVALID_HANDLE_VALUE;
 // *---------------------------------------------*
 
 /**@desc restore console mode to its original state.
-Requires original_console_mode to be first set.*/
+Requires noncannonical mode to be enabled.*/
 static void restore_console_mode(void) {
   assert(stdin_handle != INVALID_HANDLE_VALUE);
-  assert(is_original_console_mode_set == true);
+  assert(is_noncannonical_mode_enabled == true);
 
   // due to being used as atexit() handler this function cannot exit() (second exit would trigger UB)
   if (SetConsoleMode(stdin_handle, original_console_mode) == 0) error_windows_log_last();
@@ -56,16 +55,22 @@ static void register_console_mode_restoration_handlers(void) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-void terminal_enable_noncannonical_mode(void) {
-  assert(is_original_console_mode_set == false);
+bool terminal_enable_noncannonical_mode(void) {
+  assert(is_noncannonical_mode_enabled == false);
 
   // get stdin handle and save it
   stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
   if (stdin_handle == INVALID_HANDLE_VALUE) ERROR_WINDOWS_LAST();
 
+  // check if stdin is connected to a character device
+  DWORD const stdin_file_type = GetFileType(stdin_handle);
+  if (stdin_file_type != FILE_TYPE_CHAR) {
+    if (stdin_file_type == FILE_TYPE_UNKNOWN && GetLastError() != NO_ERROR) ERROR_WINDOWS_LAST();
+    return false;
+  }
+
   // retrieve current console input mode and save it as original
-  if (GetConsoleMode(stdin_handle, &original_console_mode) == 0) ERROR_WINDOWS_LAST();
-  is_original_console_mode_set = true;
+  if (GetConsoleMode(stdin_handle, &original_console_mode) == 0) return false; // stdin is not connected to a console
 
   // create noncannonical_console_mode bitfield
   DWORD const noncannonical_console_mode =
@@ -74,8 +79,11 @@ void terminal_enable_noncannonical_mode(void) {
 
   // enable noncannonical mode
   if (!SetConsoleMode(stdin_handle, noncannonical_console_mode)) ERROR_WINDOWS_LAST();
+  is_noncannonical_mode_enabled = true;
 
   register_console_mode_restoration_handlers();
+
+  return true;
 }
 
 #else
@@ -89,7 +97,6 @@ void terminal_enable_noncannonical_mode(void) {
 
 #include <assert.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -98,16 +105,16 @@ void terminal_enable_noncannonical_mode(void) {
 // *---------------------------------------------*
 
 static struct termios original_terminal_parameters;
-static bool are_original_terminal_parameters_set;
+static bool is_noncannonical_mode_enabled;
 
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 /**@desc restore terminal parameters to their original state.
-Requires original_terminal_parameters to be first set.*/
+Requires noncannonical mode to be enabled.*/
 static void restore_terminal_parameters(void) {
-  assert(are_original_terminal_parameters_set == true);
+  assert(is_noncannonical_mode_enabled == true);
 
   // due to being used as atexit() handler this function cannot exit() (second exit would trigger UB)
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_terminal_parameters) == -1) fprintf(stderr, "%s\n", strerror(errno));
@@ -143,12 +150,14 @@ static void register_terminal_parameter_restoration_handlers(void) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-void terminal_enable_noncannonical_mode(void) {
-  assert(are_original_terminal_parameters_set == false);
+bool terminal_enable_noncannonical_mode(void) {
+  assert(is_noncannonical_mode_enabled == false);
+
+  // check if stdin is connected to a terminal
+  if (!isatty(STDIN_FILENO)) return false;
 
   // retrieve current terminal parameters and save them as original
   if (tcgetattr(STDIN_FILENO, &original_terminal_parameters) == -1) ERROR_SYSTEM_ERRNO();
-  are_original_terminal_parameters_set = true;
 
   // set terminal parameters for enabling noncannonical mode
   struct termios new_terminal_parameters = original_terminal_parameters;
@@ -158,8 +167,11 @@ void terminal_enable_noncannonical_mode(void) {
 
   // enable noncannonical mode
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &new_terminal_parameters) == -1) ERROR_SYSTEM_ERRNO();
+  is_noncannonical_mode_enabled = true;
 
   register_terminal_parameter_restoration_handlers();
+
+  return true;
 }
 
 #endif // _WIN32
