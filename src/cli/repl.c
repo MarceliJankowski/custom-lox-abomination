@@ -42,7 +42,7 @@ void repl_enter(void) {
   printf(LOGICAL_LINE_PROMPT);
   for (;;) {
     // get physical line (one terminated with '\n') from stdin and append it to logical_line (forming it)
-    for (;;) {
+    for (int printable_character_count = 0;;) {
       int const character = getchar();
       if (character == EOF) {
         if (ferror(stdin)) ERROR_IO("Failed to read character from stdin");
@@ -52,12 +52,26 @@ void repl_enter(void) {
         goto clean_up;
       }
 
-      // handle character
+      // handle control characters
+      switch (character) {
+        case 0x7F: { // DEL
+          // erase last printable character
+          if (printable_character_count > 0) {
+            --printable_character_count;
+            DARRAY_POP(&logical_line);
+            printf("\b \b");
+          }
+          continue;
+        }
+      }
+
+      // printable character
+      ++printable_character_count;
+
       printf("%c", character);
       DARRAY_PUSH(&logical_line, character);
 
-      // end of physical line
-      if (character == '\n') {
+      if (character == '\n') { // end of physical line
         DARRAY_PUSH(&logical_line, '\0');
         break;
       }
