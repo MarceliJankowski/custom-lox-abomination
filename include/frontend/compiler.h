@@ -1,7 +1,7 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include "backend/vm.h"
+#include "backend/chunk.h"
 
 #include <stdbool.h>
 

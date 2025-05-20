@@ -2,7 +2,6 @@
 #include "cli/file.h"
 #include "cli/repl.h"
 #include "global.h"
-#include "utils/error.h"
 
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
