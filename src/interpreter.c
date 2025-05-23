@@ -31,7 +31,7 @@ InterpreterStatus interpreter_interpret(char const *const source_code) {
   CompilerStatus const compiler_status = compiler_compile(source_code, &chunk);
 
   // map compiler_status to interpreter_status
-  assert(COMPILER_STATUS_COUNT == 3);
+  assert(COMPILER_STATUS_COUNT == 3 && "Exhaustive CompilerStatus handling");
   switch (compiler_status) {
     case COMPILER_SUCCESS: {
       break;
