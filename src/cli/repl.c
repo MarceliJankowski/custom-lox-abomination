@@ -8,6 +8,12 @@
 #include "utils/io.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
@@ -17,19 +23,53 @@
 #define LOGICAL_LINE_CONTINUATION_PROMPT "... "
 
 // *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/**@desc set stdin stream to binary mode*/
+static inline void set_stdin_stream_to_binary_mode(void) {
+#ifdef _WIN32
+  int const stdin_file_descriptor = _fileno(stdin);
+  if (stdin_file_descriptor == -1) ERROR_SYSTEM_ERRNO();
+  if (_setmode(stdin_file_descriptor, _O_BINARY) == -1) ERROR_SYSTEM_ERRNO();
+#else
+  // on POSIX systems there's no difference between binary/text streams
+#endif
+}
+
+/**@desc interpret stdin stream resource content*/
+static inline void interpret_stdin_stream_resource_content(void) {
+  interpreter_init();
+
+  set_stdin_stream_to_binary_mode();
+  char *const input = io_read_binary_stream_resource_content(stdin);
+
+  interpreter_interpret(input);
+
+  interpreter_destroy();
+  free(input);
+}
+
+// *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 /**@desc enter REPL interaction mode; once entered it persists until process termination*/
 void repl_enter(void) {
   g_source_file_path = "repl";
+
+  if (!terminal_enable_noncannonical_mode()) {
+    // handle stdin not being connected to a terminal
+    interpret_stdin_stream_resource_content();
+
+    g_source_file_path = NULL;
+    exit(ERROR_CODE_SUCCESS);
+  }
+
   g_static_analysis_error_stream = tmpfile();
   if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
-
   interpreter_init();
   DARRAY_DEFINE(char, logical_line, memory_manage);
-
-  terminal_enable_noncannonical_mode();
 
   // set stdout stream buffering mode to unbuffered
   errno = 0;
@@ -113,8 +153,8 @@ clean_up:
   interpreter_destroy();
   if (fclose(g_static_analysis_error_stream)) ERROR_IO_ERRNO();
 
-  g_source_file_path = NULL;
   g_static_analysis_error_stream = NULL;
+  g_source_file_path = NULL;
 
   exit(ERROR_CODE_SUCCESS);
 }
