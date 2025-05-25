@@ -24,7 +24,7 @@ ErrorCode file_interpret(char const *const source_file_path) {
   InterpreterStatus const interpreter_status = interpreter_interpret(source_code);
 
   // map interpreter_status to error_code
-  assert(INTERPRETER_STATUS_COUNT == 4 && "Exhaustive InterpreterStatus handling");
+  static_assert(INTERPRETER_STATUS_COUNT == 4, "Exhaustive InterpreterStatus handling");
   switch (interpreter_status) {
     case INTERPRETER_SUCCESS: {
       break;
