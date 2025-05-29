@@ -1,8 +1,4 @@
 #ifdef _WIN32
-// *---------------------------------------------*
-// *                   WINDOWS                   *
-// *---------------------------------------------*
-
 #include "cli/terminal.h"
 
 #include "utils/error.h"
@@ -87,9 +83,6 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 #else
-// *---------------------------------------------*
-// *                    POSIX                    *
-// *---------------------------------------------*
 #define _POSIX_C_SOURCE 200809L
 
 #include "cli/terminal.h"
