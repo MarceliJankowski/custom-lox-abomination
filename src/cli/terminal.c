@@ -1,11 +1,34 @@
-#ifdef _WIN32
+#ifndef _WIN32
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "cli/terminal.h"
 
 #include "utils/error.h"
 
 #include <assert.h>
-#include <windows.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#else // POSIX
+#include <signal.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <unistd.h>
+#endif
+
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
+#define MAKE_CONTROL_KEY(key_type) ((TerminalKey){.control = {.type = key_type}})
+#define MAKE_PRINTABLE_KEY(key_character)          \
+  ((TerminalKey){.printable = {                    \
+                   .type = TERMINAL_KEY_PRINTABLE, \
+                   .character = key_character,     \
+                 }})
+
+#ifdef _WIN32
 // *---------------------------------------------*
 // *          INTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
@@ -83,16 +106,6 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 #else
-#define _POSIX_C_SOURCE 200809L
-
-#include "cli/terminal.h"
-#include "utils/error.h"
-
-#include <assert.h>
-#include <signal.h>
-#include <termios.h>
-#include <unistd.h>
-
 // *---------------------------------------------*
 // *          INTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
@@ -139,6 +152,57 @@ static void register_terminal_parameter_restoration_handlers(void) {
   if (-1 == sigaction(SIGQUIT, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
 }
 
+/**@desc determine whether stdin resource is readable (reads won't block) within `timeout_ms` millisecond timeout
+@return true if it is, false otherwise*/
+static bool is_stdin_resource_readable_within_timeout(int const timeout_ms) {
+  assert(timeout_ms > 0);
+
+  for (;;) {
+    // select() might modify these objects, therefore they need to be reinitialized for every invocation
+    struct timeval timeout = {
+      .tv_sec = timeout_ms / 1000, // seconds
+      .tv_usec = (timeout_ms % 1000) * 1000, // microseconds
+    };
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+
+    // check if fds are ready within timeout
+    int const ready_fds_count = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &timeout);
+
+    // handle failure
+    if (ready_fds_count == -1) {
+      if (errno == EINTR) continue; // select was interrupted
+      ERROR_IO_ERRNO();
+    }
+
+    // handle expired timeout
+    if (ready_fds_count == 0) return false;
+
+    // check if stdin resource is readable
+    return FD_ISSET(STDIN_FILENO, &readfds);
+  }
+}
+
+/**@desc read character from stdin stream resource content
+@return character that was read, or EOF if stdin EOF indicator was set*/
+static inline int read_character(void) {
+  int const character = getchar();
+  if (character == EOF) {
+    if (ferror(stdin)) ERROR_IO("Failed to read character from stdin");
+    return EOF; // stdin EOF indicator was set
+  }
+
+  return character;
+}
+
+/**@desc read control sequence continuation character from stdin resource content
+@return control sequence continuation character, or EOF if none were available*/
+static inline int read_control_sequence_continuation_character(void) {
+  if (!is_stdin_resource_readable_within_timeout(50)) return EOF;
+  return read_character();
+}
+
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
@@ -165,6 +229,95 @@ bool terminal_enable_noncannonical_mode(void) {
   register_terminal_parameter_restoration_handlers();
 
   return true;
+}
+
+TerminalKey terminal_read_key(void) {
+#define MAX_CONTROL_SEQUENCE_LENGTH 3
+#define CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY MAX_CONTROL_SEQUENCE_LENGTH - 1
+
+#define ENQUEUE_CONTROL_SEQUENCE_REJECT(character)                                                 \
+  do {                                                                                             \
+    assert(control_sequence_reject_queue.frame_count < CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY);    \
+                                                                                                   \
+    control_sequence_reject_queue.frames[control_sequence_reject_queue.frame_count] = (character); \
+                                                                                                   \
+    control_sequence_reject_queue.frame_count++;                                                   \
+  } while (0)
+
+#define DEQUEUE_CONTROL_SEQUENCE_REJECT(character_ptr)                                                          \
+  do {                                                                                                          \
+    assert(control_sequence_reject_queue.frame_count > 0);                                                      \
+    assert(control_sequence_reject_queue.current_frame_index >= 0);                                             \
+                                                                                                                \
+    *(character_ptr) = control_sequence_reject_queue.frames[control_sequence_reject_queue.current_frame_index]; \
+                                                                                                                \
+    control_sequence_reject_queue.frame_count--;                                                                \
+    if (control_sequence_reject_queue.frame_count == 0) control_sequence_reject_queue.current_frame_index = 0;  \
+    else control_sequence_reject_queue.current_frame_index++;                                                   \
+  } while (0)
+
+  /**@desc queue for characters rejected from control sequences*/
+  static struct {
+    char frames[CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY - 1];
+    int frame_count, current_frame_index;
+  } control_sequence_reject_queue = {0};
+
+  bool const is_handling_control_sequence_reject = control_sequence_reject_queue.frame_count;
+  int character;
+  if (is_handling_control_sequence_reject) DEQUEUE_CONTROL_SEQUENCE_REJECT(&character);
+  else character = read_character();
+
+  // handle control sequence characters
+  switch (character) {
+    case 0x7F: { // DEL
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
+    }
+    case 0x1B: { // ESC
+      if (is_handling_control_sequence_reject) goto esc_key;
+      else { // attempt to construct control sequence
+        int const intermediate_character = read_control_sequence_continuation_character();
+        if (intermediate_character == EOF) goto esc_key;
+
+        if (intermediate_character != '[') {
+          ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
+          goto esc_key;
+        }
+
+        int const final_character = read_control_sequence_continuation_character();
+        if (final_character == EOF) {
+          ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
+          goto esc_key;
+        }
+
+        switch (final_character) {
+          case 'A': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_UP);
+          case 'B': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_DOWN);
+          case 'C': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_RIGHT);
+          case 'D': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_LEFT);
+          default: {
+            ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
+            ENQUEUE_CONTROL_SEQUENCE_REJECT(final_character);
+            goto esc_key;
+          }
+        }
+      }
+
+    esc_key:
+      goto unknown_key;
+    }
+  }
+
+  // handle printable characters
+  if (character == '\n' || (character >= 32 && character < 127)) return MAKE_PRINTABLE_KEY(character);
+
+unknown_key:
+  // handle character(s) that do not constitute a known key type
+  return MAKE_CONTROL_KEY(TERMINAL_KEY_UNKNOWN);
+
+#undef MAX_CONTROL_SEQUENCE_LENGTH
+#undef CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY
+#undef ENQUEUE_CONTROL_SEQUENCE_REJECT
+#undef DEQUEUE_CONTROL_SEQUENCE_REJECT
 }
 
 #endif // _WIN32
