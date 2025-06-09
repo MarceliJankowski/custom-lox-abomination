@@ -18,6 +18,8 @@
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
+#define VM_STACK_INITIAL_CAPACITY 256
+#define VM_STACK_GROWTH_FACTOR 2
 #define VM_STACK_TOP STACK_TOP(&vm.stack)
 
 #define READ_INSTRUCTION_BYTE() (*vm.ip++)
@@ -78,8 +80,7 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
 
 /**@desc initialize virtual machine*/
 void vm_init(void) {
-  STACK_INIT(&vm.stack, sizeof(Value), gc_memory_manage);
-  vm.stack.min_growth_capacity = VM_STACK_MIN_GROWTH_CAPACITY;
+  STACK_INIT_EXPLICIT(&vm.stack, sizeof(Value), gc_memory_manage, VM_STACK_INITIAL_CAPACITY, VM_STACK_GROWTH_FACTOR);
 }
 
 /**@desc free virtual machine memory and set it to uninitialized state*/
