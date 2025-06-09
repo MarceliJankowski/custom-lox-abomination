@@ -21,16 +21,22 @@
     double capacity_growth_factor;                                 \
   }
 
-#define DARRAY_INIT(darray_ptr, data_obj_size, memory_manager_ptr)                \
-  do {                                                                            \
-    (darray_ptr)->data = NULL;                                                    \
-    (darray_ptr)->capacity = 0;                                                   \
-    (darray_ptr)->count = 0;                                                      \
-    (darray_ptr)->data_object_size = data_obj_size;                               \
-    (darray_ptr)->min_growth_capacity = DARRAY_DEFAULT_MIN_GROWTH_CAPACITY;       \
-    (darray_ptr)->capacity_growth_factor = DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR; \
-    (darray_ptr)->memory_manager = memory_manager_ptr;                            \
+#define DARRAY_INIT_EXPLICIT(darray_ptr, data_obj_size, memory_manager_ptr, minimum_growth_capacity, growth_factor) \
+  do {                                                                                                              \
+    (darray_ptr)->data = NULL;                                                                                      \
+    (darray_ptr)->capacity = 0;                                                                                     \
+    (darray_ptr)->count = 0;                                                                                        \
+    (darray_ptr)->data_object_size = data_obj_size;                                                                 \
+    (darray_ptr)->min_growth_capacity = minimum_growth_capacity; /* used for lazy allocation */                     \
+    (darray_ptr)->capacity_growth_factor = growth_factor;                                                           \
+    (darray_ptr)->memory_manager = memory_manager_ptr;                                                              \
   } while (0)
+
+#define DARRAY_INIT(darray_ptr, data_obj_size, memory_manager_ptr)                     \
+  DARRAY_INIT_EXPLICIT(                                                                \
+    darray_ptr, data_obj_size, memory_manager_ptr, DARRAY_DEFAULT_MIN_GROWTH_CAPACITY, \
+    DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR                                              \
+  )
 
 #define DARRAY_DEFINE(data_type, darray_name, memory_manager_ptr) \
   DARRAY_TYPE(data_type) darray_name;                             \
