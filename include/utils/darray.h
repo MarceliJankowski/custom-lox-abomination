@@ -53,33 +53,42 @@
     memset((darray_ptr), 0, sizeof(*(darray_ptr)));                                                            \
   } while (0)
 
-#define DARRAY_GROW_CAPACITY(darray_ptr)                                   \
-  do {                                                                     \
-    (darray_ptr)->capacity =                                               \
-      ((darray_ptr)->capacity < (darray_ptr)->min_growth_capacity          \
-         ? (darray_ptr)->min_growth_capacity                               \
-         : (darray_ptr)->capacity * (darray_ptr)->capacity_growth_factor); \
+#define DARRAY__NEXT_CAPACITY(darray_ptr)                     \
+  ((darray_ptr)->capacity < (darray_ptr)->min_growth_capacity \
+     ? (darray_ptr)->min_growth_capacity                      \
+     : (darray_ptr)->capacity * (darray_ptr)->capacity_growth_factor)
+
+#define DARRAY__RESIZE(darray_ptr, new_capacity)                                                                 \
+  do {                                                                                                           \
+    (darray_ptr)->data = memory_reallocate(                                                                      \
+      (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size * (darray_ptr)->capacity, \
+      (darray_ptr)->data_object_size * new_capacity                                                              \
+    );                                                                                                           \
+    if ((darray_ptr)->data == NULL) ERROR_MEMORY_ERRNO();                                                        \
+    (darray_ptr)->capacity = new_capacity;                                                                       \
   } while (0)
 
-#define DARRAY_RESIZE(darray_ptr)                                                                      \
-  do {                                                                                                 \
-    size_t const old_capacity = (darray_ptr)->capacity;                                                \
-    DARRAY_GROW_CAPACITY(darray_ptr);                                                                  \
-    (darray_ptr)->data = memory_reallocate(                                                            \
-      (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size * old_capacity, \
-      (darray_ptr)->data_object_size * (darray_ptr)->capacity                                          \
-    );                                                                                                 \
-    if ((darray_ptr)->data == NULL) ERROR_MEMORY_ERRNO();                                              \
+#define DARRAY_GROW(darray_ptr) DARRAY__RESIZE(darray_ptr, DARRAY__NEXT_CAPACITY(darray_ptr))
+
+#define DARRAY_RESERVE(darray_ptr, min_capacity)        \
+  do {                                                  \
+    if ((darray_ptr)->capacity >= min_capacity) break;  \
+    size_t new_capacity;                                \
+    do {                                                \
+      new_capacity = DARRAY__NEXT_CAPACITY(darray_ptr); \
+    } while (new_capacity < min_capacity);              \
+                                                        \
+    DARRAY__RESIZE(darray_ptr, new_capacity);           \
   } while (0)
 
-#define DARRAY_PUSH(darray_ptr, data_object)                                      \
-  do {                                                                            \
-    /* resize if needed */                                                        \
-    if ((darray_ptr)->count == (darray_ptr)->capacity) DARRAY_RESIZE(darray_ptr); \
-                                                                                  \
-    /* push data_object */                                                        \
-    (darray_ptr)->data[(darray_ptr)->count] = data_object;                        \
-    (darray_ptr)->count++;                                                        \
+#define DARRAY_PUSH(darray_ptr, data_object)                                    \
+  do {                                                                          \
+    /* grow if needed */                                                        \
+    if ((darray_ptr)->count == (darray_ptr)->capacity) DARRAY_GROW(darray_ptr); \
+                                                                                \
+    /* push data_object */                                                      \
+    (darray_ptr)->data[(darray_ptr)->count] = data_object;                      \
+    (darray_ptr)->count++;                                                      \
   } while (0)
 
 #define DARRAY_POP(darray_ptr)                                                     \

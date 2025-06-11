@@ -94,8 +94,8 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   va_list bytes;
   va_start(bytes, byte_count);
 
-  // check if chunk.code needs resizing
-  if (chunk->code.count + byte_count > chunk->code.capacity) DARRAY_RESIZE(&chunk->code);
+  // check if chunk.code needs to grow
+  if (chunk->code.count + byte_count > chunk->code.capacity) DARRAY_GROW(&chunk->code);
 
   // append bytes
   for (; byte_count > 0; byte_count--) {
