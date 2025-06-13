@@ -10,6 +10,7 @@
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
+/**@desc count of distinct states encodable in a single byte*/
 #define MEMORY_BYTE_STATE_COUNT (UCHAR_MAX + 1)
 
 // *---------------------------------------------*
