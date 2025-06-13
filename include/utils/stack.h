@@ -19,6 +19,9 @@
 #define STACK_PUSH(...) DARRAY_PUSH(__VA_ARGS__)
 #define STACK_POP(...) DARRAY_POP(__VA_ARGS__)
 
+/**@desc `stack_ptr` top data object
+@param stack_ptr pointer to stack
+@result `stack_ptr` top data object*/
 #define STACK_TOP(stack_ptr) (stack_ptr)->data[(stack_ptr)->count - 1]
 
 #endif // STACK_H
