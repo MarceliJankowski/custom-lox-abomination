@@ -7,20 +7,6 @@
 #include <stdint.h>
 
 // *---------------------------------------------*
-// *              MACRO DEFINITIONS              *
-// *---------------------------------------------*
-
-#define VALUE_MAKE_NIL() ((Value){VALUE_NIL, {.number = 0}})
-#define VALUE_MAKE_BOOL(value) ((Value){VALUE_BOOL, {.boolean = value}})
-#define VALUE_MAKE_NUMBER(value) ((Value){VALUE_NUMBER, {.number = value}})
-
-#define VALUE_IS_BOOL(value) ((value).type == VALUE_BOOL)
-#define VALUE_IS_NIL(value) ((value).type == VALUE_NIL)
-#define VALUE_IS_NUMBER(value) ((value).type == VALUE_NUMBER)
-
-#define VALUE_IS_FALSY(value) VALUE_IS_NIL(value) || (VALUE_IS_BOOL(value) && !value.payload.boolean)
-
-// *---------------------------------------------*
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
@@ -59,5 +45,60 @@ void value_list_append(ValueList *value_list, Value value);
 void value_list_destroy(ValueList *value_list);
 void value_print(Value value);
 bool value_equals(Value value_a, Value value_b);
+
+// *---------------------------------------------*
+// *              INLINE FUNCTIONS               *
+// *---------------------------------------------*
+
+/**desc make CLA nil value
+@return made CLA nil value*/
+inline Value value_make_nil(void) {
+  return (Value){
+    VALUE_NIL,
+    {0},
+  };
+}
+
+/**desc make CLA bool value from `boolean`
+@return made CLA bool value*/
+inline Value value_make_bool(bool const boolean) {
+  return (Value){
+    VALUE_BOOL,
+    {.boolean = boolean},
+  };
+}
+
+/**desc make CLA number value from `number`
+@return made CLA number value*/
+inline Value value_make_number(double const number) {
+  return (Value){
+    VALUE_NUMBER,
+    {.number = number},
+  };
+}
+
+/**desc determine whether CLA `value` is of bool type
+@return true if it is, false otherwise*/
+inline bool value_is_bool(Value const value) {
+  return value.type == VALUE_BOOL;
+}
+
+/**desc determine whether CLA `value` is of nil type
+@return true if it is, false otherwise*/
+inline bool value_is_nil(Value const value) {
+  return value.type == VALUE_NIL;
+}
+
+/**desc determine whether CLA `value` is of number type
+@return true if it is, false otherwise*/
+inline bool value_is_number(Value const value) {
+  return value.type == VALUE_NUMBER;
+}
+
+/**desc determine whether CLA `value` is falsy
+@return true if it is, false otherwise*/
+inline bool value_is_falsy(Value const value) {
+  return value_is_nil(value) || (value_is_bool(value) && value.payload.boolean == false);
+}
 
 #endif // VALUE_H

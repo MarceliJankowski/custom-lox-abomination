@@ -158,21 +158,21 @@ bool vm_execute(Chunk const *const chunk) {
         break;
       }
       case CHUNK_OP_NIL: {
-        vm_stack_push(VALUE_MAKE_NIL());
+        vm_stack_push(value_make_nil());
         break;
       }
       case CHUNK_OP_TRUE: {
-        vm_stack_push(VALUE_MAKE_BOOL(true));
+        vm_stack_push(value_make_bool(true));
         break;
       }
       case CHUNK_OP_FALSE: {
-        vm_stack_push(VALUE_MAKE_BOOL(false));
+        vm_stack_push(value_make_bool(false));
         break;
       }
       case CHUNK_OP_NEGATE: {
         ASSERT_MIN_VM_STACK_COUNT(1);
 
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP)) {
+        if (!value_is_number(VM_STACK_TOP)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected negation operand to be a number (got '%s')",
             value_type_to_string_table[VM_STACK_TOP.type]
@@ -185,7 +185,7 @@ bool vm_execute(Chunk const *const chunk) {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected addition operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
@@ -198,7 +198,7 @@ bool vm_execute(Chunk const *const chunk) {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected subtraction operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
@@ -211,7 +211,7 @@ bool vm_execute(Chunk const *const chunk) {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected multiplication operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
@@ -224,7 +224,7 @@ bool vm_execute(Chunk const *const chunk) {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected division operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
@@ -239,7 +239,7 @@ bool vm_execute(Chunk const *const chunk) {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected modulo operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
@@ -252,73 +252,73 @@ bool vm_execute(Chunk const *const chunk) {
       case CHUNK_OP_NOT: {
         ASSERT_MIN_VM_STACK_COUNT(1);
 
-        VM_STACK_TOP = VALUE_MAKE_BOOL(VALUE_IS_FALSY(VM_STACK_TOP));
+        VM_STACK_TOP = value_make_bool(value_is_falsy(VM_STACK_TOP));
         break;
       }
       case CHUNK_OP_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        VM_STACK_TOP = VALUE_MAKE_BOOL(value_equals(VM_STACK_TOP, second_operand));
+        VM_STACK_TOP = value_make_bool(value_equals(VM_STACK_TOP, second_operand));
         break;
       }
       case CHUNK_OP_NOT_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        VM_STACK_TOP = VALUE_MAKE_BOOL(!value_equals(VM_STACK_TOP, second_operand));
+        VM_STACK_TOP = value_make_bool(!value_equals(VM_STACK_TOP, second_operand));
         break;
       }
       case CHUNK_OP_LESS: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected less-than operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number < second_operand.payload.number);
+        VM_STACK_TOP = value_make_bool(VM_STACK_TOP.payload.number < second_operand.payload.number);
         break;
       }
       case CHUNK_OP_LESS_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected less-than-or-equal operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number <= second_operand.payload.number);
+        VM_STACK_TOP = value_make_bool(VM_STACK_TOP.payload.number <= second_operand.payload.number);
         break;
       }
       case CHUNK_OP_GREATER: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected greater-than operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number > second_operand.payload.number);
+        VM_STACK_TOP = value_make_bool(VM_STACK_TOP.payload.number > second_operand.payload.number);
         break;
       }
       case CHUNK_OP_GREATER_EQUAL: {
         ASSERT_MIN_VM_STACK_COUNT(2);
 
         Value const second_operand = vm_stack_pop();
-        if (!VALUE_IS_NUMBER(VM_STACK_TOP) || !VALUE_IS_NUMBER(second_operand)) {
+        if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected greater-than-or-equal operands to be numbers (got '%s' and '%s')",
             value_type_to_string_table[VM_STACK_TOP.type], value_type_to_string_table[second_operand.type]
           );
         }
-        VM_STACK_TOP = VALUE_MAKE_BOOL(VM_STACK_TOP.payload.number >= second_operand.payload.number);
+        VM_STACK_TOP = value_make_bool(VM_STACK_TOP.payload.number >= second_operand.payload.number);
         break;
       }
       default: ERROR_INTERNAL("Unknown chunk opcode '%d'", opcode);
