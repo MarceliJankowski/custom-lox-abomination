@@ -7,6 +7,9 @@
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
+/**@desc get `terminal_key` type
+@param terminal_key TerminalKey object
+@result type of `terminal_key`*/
 #define TERMINAL_KEY_GET_TYPE(terminal_key) ((terminal_key).control.type)
 
 // *---------------------------------------------*
