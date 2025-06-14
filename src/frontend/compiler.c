@@ -316,7 +316,7 @@ static void compile_numeric_literal(void) {
       parser.previous.line, parser.previous.column, parser.previous.lexeme_length, parser.previous.lexeme
     );
   }
-  emit_constant_instruction(VALUE_MAKE_NUMBER(value));
+  emit_constant_instruction(value_make_number(value));
 }
 
 /**@desc compile invariable literal (one with fixed lexeme)*/

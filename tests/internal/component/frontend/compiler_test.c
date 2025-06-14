@@ -45,7 +45,7 @@
     ASSERT_SYNTAX_ERROR(1, 3 + operator_length, "Expected expression");              \
                                                                                      \
     COMPILE_ASSERT_SUCCESS("1 " operator" 2;");                                      \
-    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));        \
+    ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));        \
     ASSERT_OPCODES(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
   } while (0)
 
@@ -53,9 +53,9 @@
   do {                                                                               \
     ChunkOpCode const operator_opcode = map_binary_operator_to_its_opcode(operator); \
     COMPILE_ASSERT_SUCCESS("1 " operator" 2 " operator" 3;");                        \
-    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));        \
+    ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));        \
     ASSERT_OPCODE(operator_opcode);                                                  \
-    assert_constant_instruction(VALUE_MAKE_NUMBER(3));                               \
+    assert_constant_instruction(value_make_number(3));                               \
     ASSERT_OPCODES(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
   } while (0)
 
@@ -65,15 +65,15 @@
     ChunkOpCode const operator_b_opcode = map_binary_operator_to_its_opcode(operator_b); \
                                                                                          \
     COMPILE_ASSERT_SUCCESS("1 " operator_a " 2 " operator_b " 3;");                      \
-    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));            \
+    ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));            \
     ASSERT_OPCODE(operator_a_opcode);                                                    \
-    assert_constant_instruction(VALUE_MAKE_NUMBER(3));                                   \
+    assert_constant_instruction(value_make_number(3));                                   \
     ASSERT_OPCODES(operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                    \
                                                                                          \
     COMPILE_ASSERT_SUCCESS("1 " operator_b " 2 " operator_a " 3;");                      \
-    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));            \
+    ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));            \
     ASSERT_OPCODE(operator_b_opcode);                                                    \
-    assert_constant_instruction(VALUE_MAKE_NUMBER(3));                                   \
+    assert_constant_instruction(value_make_number(3));                                   \
     ASSERT_OPCODES(operator_a_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                    \
   } while (0)
 
@@ -83,7 +83,7 @@
     ChunkOpCode const operator_b_opcode = map_binary_operator_to_its_opcode(operator_b);            \
                                                                                                     \
     COMPILE_ASSERT_SUCCESS("1 " operator_b " 2 " operator_a " 3;");                                 \
-    ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2), VALUE_MAKE_NUMBER(3)); \
+    ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2), value_make_number(3)); \
     ASSERT_OPCODES(operator_a_opcode, operator_b_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);            \
   } while (0)
 
@@ -263,19 +263,19 @@ static void test_bool_literal(void **const _) {
 
 static void test_numeric_literal(void **const _) {
   COMPILE_ASSERT_SUCCESS("55;");
-  assert_constant_instruction(VALUE_MAKE_NUMBER(55));
+  assert_constant_instruction(value_make_number(55));
   ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 
   COMPILE_ASSERT_SUCCESS("-55;");
-  assert_constant_instruction(VALUE_MAKE_NUMBER(55));
+  assert_constant_instruction(value_make_number(55));
   ASSERT_OPCODES(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
   COMPILE_ASSERT_SUCCESS("10.25;");
-  assert_constant_instruction(VALUE_MAKE_NUMBER(10.25));
+  assert_constant_instruction(value_make_number(10.25));
   ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 
   COMPILE_ASSERT_SUCCESS("-10.25;");
-  assert_constant_instruction(VALUE_MAKE_NUMBER(10.25));
+  assert_constant_instruction(value_make_number(10.25));
   ASSERT_OPCODES(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
@@ -291,10 +291,10 @@ static void test_OP_CONSTANT_2B_being_generated(void **const _) {
 
   COMPILE_ASSERT_SUCCESS(source_code);
   for (size_t i = 0; i < MEMORY_BYTE_STATE_COUNT; i++) {
-    assert_OP_CONSTANT_instruction(VALUE_MAKE_NUMBER(1));
+    assert_OP_CONSTANT_instruction(value_make_number(1));
     ASSERT_OPCODE(CHUNK_OP_POP);
   }
-  assert_OP_CONSTANT_2B_instruction(VALUE_MAKE_NUMBER(2));
+  assert_OP_CONSTANT_2B_instruction(value_make_number(2));
   ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
@@ -312,7 +312,7 @@ static void test_arithmetic_operators(void **const _) {
   ASSERT_SYNTAX_ERROR(1, 4, "Expected expression");
 
   COMPILE_ASSERT_SUCCESS("1 - 2;");
-  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));
   ASSERT_OPCODES(CHUNK_OP_SUBTRACT, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
@@ -341,23 +341,23 @@ static void test_grouping_expr(void **const _) {
   ASSERT_SYNTAX_ERROR(1, 2, "Expected expression");
 
   COMPILE_ASSERT_SUCCESS("(1);");
-  assert_constant_instruction(VALUE_MAKE_NUMBER(1));
+  assert_constant_instruction(value_make_number(1));
   ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
 
   COMPILE_ASSERT_SUCCESS("(1 + 2);");
-  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));
   ASSERT_OPCODES(CHUNK_OP_ADD, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
   COMPILE_ASSERT_SUCCESS("(1 + 2) * 3;");
-  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));
   ASSERT_OPCODE(CHUNK_OP_ADD);
-  assert_constant_instruction(VALUE_MAKE_NUMBER(3));
+  assert_constant_instruction(value_make_number(3));
   ASSERT_OPCODES(CHUNK_OP_MULTIPLY, CHUNK_OP_POP, CHUNK_OP_RETURN);
 
   COMPILE_ASSERT_SUCCESS("(1 + 2) * (3 / 4);");
-  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(1), VALUE_MAKE_NUMBER(2));
+  ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));
   ASSERT_OPCODE(CHUNK_OP_ADD);
-  ASSERT_CONSTANT_INSTRUCTIONS(VALUE_MAKE_NUMBER(3), VALUE_MAKE_NUMBER(4));
+  ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(3), value_make_number(4));
   ASSERT_OPCODES(CHUNK_OP_DIVIDE, CHUNK_OP_MULTIPLY, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
@@ -405,7 +405,7 @@ static void test_print_stmt(void **const _) {
   ASSERT_SYNTAX_ERROR(1, 8, "Expected ';' terminating print statement");
 
   COMPILE_ASSERT_SUCCESS("print 5;");
-  assert_constant_instruction(VALUE_MAKE_NUMBER(5));
+  assert_constant_instruction(value_make_number(5));
   ASSERT_OPCODES(CHUNK_OP_PRINT, CHUNK_OP_RETURN);
 }
 

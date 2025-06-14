@@ -8,6 +8,20 @@
 #include <stdio.h>
 
 // *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
+Value value_make_nil(void);
+Value value_make_bool(bool value);
+Value value_make_number(double value);
+
+bool value_is_bool(Value value);
+bool value_is_nil(Value value);
+bool value_is_number(Value value);
+
+bool value_is_falsy(Value value);
+
+// *---------------------------------------------*
 // *         EXTERNAL-LINKAGE OBJECTS            *
 // *---------------------------------------------*
 
