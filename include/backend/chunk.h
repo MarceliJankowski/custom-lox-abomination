@@ -83,9 +83,10 @@ int32_t chunk_get_instruction_line(Chunk const *chunk, int32_t offset);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-inline void chunk_reset(Chunk *const chunk_ptr) {
-  chunk_destroy(chunk_ptr);
-  chunk_init(chunk_ptr);
+/**@desc reset `chunk` back to initialized state*/
+inline void chunk_reset(Chunk *const chunk) {
+  chunk_destroy(chunk);
+  chunk_init(chunk);
 }
 
 #endif // CHUNK_H
