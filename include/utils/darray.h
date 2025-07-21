@@ -94,7 +94,9 @@
 #define DARRAY__RESIZE(darray_ptr, new_capacity)                                                                 \
   do {                                                                                                           \
     assert((darray_ptr) != NULL);                                                                                \
-    assert((new_capacity) >= 0);                                                                                 \
+    assert(                                                                                                      \
+      new_capacity == 0 || new_capacity > 0                                                                      \
+    ); /* logical 'or' suppresses 'comparison of unsigned expression is always true' warning */                  \
                                                                                                                  \
     (darray_ptr)->data = memory_reallocate(                                                                      \
       (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size * (darray_ptr)->capacity, \

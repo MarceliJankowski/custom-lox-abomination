@@ -4,6 +4,7 @@
 
 #include "cli/repl.h"
 
+#include "cli/gap_buffer.h"
 #include "cli/terminal.h"
 #include "global.h"
 #include "interpreter.h"
@@ -14,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <fcntl.h>
@@ -83,6 +85,8 @@ void repl_enter(void) {
   g_static_analysis_error_stream = tmpfile();
   if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
   interpreter_init();
+  GapBuffer physical_line;
+  gap_buffer_init(&physical_line, 128);
   DARRAY_DEFINE(char, logical_line, memory_manage);
 
   // disable buffering of stdin/stdout streams
@@ -106,23 +110,19 @@ void repl_enter(void) {
         case TERMINAL_KEY_BACKSPACE: {
           // erase last printable key
           if (printable_key_count > 0) {
-            --printable_key_count;
-            DARRAY_POP(&logical_line);
+            printable_key_count--;
+            gap_buffer_delete_previous(&physical_line);
             printf("\b \b");
           }
           continue;
         }
         case TERMINAL_KEY_PRINTABLE: {
-          ++printable_key_count;
+          printable_key_count++;
 
           printf("%c", key.printable.character);
-          DARRAY_PUSH(&logical_line, key.printable.character);
+          gap_buffer_insert(&physical_line, key.printable.character);
 
-          if (key.printable.character == '\n') { // end of physical line
-            DARRAY_PUSH(&logical_line, '\0');
-            break;
-          }
-
+          if (key.printable.character == '\n') goto physical_line_end;
           continue;
         }
         case TERMINAL_KEY_ARROW_UP:
@@ -135,6 +135,20 @@ void repl_enter(void) {
         default: ERROR_INTERNAL("Unknown TerminalKeyType '%d'", TERMINAL_KEY_GET_TYPE(key));
       }
 
+    physical_line_end:;
+      char *const physical_line_content = gap_buffer_get_content(&physical_line);
+      size_t const physical_line_content_length = gap_buffer_get_content_length(&physical_line);
+      size_t const new_logical_line_count = logical_line.count + physical_line_content_length;
+
+      // resize logical_line if needed
+      if (logical_line.capacity < new_logical_line_count) DARRAY_RESERVE(&logical_line, new_logical_line_count);
+
+      // append physical_line to logical_line
+      strcpy(logical_line.data + logical_line.count, physical_line_content);
+      logical_line.count = new_logical_line_count;
+
+      free(physical_line_content);
+      gap_buffer_clear_content(&physical_line);
       break;
     }
 
@@ -171,6 +185,7 @@ void repl_enter(void) {
 
 clean_up:
   DARRAY_DESTROY(&logical_line);
+  gap_buffer_destroy(&physical_line);
   interpreter_destroy();
   if (fclose(g_static_analysis_error_stream)) ERROR_IO_ERRNO();
 
