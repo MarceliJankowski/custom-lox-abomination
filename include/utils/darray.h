@@ -113,18 +113,24 @@
 /**@desc resize `darray_ptr` to at least `min_capacity`
 @param darray_ptr pointer to dynamic array
 @param min_capacity minimum capacity in bytes (must be positive)*/
-#define DARRAY_RESERVE(darray_ptr, min_capacity)            \
-  do {                                                      \
-    assert((darray_ptr) != NULL);                           \
-    assert((min_capacity) > 0);                             \
-                                                            \
-    if ((darray_ptr)->capacity >= min_capacity) break;      \
-    size_t new_capacity;                                    \
-    do {                                                    \
-      new_capacity = DARRAY__GET_NEXT_CAPACITY(darray_ptr); \
-    } while (new_capacity < min_capacity);                  \
-                                                            \
-    DARRAY__RESIZE(darray_ptr, new_capacity);               \
+#define DARRAY_RESERVE(darray_ptr, min_capacity)                      \
+  do {                                                                \
+    assert((darray_ptr) != NULL);                                     \
+    assert((min_capacity) > 0);                                       \
+                                                                      \
+    if ((darray_ptr)->capacity >= min_capacity) break;                \
+                                                                      \
+    /* grow capacity until it meets/exceeds min_capacity */           \
+    size_t const original_capacity = (darray_ptr)->capacity;          \
+    do {                                                              \
+      (darray_ptr)->capacity = DARRAY__GET_NEXT_CAPACITY(darray_ptr); \
+    } while ((darray_ptr)->capacity < min_capacity);                  \
+                                                                      \
+    /* restore original capacity while saving the new one */          \
+    size_t const new_capacity = (darray_ptr)->capacity;               \
+    (darray_ptr)->capacity = original_capacity;                       \
+                                                                      \
+    DARRAY__RESIZE((darray_ptr), new_capacity);                       \
   } while (0)
 
 /**@desc push `data_object` onto `darray_ptr`
