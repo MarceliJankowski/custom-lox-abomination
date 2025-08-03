@@ -2,8 +2,13 @@
 
 #include "utils/error.h"
 
-#include <assert.h>
 #include <stdlib.h>
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
+size_t gap_buffer_get_cursor_position(GapBuffer const *gap_buffer);
 
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
@@ -67,12 +72,12 @@ void gap_buffer_insert(GapBuffer *const gap_buffer, char const character) {
   gap_buffer->gap_start++;
 }
 
-/**@desc delete character from `gap_buffer` previous to cursor position (character must exist)*/
-void gap_buffer_delete_previous(GapBuffer *const gap_buffer) {
+/**@desc delete character from `gap_buffer` left to cursor position (character must exist)*/
+void gap_buffer_delete_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
   assert(gap_buffer->gap_start > 0 && "Attempt to delete nonexistent character");
 
-  // delete character previous to cursor position
+  // delete character left to cursor position
   gap_buffer->gap_start--;
 }
 
@@ -115,4 +120,33 @@ char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
   content_buffer[content_length] = '\0'; // append NUL terminator
 
   return content_buffer;
+}
+
+/**@desc print `gap_buffer` content*/
+inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  char *const content = gap_buffer_get_content(gap_buffer);
+  printf("%s", content);
+  free(content);
+}
+
+/**@desc move `gap_buffer` cursor one position to the left (position must exist)*/
+void gap_buffer_move_cursor_left(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+  assert(gap_buffer->gap_start != 0 && "Attempt to move cursor past the content");
+
+  gap_buffer->gap_start--;
+  gap_buffer->gap_end--;
+  gap_buffer->buffer[gap_buffer->gap_end] = gap_buffer->buffer[gap_buffer->gap_start];
+}
+
+/**@desc move `gap_buffer` cursor one position to the right (position must exist)*/
+void gap_buffer_move_cursor_right(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+  assert(gap_buffer->gap_end < gap_buffer->capacity && "Attempt to move cursor past the content");
+
+  gap_buffer->buffer[gap_buffer->gap_start] = gap_buffer->buffer[gap_buffer->gap_end];
+  gap_buffer->gap_start++;
+  gap_buffer->gap_end++;
 }

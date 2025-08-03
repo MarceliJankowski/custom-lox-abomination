@@ -2,6 +2,7 @@
 #define TERMINAL_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
@@ -52,5 +53,11 @@ bool terminal_enable_noncannonical_mode(void);
 /**@desc read key press from terminal's command-line interface (only supports ASCII)
 @return key that was read*/
 TerminalKey terminal_read_key(void);
+
+/**@desc clear all characters from current terminal line (resets cursor position appropriately)*/
+void terminal_clear_current_line(void);
+
+/**@desc move terminal cursor to a column located at `index` on the current line (`index` must be nonnegative)*/
+void terminal_move_cursor_to_column(int index);
 
 #endif // TERMINAL_H

@@ -1,7 +1,10 @@
 #ifndef GAP_BUFFER_H
 #define GAP_BUFFER_H
 
+#include <assert.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // *---------------------------------------------*
 // *              TYPE DEFINITIONS               *
@@ -20,9 +23,20 @@ typedef struct {
 void gap_buffer_init(GapBuffer *gap_buffer, size_t initial_capacity);
 void gap_buffer_destroy(GapBuffer *gap_buffer);
 void gap_buffer_insert(GapBuffer *gap_buffer, char character);
-void gap_buffer_delete_previous(GapBuffer *gap_buffer);
+void gap_buffer_delete_left(GapBuffer *gap_buffer);
 void gap_buffer_clear_content(GapBuffer *gap_buffer);
 char *gap_buffer_get_content(GapBuffer const *gap_buffer);
+void gap_buffer_print_content(GapBuffer const *gap_buffer);
 size_t gap_buffer_get_content_length(GapBuffer const *gap_buffer);
+void gap_buffer_move_cursor_left(GapBuffer *gap_buffer);
+void gap_buffer_move_cursor_right(GapBuffer *gap_buffer);
+
+/**@desc get `gap_buffer` cursor position
+@return index representing cursor position*/
+inline size_t gap_buffer_get_cursor_position(GapBuffer const *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  return gap_buffer->gap_start;
+}
 
 #endif // GAP_BUFFER_H

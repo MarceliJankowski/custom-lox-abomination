@@ -105,6 +105,16 @@ bool terminal_enable_noncannonical_mode(void) {
   return true;
 }
 
+void terminal_clear_current_line(void) {
+  // TODO: implement
+}
+
+void terminal_move_cursor_to_column(int const index) {
+  assert(index >= 0 && "Attempt to move terminal cursor to a negative column");
+
+  // TODO: implement
+}
+
 #else
 // *---------------------------------------------*
 // *          INTERNAL-LINKAGE OBJECTS           *
@@ -318,6 +328,16 @@ unknown_key:
 #undef CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY
 #undef ENQUEUE_CONTROL_SEQUENCE_REJECT
 #undef DEQUEUE_CONTROL_SEQUENCE_REJECT
+}
+
+void terminal_clear_current_line(void) {
+  printf("\r\x1b[2K");
+}
+
+void terminal_move_cursor_to_column(int const index) {
+  assert(index >= 0 && "Attempt to move terminal cursor to a negative column");
+
+  printf("\r\x1b[%dC", index);
 }
 
 #endif // _WIN32
