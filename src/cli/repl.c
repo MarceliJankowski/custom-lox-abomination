@@ -29,6 +29,8 @@
 #define LOGICAL_LINE_PROMPT "> "
 #define LOGICAL_LINE_CONTINUATION_PROMPT "... "
 
+#define INPUT_LINE_INITIAL_GROWTH_CAPACITY 128
+
 #define DISABLE_STREAM_BUFFERING(stream)                          \
   do {                                                            \
     errno = 0;                                                    \
@@ -82,22 +84,32 @@ void repl_enter(void) {
     exit(ERROR_CODE_SUCCESS);
   }
 
-  g_static_analysis_error_stream = tmpfile();
-  if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
-  interpreter_init();
-  GapBuffer physical_line;
-  gap_buffer_init(&physical_line, 128);
-  DARRAY_DEFINE(char, logical_line, memory_manage);
-
   // disable buffering of stdin/stdout streams
   DISABLE_STREAM_BUFFERING(stdin);
   DISABLE_STREAM_BUFFERING(stdout);
 
   // REPL loop continually forming and interpreting logical lines
-  printf(LOGICAL_LINE_PROMPT);
-  for (;;) {
+  g_static_analysis_error_stream = tmpfile();
+  if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
+  interpreter_init();
+  GapBuffer physical_line;
+  gap_buffer_init(&physical_line, INPUT_LINE_INITIAL_GROWTH_CAPACITY);
+  DARRAY_DEFINE(char, logical_line, memory_manage);
+  logical_line.initial_growth_capacity = INPUT_LINE_INITIAL_GROWTH_CAPACITY;
+  for (bool is_continuing_logical_line = false;;) {
     // read physical line (one terminated with '\n') from stdin and append it to logical_line (forming it)
-    for (int printable_key_count = 0;;) {
+    for (;;) {
+      // redraw physical line
+      terminal_clear_current_line();
+
+      char const *const prompt = is_continuing_logical_line ? LOGICAL_LINE_CONTINUATION_PROMPT : LOGICAL_LINE_PROMPT;
+      int const prompt_length = printf(prompt);
+      gap_buffer_print_content(&physical_line);
+
+      int const new_cursor_position = gap_buffer_get_cursor_position(&physical_line) + prompt_length;
+      terminal_move_cursor_to_column(new_cursor_position);
+
+      // read input key
       TerminalKey const key = terminal_read_key();
 
       // handle key
@@ -108,37 +120,56 @@ void repl_enter(void) {
           goto clean_up;
         }
         case TERMINAL_KEY_BACKSPACE: {
-          // erase last printable key
-          if (printable_key_count > 0) {
-            printable_key_count--;
-            gap_buffer_delete_previous(&physical_line);
-            printf("\b \b");
+          // erase printable key to the left of cursor
+          if (gap_buffer_get_cursor_position(&physical_line) > 0) {
+            gap_buffer_delete_left(&physical_line);
           }
-          continue;
+          break;
         }
         case TERMINAL_KEY_PRINTABLE: {
-          printable_key_count++;
-
-          printf("%c", key.printable.character);
           gap_buffer_insert(&physical_line, key.printable.character);
 
-          if (key.printable.character == '\n') goto physical_line_end;
-          continue;
+          // handle newline
+          if (key.printable.character == '\n') {
+            printf("\n");
+            goto physical_line_end;
+          }
+          break;
+        }
+        case TERMINAL_KEY_ARROW_LEFT: {
+          if (gap_buffer_get_cursor_position(&physical_line) > 0) {
+            gap_buffer_move_cursor_left(&physical_line);
+          }
+          break;
+        }
+        case TERMINAL_KEY_ARROW_RIGHT: {
+          if (gap_buffer_get_cursor_position(&physical_line) < gap_buffer_get_content_length(&physical_line)) {
+            gap_buffer_move_cursor_right(&physical_line);
+          }
+          break;
         }
         case TERMINAL_KEY_ARROW_UP:
         case TERMINAL_KEY_ARROW_DOWN:
-        case TERMINAL_KEY_ARROW_LEFT:
-        case TERMINAL_KEY_ARROW_RIGHT:
         case TERMINAL_KEY_UNKNOWN: { // ignored
-          continue;
+          break;
         }
         default: ERROR_INTERNAL("Unknown TerminalKeyType '%d'", TERMINAL_KEY_GET_TYPE(key));
       }
 
+      // keep reading physical line
+      continue;
+
     physical_line_end:;
+      if (is_continuing_logical_line == false) logical_line.count = 0; // form new logical_line
+      else { // continue forming logical_line
+        assert(logical_line.count > 0);
+        logical_line.count--; // overwrite NUL terminator
+      }
+
       char *const physical_line_content = gap_buffer_get_content(&physical_line);
       size_t const physical_line_content_length = gap_buffer_get_content_length(&physical_line);
-      size_t const new_logical_line_count = logical_line.count + physical_line_content_length;
+      size_t const new_logical_line_count =
+        logical_line.count + physical_line_content_length + 1; // account for NUL terminator
 
       // resize logical_line if needed
       if (logical_line.capacity < new_logical_line_count) DARRAY_RESERVE(&logical_line, new_logical_line_count);
@@ -167,20 +198,9 @@ void repl_enter(void) {
     g_static_analysis_error_stream = freopen(NULL, "w+b", g_static_analysis_error_stream);
     if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
 
-    // handle incomplete logical_line
-    if (interpreter_status == INTERPRETER_COMPILER_UNEXPECTED_EOF) {
-      // decrement count so that next input character overwrites current NUL terminator
-      assert(logical_line.count > 0);
-      logical_line.count--;
-
-      // continue forming logical_line
-      printf(LOGICAL_LINE_CONTINUATION_PROMPT);
-      continue;
-    }
-
-    // begin new logical_line
-    logical_line.count = 0;
-    printf(LOGICAL_LINE_PROMPT);
+    // determine if logical_line is incomplete and therefore should be continued
+    if (interpreter_status == INTERPRETER_COMPILER_UNEXPECTED_EOF) is_continuing_logical_line = true;
+    else is_continuing_logical_line = false;
   }
 
 clean_up:
