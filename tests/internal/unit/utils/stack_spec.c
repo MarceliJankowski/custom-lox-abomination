@@ -38,7 +38,7 @@ static void stack_destroy__destroy_with_data(void **const _) {
 
 static void stack_grow_capacity__multiple_calls(void **const _) {
   STACK_DEFINE(int, test_stack, memory_manage);
-  assert_true(test_stack.capacity == 0);
+  assert_int_equal(test_stack.capacity, 0);
 
   STACK_GROW(&test_stack);
   assert_int_equal(test_stack.capacity, 8);
@@ -52,17 +52,17 @@ static void stack_grow_capacity__multiple_calls(void **const _) {
 static void stack_push__push_once(void **const _) {
   STACK_DEFINE(int, test_stack, memory_manage);
 
-  assert_true(test_stack.capacity == 0);
+  assert_int_equal(test_stack.capacity, 0);
 
   int const element = 1;
   STACK_PUSH(&test_stack, element);
 
   int result = test_stack.data[0];
-  assert_true(result == 1);
+  assert_int_equal(result, 1);
   result = STACK_TOP(&test_stack);
-  assert_true(result == 1);
+  assert_int_equal(result, 1);
 
-  assert_true(test_stack.capacity == 8);
+  assert_int_equal(test_stack.capacity, 8);
 
   STACK_DESTROY(&test_stack);
 }
@@ -74,21 +74,21 @@ static void stack_push__push_multiple(void **const _) {
   STACK_PUSH(&test_stack, element1);
 
   int result1 = test_stack.data[0];
-  assert_true(result1 == 1);
+  assert_int_equal(result1, 1);
   result1 = STACK_TOP(&test_stack);
-  assert_true(result1 == 1);
+  assert_int_equal(result1, 1);
 
-  assert_true(test_stack.capacity == 8);
+  assert_int_equal(test_stack.capacity, 8);
 
   int const element2 = 2;
   STACK_PUSH(&test_stack, element2);
 
   int result2 = test_stack.data[1];
-  assert_true(result2 == 2);
+  assert_int_equal(result2, 2);
   result2 = STACK_TOP(&test_stack);
-  assert_true(result2 == 2);
+  assert_int_equal(result2, 2);
 
-  assert_true(test_stack.capacity == 8);
+  assert_int_equal(test_stack.capacity, 8);
 
   STACK_DESTROY(&test_stack);
 }
@@ -96,13 +96,13 @@ static void stack_push__push_multiple(void **const _) {
 static void stack_pop__pop_once(void **const _) {
   STACK_DEFINE(int, test_stack, memory_manage);
 
-  assert_true(test_stack.capacity == 0);
+  assert_int_equal(test_stack.capacity, 0);
 
   int const element = 1;
   STACK_PUSH(&test_stack, element);
 
   STACK_POP(&test_stack);
-  assert_true(test_stack.count == 0);
+  assert_int_equal(test_stack.count, 0);
 
   STACK_DESTROY(&test_stack);
 }
@@ -118,10 +118,10 @@ static void stack_pop__pop_multiple(void **const _) {
 
   STACK_POP(&test_stack);
   int const result = STACK_TOP(&test_stack);
-  assert_true(result == 1);
+  assert_int_equal(result, 1);
 
   STACK_POP(&test_stack);
-  assert_true(test_stack.count == 0);
+  assert_int_equal(test_stack.count, 0);
 
   STACK_DESTROY(&test_stack);
 }

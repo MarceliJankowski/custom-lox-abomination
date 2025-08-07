@@ -38,7 +38,7 @@ static void darray_destroy___destroy_with_data(void **const _) {
 
 static void darray_grow_capacity__multiple_calls(void **const _) {
   DARRAY_DEFINE(int, test_darray, memory_manage);
-  assert_true(test_darray.capacity == 0);
+  assert_int_equal(test_darray.capacity, 0);
 
   DARRAY_GROW(&test_darray);
   assert_int_equal(test_darray.capacity, 8);
@@ -52,14 +52,14 @@ static void darray_grow_capacity__multiple_calls(void **const _) {
 static void darray_append__append_once(void **const _) {
   DARRAY_DEFINE(int, test_darray, memory_manage);
 
-  assert_true(test_darray.capacity == 0);
+  assert_int_equal(test_darray.capacity, 0);
 
   int const element = 1;
   DARRAY_PUSH(&test_darray, element);
   int const result = test_darray.data[0];
 
-  assert_true(result == 1);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(result, 1);
+  assert_int_equal(test_darray.capacity, 8);
 
   DARRAY_DESTROY(&test_darray);
 }
@@ -71,15 +71,15 @@ static void darray_append__append_multiple(void **const _) {
   DARRAY_PUSH(&test_darray, element1);
   int const result1 = test_darray.data[0];
 
-  assert_true(result1 == 1);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(result1, 1);
+  assert_int_equal(test_darray.capacity, 8);
 
   int const element2 = 2;
   DARRAY_PUSH(&test_darray, element2);
   int const result2 = test_darray.data[1];
 
-  assert_true(result2 == 2);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(result2, 2);
+  assert_int_equal(test_darray.capacity, 8);
 
   DARRAY_DESTROY(&test_darray);
 }
