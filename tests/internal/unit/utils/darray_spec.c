@@ -8,13 +8,13 @@
 static void darray_define__default_values(void **const _) {
   DARRAY_DEFINE(int, test_darray, memory_manage);
 
-  assert_true(test_darray.memory_manager == memory_manage);
-  assert_true(test_darray.capacity == 0);
-  assert_true(test_darray.count == 0);
-  assert_true(test_darray.capacity_growth_factor == DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR);
-  assert_true(test_darray.min_growth_capacity == DARRAY_DEFAULT_MIN_GROWTH_CAPACITY);
-  assert_true(test_darray.data_object_size == sizeof(int));
-  assert_true(test_darray.data == NULL);
+  assert_ptr_equal(test_darray.memory_manager, memory_manage);
+  assert_int_equal(test_darray.capacity, 0);
+  assert_int_equal(test_darray.count, 0);
+  assert_int_equal(test_darray.capacity_growth_factor, DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR);
+  assert_int_equal(test_darray.min_growth_capacity, DARRAY_DEFAULT_MIN_GROWTH_CAPACITY);
+  assert_int_equal(test_darray.data_object_size, sizeof(int));
+  assert_null(test_darray.data);
 
   DARRAY_FREE(&test_darray);
 }
@@ -27,24 +27,24 @@ static void daray_free__free_with_data(void **const _) {
 
   DARRAY_FREE(&test_darray);
 
-  assert_true(test_darray.memory_manager == memory_manage);
-  assert_true(test_darray.capacity == 0);
-  assert_true(test_darray.count == 0);
-  assert_true(test_darray.capacity_growth_factor == DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR);
-  assert_true(test_darray.min_growth_capacity == DARRAY_DEFAULT_MIN_GROWTH_CAPACITY);
-  assert_true(test_darray.data_object_size == sizeof(int));
-  assert_true(test_darray.data == NULL);
+  assert_ptr_equal(test_darray.memory_manager, memory_manage);
+  assert_int_equal(test_darray.capacity, 0);
+  assert_int_equal(test_darray.count, 0);
+  assert_int_equal(test_darray.capacity_growth_factor, DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR);
+  assert_int_equal(test_darray.min_growth_capacity, DARRAY_DEFAULT_MIN_GROWTH_CAPACITY);
+  assert_int_equal(test_darray.data_object_size, sizeof(int));
+  assert_null(test_darray.data);
 }
 
 static void darray_grow_capacity__multiple_calls(void **const _) {
   DARRAY_DEFINE(int, test_darray, memory_manage);
-  assert_true(test_darray.capacity == 0);
+  assert_int_equal(test_darray.capacity, 0);
 
   DARRAY_GROW_CAPACITY(&test_darray);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(test_darray.capacity, 8);
 
   DARRAY_GROW_CAPACITY(&test_darray);
-  assert_true(test_darray.capacity == 16);
+  assert_int_equal(test_darray.capacity, 16);
 
   DARRAY_FREE(&test_darray);
 }
@@ -52,14 +52,14 @@ static void darray_grow_capacity__multiple_calls(void **const _) {
 static void darray_append__append_once(void **const _) {
   DARRAY_DEFINE(int, test_darray, memory_manage);
 
-  assert_true(test_darray.capacity == 0);
+  assert_int_equal(test_darray.capacity, 0);
 
   int const element = 1;
   DARRAY_APPEND(&test_darray, element);
   int const result = test_darray.data[0];
 
-  assert_true(result == 1);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(result, 1);
+  assert_int_equal(test_darray.capacity, 8);
 
   DARRAY_FREE(&test_darray);
 }
@@ -71,15 +71,15 @@ static void darray_append__append_multiple(void **const _) {
   DARRAY_APPEND(&test_darray, element1);
   int const result1 = test_darray.data[0];
 
-  assert_true(result1 == 1);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(result1, 1);
+  assert_int_equal(test_darray.capacity, 8);
 
   int const element2 = 2;
   DARRAY_APPEND(&test_darray, element2);
   int const result2 = test_darray.data[1];
 
-  assert_true(result2 == 2);
-  assert_true(test_darray.capacity == 8);
+  assert_int_equal(result2, 2);
+  assert_int_equal(test_darray.capacity, 8);
 
   DARRAY_FREE(&test_darray);
 }
