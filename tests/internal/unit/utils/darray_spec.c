@@ -5,6 +5,10 @@
 #include <unit/unit_test.h>
 #include <utils/darray.h>
 
+// *---------------------------------------------*
+// *                 TEST CASES                  *
+// *---------------------------------------------*
+
 static void darray_define__default_values(void **const _) {
   DARRAY_DEFINE(int, test_darray, memory_manage);
 

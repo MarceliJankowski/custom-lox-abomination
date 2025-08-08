@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <unit/unit_test.h>
 
+// *---------------------------------------------*
+// *                 TEST CASES                  *
+// *---------------------------------------------*
+
 static void stack_define__default_values(void **const _) {
   STACK_DEFINE(int, test_stack, memory_manage);
 
