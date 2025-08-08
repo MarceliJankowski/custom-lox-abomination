@@ -32,12 +32,12 @@
   DARRAY_TYPE(data_type) darray_name;                             \
   DARRAY_INIT(&darray_name, sizeof(data_type), memory_manager_ptr)
 
-#define DARRAY_FREE(darray_ptr)                                                                                \
-  do {                                                                                                         \
-    memory_deallocate(                                                                                         \
-      (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size *(darray_ptr)->capacity \
-    );                                                                                                         \
-    DARRAY_INIT(darray_ptr, (darray_ptr)->data_object_size, (darray_ptr)->memory_manager);                     \
+#define DARRAY_FREE(darray_ptr)                                                                                 \
+  do {                                                                                                          \
+    memory_deallocate(                                                                                          \
+      (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size * (darray_ptr)->capacity \
+    );                                                                                                          \
+    DARRAY_INIT(darray_ptr, (darray_ptr)->data_object_size, (darray_ptr)->memory_manager);                      \
   } while (0)
 
 #define DARRAY_GROW_CAPACITY(darray_ptr)                                   \
