@@ -120,10 +120,7 @@ void repl_enter(void) {
           goto clean_up;
         }
         case TERMINAL_KEY_BACKSPACE: {
-          // erase printable key to the left of cursor
-          if (gap_buffer_get_cursor_position(&physical_line) > 0) {
-            gap_buffer_delete_left(&physical_line);
-          }
+          gap_buffer_delete_left(&physical_line);
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {
@@ -137,15 +134,11 @@ void repl_enter(void) {
           break;
         }
         case TERMINAL_KEY_ARROW_LEFT: {
-          if (gap_buffer_get_cursor_position(&physical_line) > 0) {
-            gap_buffer_move_cursor_left(&physical_line);
-          }
+          gap_buffer_move_cursor_left(&physical_line);
           break;
         }
         case TERMINAL_KEY_ARROW_RIGHT: {
-          if (gap_buffer_get_cursor_position(&physical_line) < gap_buffer_get_content_length(&physical_line)) {
-            gap_buffer_move_cursor_right(&physical_line);
-          }
+          gap_buffer_move_cursor_right(&physical_line);
           break;
         }
         case TERMINAL_KEY_ARROW_UP:

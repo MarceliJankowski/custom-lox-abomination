@@ -72,13 +72,11 @@ void gap_buffer_insert(GapBuffer *const gap_buffer, char const character) {
   gap_buffer->gap_start++;
 }
 
-/**@desc delete character from `gap_buffer` left to cursor position (character must exist)*/
+/**@desc delete character from `gap_buffer` left to cursor position (if such character exists)*/
 void gap_buffer_delete_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
-  assert(gap_buffer->gap_start > 0 && "Attempt to delete nonexistent character");
 
-  // delete character left to cursor position
-  gap_buffer->gap_start--;
+  if (gap_buffer->gap_start > 0) gap_buffer->gap_start--;
 }
 
 /**@desc clear `gap_buffer` content while preserving its internal buffer*/
@@ -131,20 +129,22 @@ inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
   free(content);
 }
 
-/**@desc move `gap_buffer` cursor one position to the left (position must exist)*/
+/**@desc move `gap_buffer` cursor one position to the left (if possible)*/
 void gap_buffer_move_cursor_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
-  assert(gap_buffer->gap_start != 0 && "Attempt to move cursor past the content");
+
+  if (gap_buffer->gap_start == 0) return;
 
   gap_buffer->gap_start--;
   gap_buffer->gap_end--;
   gap_buffer->buffer[gap_buffer->gap_end] = gap_buffer->buffer[gap_buffer->gap_start];
 }
 
-/**@desc move `gap_buffer` cursor one position to the right (position must exist)*/
+/**@desc move `gap_buffer` cursor one position to the right (if possible)*/
 void gap_buffer_move_cursor_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
-  assert(gap_buffer->gap_end < gap_buffer->capacity && "Attempt to move cursor past the content");
+
+  if (gap_buffer->gap_end == gap_buffer->capacity) return;
 
   gap_buffer->buffer[gap_buffer->gap_start] = gap_buffer->buffer[gap_buffer->gap_end];
   gap_buffer->gap_start++;
