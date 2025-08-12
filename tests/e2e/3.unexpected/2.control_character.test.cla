@@ -1,2 +1,1 @@
-# '\v' vertial tab control character
- #ASSERT_LEXICAL_ERROR 2 1 Unexpected character
+Ω #ASSERT_LEXICAL_ERROR 1 1 Unexpected character
