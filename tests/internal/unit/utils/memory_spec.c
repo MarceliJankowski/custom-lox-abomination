@@ -42,7 +42,7 @@ static void memory_allocate__test(void **const _) {
   char *p = &i;
   will_return(__wrap_realloc, p);
 
-  char *ptr = (char *)memory_allocate(memory_manage, sizeof(char));
+  char *ptr = memory_allocate(memory_manage, sizeof(char));
   assert_ptr_equal(ptr, p);
 }
 
@@ -53,14 +53,14 @@ static void memory_reallocate__test(void **const _) {
   char *p = &i;
   will_return(__wrap_realloc, p);
 
-  char *ptr = (char *)memory_allocate(memory_manage, sizeof(char));
+  char *ptr = memory_allocate(memory_manage, sizeof(char));
   assert_ptr_equal(ptr, p);
 
   expect_value(__wrap_realloc, __size, sizeof(char) * 2);
   expect_value(__wrap_realloc, __ptr, p);
   will_return(__wrap_realloc, p);
 
-  char *ptr2 = (char *)memory_reallocate(memory_manage, p, sizeof(char), sizeof(char) * 2);
+  char *ptr2 = memory_reallocate(memory_manage, p, sizeof(char), sizeof(char) * 2);
   assert_ptr_equal(ptr2, p);
 }
 
@@ -71,7 +71,7 @@ static void memory_deallocate__test(void **const _) {
   char *p = &i;
   will_return(__wrap_realloc, p);
 
-  char *ptr = (char *)memory_allocate(memory_manage, sizeof(char));
+  char *ptr = memory_allocate(memory_manage, sizeof(char));
   assert_ptr_equal(ptr, p);
 
   expect_value(__wrap_free, __ptr, ptr);
