@@ -223,7 +223,9 @@ static void lexer_skip_whitespace(void) {
   for (;;) {
     switch (lexer_peek()) {
       case ' ':
+      case '\f':
       case '\t':
+      case '\v':
       case '\r': {
         lexer_advance();
         break;
