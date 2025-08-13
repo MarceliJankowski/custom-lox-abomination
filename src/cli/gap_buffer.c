@@ -3,6 +3,13 @@
 #include "utils/error.h"
 
 #include <stdlib.h>
+#include <string.h>
+
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
+#define GAP_BUFFER_GROWTH_FACTOR 2
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
@@ -14,25 +21,30 @@ size_t gap_buffer_get_cursor_position(GapBuffer const *gap_buffer);
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc grow `gap_buffer` to double its capacity*/
-static void gap_buffer_grow(GapBuffer *const gap_buffer) {
+/**@desc resize `gap_buffer` to `new_capacity`*/
+static void gap_buffer_resize(GapBuffer *const gap_buffer, size_t const new_capacity) {
   assert(gap_buffer != NULL);
 
-  // update capacity
-  size_t const old_capacity = gap_buffer->capacity;
-  gap_buffer->capacity *= 2;
-
   // update gap end
-  size_t const post_gap_content_length = old_capacity - gap_buffer->gap_end;
+  size_t const post_gap_content_length = gap_buffer->capacity - gap_buffer->gap_end;
   size_t const old_gap_end = gap_buffer->gap_end;
   gap_buffer->gap_end = gap_buffer->capacity - post_gap_content_length;
 
   // grow buffer
-  gap_buffer->buffer = realloc(gap_buffer->buffer, gap_buffer->capacity);
+  gap_buffer->buffer = realloc(gap_buffer->buffer, new_capacity);
   if (gap_buffer->buffer == NULL) ERROR_MEMORY_ERRNO();
 
   // copy post-gap content past the new gap end
   memmove(gap_buffer->buffer + gap_buffer->gap_end, gap_buffer->buffer + old_gap_end, post_gap_content_length);
+}
+
+/**@desc grow `gap_buffer` to its next capacity*/
+static void gap_buffer_grow(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  size_t const new_capacity = gap_buffer->capacity * GAP_BUFFER_GROWTH_FACTOR;
+
+  gap_buffer_resize(gap_buffer, new_capacity);
 }
 
 // *---------------------------------------------*
@@ -118,6 +130,26 @@ char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
   content_buffer[content_length] = '\0'; // append NUL terminator
 
   return content_buffer;
+}
+
+/**@desc replace `gap_buffer` content with `new_content`; effectively loading it in.
+`gap_buffer` cursor gets positioned at the end of `new_content`.
+Memory area of `new_content` musn't overlap with `gap_buffer.buffer`*/
+void gap_buffer_load_content(GapBuffer *const gap_buffer, char const *const new_content) {
+  assert(gap_buffer != NULL);
+  assert(new_content != NULL);
+
+  size_t const new_content_length = strlen(new_content);
+
+  // resize if needed
+  size_t new_capacity = gap_buffer->capacity;
+  while (new_capacity < new_content_length) new_capacity *= GAP_BUFFER_GROWTH_FACTOR;
+  gap_buffer_resize(gap_buffer, new_capacity);
+
+  // load new_content
+  gap_buffer_clear_content(gap_buffer);
+  memcpy(gap_buffer->buffer, new_content, new_content_length);
+  gap_buffer->gap_start = new_content_length;
 }
 
 /**@desc print `gap_buffer` content*/
