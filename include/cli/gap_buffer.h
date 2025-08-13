@@ -26,10 +26,15 @@ void gap_buffer_insert(GapBuffer *gap_buffer, char character);
 void gap_buffer_delete_left(GapBuffer *gap_buffer);
 void gap_buffer_clear_content(GapBuffer *gap_buffer);
 char *gap_buffer_get_content(GapBuffer const *gap_buffer);
+void gap_buffer_load_content(GapBuffer *gap_buffer, char const *new_content);
 void gap_buffer_print_content(GapBuffer const *gap_buffer);
 size_t gap_buffer_get_content_length(GapBuffer const *gap_buffer);
 void gap_buffer_move_cursor_left(GapBuffer *gap_buffer);
 void gap_buffer_move_cursor_right(GapBuffer *gap_buffer);
+
+// *---------------------------------------------*
+// *              INLINE FUNCTIONS               *
+// *---------------------------------------------*
 
 /**@desc get `gap_buffer` cursor position
 @return index representing cursor position*/
