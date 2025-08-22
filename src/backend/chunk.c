@@ -9,7 +9,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
 void chunk_reset(Chunk *chunk);
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
+static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
+  assert(chunk != NULL);
+  assert(line >= 1 && "Expected lines to begin at 1");
+
+  ChunkLineCount const line_count = {.line = line, .count = 1};
+  DARRAY_PUSH(&chunk->lines, line_count);
+}
+
+/**@desc append `value` to `chunk` constant pool
+@return index of appended constant*/
+static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
+  assert(chunk != NULL);
+
+  value_list_append(&chunk->constants, value);
+  return chunk->constants.count - 1;
+}
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc initialize bytecode `chunk`*/
 void chunk_init(Chunk *const chunk) {
@@ -20,29 +50,24 @@ void chunk_init(Chunk *const chunk) {
   value_list_init(&chunk->constants);
 }
 
-/**@desc free `chunk`*/
-void chunk_free(Chunk *const chunk) {
+/**@desc free `chunk` memory and set it to uninitialized state*/
+void chunk_destroy(Chunk *const chunk) {
   assert(chunk != NULL);
 
-  DARRAY_FREE(&chunk->code);
-  DARRAY_FREE(&chunk->lines);
-  value_list_free(&chunk->constants);
-}
+  // free memory
+  DARRAY_DESTROY(&chunk->code);
+  DARRAY_DESTROY(&chunk->lines);
+  value_list_destroy(&chunk->constants);
 
-/**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
-static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
-  assert(chunk != NULL);
-  assert(line >= 1 && "Expected lines to begin at 1");
-
-  ChunkLineCount const line_count = {.line = line, .count = 1};
-  DARRAY_APPEND(&chunk->lines, line_count);
+  // set to uninitialized state
+  *chunk = (Chunk){0};
 }
 
 /**@desc append instruction `opcode` and corresponding `line` to `chunk`*/
 void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t const line) {
   assert(chunk != NULL);
 
-  DARRAY_APPEND(&chunk->code, opcode);
+  DARRAY_PUSH(&chunk->code, opcode);
 
   // check if this is the first line/instruction in a chunk
   if (chunk->lines.count == 0) chunk_create_and_append_line_count(chunk, line);
@@ -58,7 +83,7 @@ void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t 
 void chunk_append_operand(Chunk *const chunk, uint8_t const operand) {
   assert(chunk != NULL);
 
-  DARRAY_APPEND(&chunk->code, operand);
+  DARRAY_PUSH(&chunk->code, operand);
 }
 
 /**@desc append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk.code`*/
@@ -69,8 +94,8 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   va_list bytes;
   va_start(bytes, byte_count);
 
-  // check if chunk.code needs resizing
-  if (chunk->code.count + byte_count > chunk->code.capacity) DARRAY_RESIZE(&chunk->code);
+  // check if chunk.code needs to grow
+  if (chunk->code.count + byte_count > chunk->code.capacity) DARRAY_GROW(&chunk->code);
 
   // append bytes
   for (; byte_count > 0; byte_count--) {
@@ -82,15 +107,6 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   va_end(bytes);
 }
 
-/**@desc append `value` to `chunk` constant pool
-@return index of appended constant*/
-static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
-  assert(chunk != NULL);
-
-  value_list_append(&chunk->constants, value);
-  return chunk->constants.count - 1;
-}
-
 /**@desc append `value` constant and corresponding instruction along with its `line` to `chunk`*/
 void chunk_append_constant_instruction(Chunk *const chunk, Value const value, int32_t const line) {
   assert(chunk != NULL);
@@ -98,7 +114,7 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, in
   uint32_t const constant_index = chunk_append_constant(chunk, value);
 
   if (constant_index > 0xFFFFul)
-    ERROR_MEMORY(COMMON_FILE_LINE_FORMAT COMMON_MS "Exceeded chunk constant pool limit", g_source_file, line);
+    ERROR_MEMORY(COMMON_FILE_LINE_FORMAT COMMON_MS "Exceeded chunk constant pool limit", g_source_file_path, line);
 
   if (constant_index > UCHAR_MAX) {
     chunk_append_instruction(chunk, CHUNK_OP_CONSTANT_2B, line);

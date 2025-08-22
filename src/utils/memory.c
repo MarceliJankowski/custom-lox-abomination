@@ -3,13 +3,20 @@
 #include "utils/error.h"
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdlib.h>
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void *memory_allocate(MemoryManagerFn *memory_manager, size_t new_size);
 void *memory_reallocate(MemoryManagerFn *memory_manager, void *object, size_t old_size, size_t new_size);
 void *memory_deallocate(MemoryManagerFn *memory_manager, void *object, size_t old_size);
 uint8_t memory_get_byte(uint32_t object, int index);
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
 
 /**@desc standard MemoryManagerFn implementation
 @see MemoryManagerFn for further documentation*/
@@ -32,7 +39,7 @@ void *memory_manage(void *const object, size_t const old_size, size_t const new_
   }
 
   void *const reallocated_object = realloc(object, new_size);
-  if (reallocated_object == NULL) ERROR_MEMORY("%s", strerror(errno));
+  if (reallocated_object == NULL) ERROR_MEMORY_ERRNO();
 
   return reallocated_object;
 }

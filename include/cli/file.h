@@ -1,12 +1,12 @@
-#ifndef NUMBER_H
-#define NUMBER_H
+#ifndef FILE_H
+#define FILE_H
 
-#include <stdbool.h>
+#include "utils/error.h"
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-bool number_is_integer(double number);
+ErrorCode file_interpret(char const *source_file_path);
 
-#endif // NUMBER_H
+#endif // FILE_H

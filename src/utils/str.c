@@ -1,12 +1,7 @@
-#ifndef NUMBER_H
-#define NUMBER_H
-
-#include <stdbool.h>
+#include "utils/str.h"
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-bool number_is_integer(double number);
-
-#endif // NUMBER_H
+bool str_is_all_whitespace(char const *string);

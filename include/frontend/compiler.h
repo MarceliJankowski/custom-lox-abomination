@@ -1,11 +1,24 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include "backend/vm.h"
+#include "backend/chunk.h"
 
 #include <stdbool.h>
 
-typedef enum { COMPILER_SUCCESS, COMPILER_FAILURE, COMPILER_UNEXPECTED_EOF } CompilerStatus;
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
+
+typedef enum {
+  COMPILER_SUCCESS,
+  COMPILER_FAILURE,
+  COMPILER_UNEXPECTED_EOF,
+  COMPILER_STATUS_COUNT,
+} CompilerStatus;
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 CompilerStatus compiler_compile(char const *source_code, Chunk *chunk);
 

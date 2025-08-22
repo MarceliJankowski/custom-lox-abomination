@@ -16,11 +16,11 @@ static void stack_define__default_values(void **const _) {
   assert_int_equal(test_stack.capacity, 0);
   assert_int_equal(test_stack.count, 0);
   assert_int_equal(test_stack.capacity_growth_factor, DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR);
-  assert_int_equal(test_stack.min_growth_capacity, DARRAY_DEFAULT_MIN_GROWTH_CAPACITY);
+  assert_int_equal(test_stack.initial_growth_capacity, DARRAY_DEFAULT_INITIAL_GROWTH_CAPACITY);
   assert_int_equal(test_stack.data_object_size, sizeof(int));
   assert_null(test_stack.data);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 }
 
 static void stack_free__free_with_data(void **const _) {
@@ -29,14 +29,14 @@ static void stack_free__free_with_data(void **const _) {
   int const element = 1;
   STACK_PUSH(&test_stack, element);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 
-  assert_ptr_equal(test_stack.memory_manager, memory_manage);
+  assert_ptr_equal(test_stack.memory_manager, 0);
   assert_int_equal(test_stack.capacity, 0);
   assert_int_equal(test_stack.count, 0);
-  assert_int_equal(test_stack.capacity_growth_factor, DARRAY_DEFAULT_CAPACITY_GROWTH_FACTOR);
-  assert_int_equal(test_stack.min_growth_capacity, DARRAY_DEFAULT_MIN_GROWTH_CAPACITY);
-  assert_int_equal(test_stack.data_object_size, sizeof(int));
+  assert_int_equal(test_stack.capacity_growth_factor, 0);
+  assert_int_equal(test_stack.initial_growth_capacity, 0);
+  assert_int_equal(test_stack.data_object_size, 0);
   assert_null(test_stack.data);
 }
 
@@ -44,13 +44,13 @@ static void stack_grow_capacity__multiple_calls(void **const _) {
   STACK_DEFINE(int, test_stack, memory_manage);
   assert_int_equal(test_stack.capacity, 0);
 
-  STACK_GROW_CAPACITY(&test_stack);
+  STACK_GROW(&test_stack);
   assert_int_equal(test_stack.capacity, 8);
 
-  STACK_GROW_CAPACITY(&test_stack);
+  STACK_GROW(&test_stack);
   assert_int_equal(test_stack.capacity, 16);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 }
 
 static void stack_push__push_once(void **const _) {
@@ -68,7 +68,7 @@ static void stack_push__push_once(void **const _) {
 
   assert_int_equal(test_stack.capacity, 8);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 }
 
 static void stack_push__push_multiple(void **const _) {
@@ -94,7 +94,7 @@ static void stack_push__push_multiple(void **const _) {
 
   assert_int_equal(test_stack.capacity, 8);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 }
 
 static void stack_pop__pop_once(void **const _) {
@@ -108,7 +108,7 @@ static void stack_pop__pop_once(void **const _) {
   STACK_POP(&test_stack);
   assert_int_equal(test_stack.count, 0);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 }
 
 static void stack_pop__pop_multiple(void **const _) {
@@ -127,7 +127,7 @@ static void stack_pop__pop_multiple(void **const _) {
   STACK_POP(&test_stack);
   assert_int_equal(test_stack.count, 0);
 
-  STACK_FREE(&test_stack);
+  STACK_DESTROY(&test_stack);
 }
 
 int main(void) {

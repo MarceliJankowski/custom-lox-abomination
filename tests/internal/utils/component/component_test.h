@@ -6,11 +6,19 @@
 
 #include <stdio.h>
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #define COMPONENT_TEST_APPLY_TO_EACH_ARG(fn, arg_type, ...)                  \
   do {                                                                       \
     arg_type const args[] = {__VA_ARGS__};                                   \
     for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); i++) fn(args[i]); \
   } while (0)
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void component_test_assert_binary_stream_resource_content(FILE *binary_stream, char const *expected_resource_content);
 void component_test_clear_binary_stream_resource_content(FILE *binary_stream);

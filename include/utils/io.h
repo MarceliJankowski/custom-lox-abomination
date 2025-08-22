@@ -5,13 +5,9 @@
 
 #include <stdio.h>
 
-#define IO_PUTS_BREAK(string_literal)                  \
-  fputs(string_literal "\n", g_runtime_output_stream); \
-  break
-
-#define IO_PRINTF_BREAK(...)                     \
-  fprintf(g_runtime_output_stream, __VA_ARGS__); \
-  break
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
 
 void *io_read_binary_stream_resource_content(FILE *binary_stream);
 char *io_read_file(char const *filepath);

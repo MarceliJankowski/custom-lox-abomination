@@ -5,7 +5,15 @@
 #include <string.h>
 
 // *---------------------------------------------*
-// *                  UTILITIES                  *
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
+#define SCAN_ASSERT_EOF() scan_assert(LEXER_TOKEN_EOF, "EOF")
+#define SCAN_ASSERT_ALL_EOF(expected_line, expected_column) \
+  scan_assert_all(LEXER_TOKEN_EOF, "EOF", expected_line, expected_column)
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 static LexerToken scan_assert(LexerTokenType const expected_type, char const *const expected_lexeme) {
@@ -31,10 +39,6 @@ static LexerToken scan_assert_all(
   assert_position(token, expected_line, expected_column);
   return token;
 }
-
-#define SCAN_ASSERT_EOF() scan_assert(LEXER_TOKEN_EOF, "EOF")
-#define SCAN_ASSERT_ALL_EOF(expected_line, expected_column) \
-  scan_assert_all(LEXER_TOKEN_EOF, "EOF", expected_line, expected_column)
 
 static inline void init_scan_assert(char const *const lexeme, LexerTokenType const expected_type) {
   lexer_init(lexeme);
@@ -223,9 +227,11 @@ static void test_input_source_code_1(void **const _) {
 }
 
 static void test_input_source_code_2(void **const _) {
-  lexer_init("var x = 5;\n"
-             "var y = 10;\n"
-             "print x + y;");
+  lexer_init(
+    "var x = 5;\n"
+    "var y = 10;\n"
+    "print x + y;"
+  );
 
   scan_assert_all(LEXER_TOKEN_VAR, "var", 1, 1);
   scan_assert_all(LEXER_TOKEN_IDENTIFIER, "x", 1, 5);
@@ -246,10 +252,12 @@ static void test_input_source_code_2(void **const _) {
 }
 
 static void test_input_source_code_3(void **const _) {
-  lexer_init("fun add(a, b) {\n"
-             "  return a + b;\n"
-             "}\n"
-             "print add(2.5, 7.5);");
+  lexer_init(
+    "fun add(a, b) {\n"
+    "  return a + b;\n"
+    "}\n"
+    "print add(2.5, 7.5);"
+  );
 
   scan_assert_all(LEXER_TOKEN_FUN, "fun", 1, 1);
   scan_assert_all(LEXER_TOKEN_IDENTIFIER, "add", 1, 5);

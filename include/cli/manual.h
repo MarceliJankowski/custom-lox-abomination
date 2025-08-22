@@ -1,12 +1,10 @@
-#ifndef NUMBER_H
-#define NUMBER_H
-
-#include <stdbool.h>
+#ifndef MANUAL_H
+#define MANUAL_H
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-bool number_is_integer(double number);
+void manual_print(void);
 
-#endif // NUMBER_H
+#endif // MANUAL_H

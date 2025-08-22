@@ -1,12 +1,10 @@
-#ifndef NUMBER_H
-#define NUMBER_H
-
-#include <stdbool.h>
+#ifndef ARGS_H
+#define ARGS_H
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-bool number_is_integer(double number);
+char const *args_process(int argc, char const *const *argv);
 
-#endif // NUMBER_H
+#endif // ARGS_H

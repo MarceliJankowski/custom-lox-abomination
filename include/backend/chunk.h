@@ -8,6 +8,10 @@
 #include <limits.h>
 #include <stdint.h>
 
+// *---------------------------------------------*
+// *              TYPE DEFINITIONS               *
+// *---------------------------------------------*
+
 /**@desc chunk operation code representing bytecode instruction.
 Instruction operands are stored in little-endian order.*/
 typedef enum {
@@ -63,17 +67,26 @@ typedef struct {
   ValueList constants;
 } Chunk;
 
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
 void chunk_init(Chunk *chunk);
-void chunk_free(Chunk *chunk);
+void chunk_destroy(Chunk *chunk);
 void chunk_append_instruction(Chunk *chunk, uint8_t opcode, int32_t line);
 void chunk_append_operand(Chunk *chunk, uint8_t operand);
 void chunk_append_multibyte_operand(Chunk *chunk, int byte_count, ...);
 void chunk_append_constant_instruction(Chunk *chunk, Value value, int32_t line);
 int32_t chunk_get_instruction_line(Chunk const *chunk, int32_t offset);
 
-inline void chunk_reset(Chunk *const chunk_ptr) {
-  chunk_free(chunk_ptr);
-  chunk_init(chunk_ptr);
+// *---------------------------------------------*
+// *              INLINE FUNCTIONS               *
+// *---------------------------------------------*
+
+/**@desc reset `chunk` back to initialized state*/
+inline void chunk_reset(Chunk *const chunk) {
+  chunk_destroy(chunk);
+  chunk_init(chunk);
 }
 
 #endif // CHUNK_H

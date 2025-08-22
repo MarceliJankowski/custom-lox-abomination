@@ -1,12 +1,10 @@
-#ifndef NUMBER_H
-#define NUMBER_H
-
-#include <stdbool.h>
+#ifndef REPL_H
+#define REPL_H
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-bool number_is_integer(double number);
+void repl_enter(void);
 
-#endif // NUMBER_H
+#endif // REPL_H

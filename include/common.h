@@ -1,6 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
 #define COMMON__COMMON_STRINGIZE_HELPER(token) #token
 #define COMMON_STRINGIZE(token) COMMON__COMMON_STRINGIZE_HELPER(token)
 
