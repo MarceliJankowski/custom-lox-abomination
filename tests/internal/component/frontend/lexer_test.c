@@ -227,9 +227,11 @@ static void test_input_source_code_1(void **const _) {
 }
 
 static void test_input_source_code_2(void **const _) {
-  lexer_init("var x = 5;\n"
-             "var y = 10;\n"
-             "print x + y;");
+  lexer_init(
+    "var x = 5;\n"
+    "var y = 10;\n"
+    "print x + y;"
+  );
 
   scan_assert_all(LEXER_TOKEN_VAR, "var", 1, 1);
   scan_assert_all(LEXER_TOKEN_IDENTIFIER, "x", 1, 5);
@@ -250,10 +252,12 @@ static void test_input_source_code_2(void **const _) {
 }
 
 static void test_input_source_code_3(void **const _) {
-  lexer_init("fun add(a, b) {\n"
-             "  return a + b;\n"
-             "}\n"
-             "print add(2.5, 7.5);");
+  lexer_init(
+    "fun add(a, b) {\n"
+    "  return a + b;\n"
+    "}\n"
+    "print add(2.5, 7.5);"
+  );
 
   scan_assert_all(LEXER_TOKEN_FUN, "fun", 1, 1);
   scan_assert_all(LEXER_TOKEN_IDENTIFIER, "add", 1, 5);

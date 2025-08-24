@@ -16,9 +16,10 @@ void error_windows_log_last(void) {
 
   // map error_code to error_message
   DWORD const error_message_length = FormatMessageA(
-    (FORMAT_MESSAGE_ALLOCATE_BUFFER // allocate buffer for the message
-     | FORMAT_MESSAGE_FROM_SYSTEM // map error_code to message using system's message table
-     | FORMAT_MESSAGE_IGNORE_INSERTS // ignore (do not substitute) message insert sequences (%1, %2 etc.)
+    (
+      FORMAT_MESSAGE_ALLOCATE_BUFFER // allocate buffer for the message
+      | FORMAT_MESSAGE_FROM_SYSTEM // map error_code to message using system's message table
+      | FORMAT_MESSAGE_IGNORE_INSERTS // ignore (do not substitute) message insert sequences (%1, %2 etc.)
     ),
     NULL, error_code,
     MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), // use US English (ensure language consistency across error messages)
