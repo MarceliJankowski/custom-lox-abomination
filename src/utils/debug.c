@@ -18,7 +18,7 @@
 @return offset to next instruction*/
 static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
 #define PUTS_BREAK(string) \
-  puts(string);            \
+  io_puts(string);         \
   break
 
   static_assert(CHUNK_OP_SIMPLE_OPCODE_COUNT == 19, "Exhaustive simple chunk opcode handling");
@@ -59,9 +59,9 @@ static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t cons
   if (opcode == CHUNK_OP_CONSTANT) {
     uint8_t const constant_index = chunk->code.data[offset + 1];
 
-    printf("CHUNK_OP_CONSTANT %d '", constant_index);
+    io_printf("CHUNK_OP_CONSTANT %d '", constant_index);
     value_print(chunk->constants.data[constant_index]);
-    printf("'\n");
+    io_printf("'\n");
 
     return offset + 2;
   }
@@ -70,9 +70,9 @@ static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t cons
     unsigned int const constant_index =
       memory_concatenate_bytes(2, chunk->code.data[offset + 2], chunk->code.data[offset + 1]);
 
-    printf("CHUNK_OP_CONSTANT_2B %d '", constant_index);
+    io_printf("CHUNK_OP_CONSTANT_2B %d '", constant_index);
     value_print(chunk->constants.data[constant_index]);
-    printf("'\n");
+    io_printf("'\n");
 
     return offset + 3;
   }
@@ -87,10 +87,10 @@ static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t cons
 /**@desc print lexical `token`*/
 void debug_token(LexerToken const *const token) {
 #define PRINTF_BREAK(...) \
-  printf(__VA_ARGS__);    \
+  io_printf(__VA_ARGS__); \
   break
 
-  printf(COMMON_FILE_LINE_COLUMN_FORMAT " ", g_source_file_path, token->line, token->column);
+  io_printf(COMMON_FILE_LINE_COLUMN_FORMAT " ", g_source_file_path, token->line, token->column);
 
   static_assert(LEXER_TOKEN_TYPE_COUNT == 43, "Exhaustive LexerTokenType handling");
   switch (token->type) {
@@ -150,7 +150,7 @@ void debug_token(LexerToken const *const token) {
     default: ERROR_INTERNAL("Unknown lexer token type '%d'", token->type);
   }
 
-  printf(" '%.*s'\n", token->lexeme_length, token->lexeme);
+  io_printf(" '%.*s'\n", token->lexeme_length, token->lexeme);
 
 #undef PRINTF_BREAK
 }
@@ -160,7 +160,7 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
   assert(chunk != NULL);
   assert(name != NULL);
 
-  printf("\n== %s ==\n", name);
+  io_printf("\n== %s ==\n", name);
   for (size_t offset = 0; offset < chunk->code.count;) offset = debug_disassemble_instruction(chunk, offset);
 }
 
@@ -170,7 +170,7 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
   assert(chunk != NULL);
   assert(offset >= 0 && "Expected offset to be nonnegative");
 
-  printf(COMMON_FILE_LINE_FORMAT " ", g_source_file_path, chunk_get_instruction_line(chunk, offset));
+  io_printf(COMMON_FILE_LINE_FORMAT " ", g_source_file_path, chunk_get_instruction_line(chunk, offset));
 
   uint8_t const opcode = chunk->code.data[offset];
 

@@ -5,6 +5,7 @@
 #include "global.h"
 #include "utils/debug.h"
 #include "utils/error.h"
+#include "utils/io.h"
 #include "utils/memory.h"
 #include "utils/stack.h"
 
@@ -62,12 +63,12 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
   va_start(format_args, format);
   int32_t const instruction_line = chunk_get_instruction_line(vm.chunk, instruction_offset);
 
-  fprintf(
+  io_fprintf(
     g_bytecode_execution_error_stream, "[EXECUTION_ERROR]" COMMON_MS COMMON_FILE_LINE_FORMAT COMMON_MS,
     g_source_file_path, instruction_line
   );
-  vfprintf(g_bytecode_execution_error_stream, format, format_args);
-  fprintf(g_bytecode_execution_error_stream, "\n");
+  if (vfprintf(g_bytecode_execution_error_stream, format, format_args) < 0) ERROR_IO_ERRNO();
+  io_fprintf(g_bytecode_execution_error_stream, "\n");
 
   va_end(format_args);
 
@@ -113,17 +114,17 @@ bool vm_execute(Chunk const *const chunk) {
   vm.ip = chunk->code.data;
 
 #ifdef DEBUG_VM
-  puts("\n== DEBUG_VM ==");
+  io_puts("\n== DEBUG_VM ==");
 #endif
 
   for (;;) {
 #ifdef DEBUG_VM
-    printf("[ ");
+    io_printf("[ ");
     for (size_t i = 0; i < vm.stack.count;) {
       value_print(vm.stack.data[i]);
-      if (++i < vm.stack.count) printf(", ");
+      if (++i < vm.stack.count) io_printf(", ");
     }
-    puts(" ]");
+    io_puts(" ]");
     debug_disassemble_instruction(vm.chunk, vm.ip - vm.chunk->code.data);
 #endif
     assert(vm.ip < vm.chunk->code.data + vm.chunk->code.count && "Instruction pointer out of bounds");
@@ -136,7 +137,7 @@ bool vm_execute(Chunk const *const chunk) {
       }
       case CHUNK_OP_PRINT: {
         value_print(vm_stack_pop());
-        fprintf(g_source_program_output_stream, "\n");
+        io_fprintf(g_source_program_output_stream, "\n");
         break;
       }
       case CHUNK_OP_POP: {

@@ -8,6 +8,14 @@
 #include <string.h>
 
 // *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
+int io_fprintf(FILE *const stream, char const *format, ...);
+int io_printf(char const *format, ...);
+void io_puts(char const *string);
+
+// *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 

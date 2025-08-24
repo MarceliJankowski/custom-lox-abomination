@@ -1,6 +1,7 @@
 #include "frontend/lexer.h"
 
 #include "utils/debug.h"
+#include "utils/io.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -255,7 +256,7 @@ void lexer_init(char const *const source_code) {
   assert(source_code != NULL);
 
 #ifdef DEBUG_LEXER
-  puts("== DEBUG_LEXER ==");
+  io_puts("== DEBUG_LEXER ==");
 #endif
 
   lexer.lexeme = source_code;

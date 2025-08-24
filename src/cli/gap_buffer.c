@@ -1,6 +1,7 @@
 #include "cli/gap_buffer.h"
 
 #include "utils/error.h"
+#include "utils/io.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -157,7 +158,7 @@ inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   char *const content = gap_buffer_get_content(gap_buffer);
-  printf("%s", content);
+  io_printf("%s", content);
   free(content);
 }
 

@@ -5,6 +5,7 @@
 #include "cli/terminal.h"
 
 #include "utils/error.h"
+#include "utils/io.h"
 
 #include <assert.h>
 
@@ -133,7 +134,9 @@ static void restore_terminal_parameters(void) {
   assert(is_noncannonical_mode_enabled == true);
 
   // due to being used as atexit() handler this function cannot exit() (second exit would trigger UB)
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_terminal_parameters) == -1) fprintf(stderr, "%s\n", strerror(errno));
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_terminal_parameters) == -1) {
+    io_fprintf(stderr, "%s\n", strerror(errno));
+  }
 }
 
 /**@desc handle `signal_num` signal*/
@@ -331,13 +334,13 @@ unknown_key:
 }
 
 void terminal_clear_current_line(void) {
-  printf("\r\x1b[2K");
+  io_printf("\r\x1b[2K");
 }
 
 void terminal_move_cursor_to_column(int const index) {
   assert(index >= 0 && "Attempt to move terminal cursor to a negative column");
 
-  printf("\r\x1b[%dC", index);
+  io_printf("\r\x1b[%dC", index);
 }
 
 #endif // _WIN32

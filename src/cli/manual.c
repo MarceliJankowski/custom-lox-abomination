@@ -1,6 +1,7 @@
 #include "cli/manual.h"
 
 #include "utils/error.h"
+#include "utils/io.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -12,7 +13,7 @@
 /**@desc print manual*/
 void manual_print(void) {
   static_assert(ERROR_CODE_COUNT == 7, "Exhaustive error code handling");
-  printf(
+  io_printf(
     "NAME\n"
     "       cla - Custom Lox Abomination interpreter written in C\n"
     "\nSYNOPSIS\n"

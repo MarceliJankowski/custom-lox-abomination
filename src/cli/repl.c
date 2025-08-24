@@ -115,7 +115,7 @@ void repl_enter(void) {
       }
 
       char const *const prompt = is_continuing_logical_line ? LOGICAL_LINE_CONTINUATION_PROMPT : LOGICAL_LINE_PROMPT;
-      int const prompt_length = printf(prompt);
+      int const prompt_length = io_printf(prompt);
       gap_buffer_print_content(&physical_line);
 
       int const new_cursor_position = gap_buffer_get_cursor_position(&physical_line) + prompt_length;
@@ -131,7 +131,7 @@ void repl_enter(void) {
       static_assert(TERMINAL_KEY_TYPE_COUNT == 8, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_EOF: {
-          printf("\n");
+          io_printf("\n");
           goto clean_up;
         }
         case TERMINAL_KEY_BACKSPACE: {
@@ -141,7 +141,7 @@ void repl_enter(void) {
         case TERMINAL_KEY_PRINTABLE: {
           // handle newline
           if (key.printable.character == '\n') {
-            printf("\n");
+            io_printf("\n");
             goto physical_line_end;
           }
 
@@ -217,7 +217,7 @@ void repl_enter(void) {
       if (fflush(g_static_analysis_error_stream) == EOF) ERROR_IO_ERRNO();
       char *const static_analysis_errors = io_read_binary_stream_resource_content(g_static_analysis_error_stream);
 
-      fprintf(stderr, "%s", static_analysis_errors);
+      io_fprintf(stderr, "%s", static_analysis_errors);
 
       free(static_analysis_errors);
     }
