@@ -11,7 +11,7 @@
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-void *io_read_binary_stream_resource_content(FILE *binary_stream);
+char *io_read_binary_stream_resource_content(FILE *binary_stream);
 char *io_read_file(char const *filepath);
 
 // *---------------------------------------------*

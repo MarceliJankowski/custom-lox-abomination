@@ -21,7 +21,7 @@ void io_puts(char const *string);
 
 /**@desc read `binary_stream` resource content into dynamically allocated buffer
 @return pointer to NUL terminated buffer with `binary_stream` resource content*/
-void *io_read_binary_stream_resource_content(FILE *const binary_stream) {
+char *io_read_binary_stream_resource_content(FILE *const binary_stream) {
   assert(binary_stream != NULL);
 
   // get binary_stream resource content size
