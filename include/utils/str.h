@@ -23,4 +23,17 @@ inline bool str_is_all_whitespace(char const *string) {
   return true;
 }
 
+/**@desc count number of newlines within a `string`
+@return newline count*/
+inline size_t str_count_lines(char const *string) {
+  assert(string != NULL);
+
+  size_t line_count = 0;
+  for (; *string != '\0'; ++string) {
+    if (*string == '\n') line_count++;
+  }
+
+  return line_count;
+}
+
 #endif // STR_H
