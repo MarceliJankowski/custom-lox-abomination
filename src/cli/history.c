@@ -2,15 +2,25 @@
 
 #include "cli/gap_buffer.h"
 #include "utils/error.h"
+#include "utils/io.h"
+#include "utils/str.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+#else // POSIX
+#include <pwd.h>
+#include <unistd.h>
+#endif
 
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
 #define HISTORY_SIZE 1000
+#define HISTORY_FILE_NAME ".cla_history"
 
 // *---------------------------------------------*
 // *              TYPE DEFINITIONS               *
@@ -28,6 +38,123 @@ typedef struct {
 // *---------------------------------------------*
 
 static History history;
+static char *history_file_path = NULL;
+static FILE *history_file_append_stream = NULL;
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/**@desc get absolute path to history file
+@return pointer to dynamically allocated string with history file path*/
+static char *history_file_get_path(void) {
+#ifdef _WIN32
+  // TODO: implement
+#else // POSIX
+  char const *home_dir_path = getenv("HOME");
+  if (home_dir_path == NULL) {
+    errno = 0;
+    struct passwd const *const passwd_entry = getpwuid(getuid());
+    if (passwd_entry == NULL) {
+      if (errno != 0) ERROR_SYSTEM_ERRNO();
+      ERROR_SYSTEM("No passwd entry for '%d' UID", getuid());
+    }
+    home_dir_path = passwd_entry->pw_dir;
+  }
+
+  size_t const history_file_path_length = strlen(home_dir_path) + sizeof(HISTORY_FILE_NAME) + 1; // account for '/'
+  char *const history_file_path = malloc(history_file_path_length);
+  if (!history_file_path) ERROR_MEMORY_ERRNO();
+
+  if (sprintf(history_file_path, "%s/%s", home_dir_path, HISTORY_FILE_NAME) < 0) ERROR_IO_ERRNO();
+
+  return history_file_path;
+#endif
+}
+
+/**@desc trim history file so that entry count does not exceed HISTORY_SIZE (removes excessive oldest entries)
+This function does nothing if history file fails to be opened for reading.*/
+static void history_file_trim(void) {
+  assert(history_file_path != NULL);
+
+  FILE *history_file_stream = fopen(history_file_path, "rb");
+  if (history_file_stream == NULL) return; // nothing to trim
+
+  char *const history_file_content = io_read_binary_stream_resource_content(history_file_stream);
+  size_t const entry_count = str_count_lines(history_file_content);
+
+  if (entry_count <= HISTORY_SIZE) return;
+  size_t const excessive_entry_count = entry_count - HISTORY_SIZE;
+
+  // skip excessive oldest entries
+  char const *current_char = history_file_content;
+  for (size_t skipped_entry_count = 0; skipped_entry_count < excessive_entry_count; current_char++) {
+    if (*current_char == '\n') skipped_entry_count++;
+  }
+
+  // clear history file's content
+  history_file_stream = freopen(history_file_path, "wb", history_file_stream);
+  if (history_file_stream == NULL) ERROR_IO_ERRNO();
+
+  // write trimmed content
+  io_fprintf(history_file_stream, current_char);
+  if (fflush(history_file_stream) == EOF) ERROR_IO_ERRNO();
+
+  free(history_file_content);
+  if (fclose(history_file_stream)) ERROR_IO_ERRNO();
+}
+
+/**@desc trim history file and load its content into history data structure
+This function does nothing if history file fails to be opened for reading.*/
+static void history_file_trim_and_load(void) {
+  assert(history_file_path != NULL);
+
+  history_file_trim();
+
+  FILE *const history_file_stream = fopen(history_file_path, "rb");
+  if (history_file_stream == NULL) return; // nothing to load
+
+  char *const history_file_content = io_read_binary_stream_resource_content(history_file_stream);
+
+  // load history_file_content into history data structure
+  int entry_count = 0;
+  int current_entry_size = 0;
+  for (char const *current_char = history_file_content; *current_char != '\0'; current_char++) {
+    // skip characters until we reach end of current entry
+    current_entry_size++;
+    if (*current_char != '\n') continue;
+
+    // load current entry (unless it's comprised solely of a newline)
+    if (current_entry_size > 1) {
+      char const *const current_entry = current_char - (current_entry_size - 1);
+
+      char *const entry_buffer = malloc(current_entry_size);
+      if (entry_buffer == NULL) ERROR_MEMORY_ERRNO();
+
+      memcpy(entry_buffer, current_entry, current_entry_size - 1);
+      entry_buffer[current_entry_size - 1] = '\0';
+
+      history.entries[entry_count] = entry_buffer;
+    }
+
+    entry_count++;
+    current_entry_size = 0;
+  }
+  history.entry_count = entry_count;
+  history.newest_entry_index = entry_count - 1;
+  history.oldest_entry_index = 0;
+
+  if (fclose(history_file_stream)) ERROR_IO_ERRNO();
+}
+
+/**@desc append `entry` to history file*/
+static void history_file_append(char const *const entry) {
+  assert(history_file_append_stream != NULL);
+  assert(entry != NULL);
+
+  io_fprintf(history_file_append_stream, "%s\n", entry);
+  if (fflush(history_file_append_stream) == EOF) ERROR_IO_ERRNO();
+}
 
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
@@ -35,13 +162,27 @@ static History history;
 
 /**@desc initialize history*/
 void history_init(void) {
+  assert(history_file_path == NULL);
+  assert(history_file_append_stream == NULL);
+
   history = (History){.browsed_entry_index = -1};
+  history_file_path = history_file_get_path();
+  history_file_trim_and_load();
+
+  history_file_append_stream = fopen(history_file_path, "ab");
+  if (history_file_append_stream == NULL) ERROR_IO_ERRNO();
 }
 
-/**@desc free history memory and set it to uninitialized state*/
+/**@desc release history resources and set it to uninitialized state*/
 void history_destroy(void) {
+  assert(history_file_path != NULL);
+  assert(history_file_append_stream != NULL);
+
   for (int i = 0; i < history.entry_count; i++) free(history.entries[i]);
   history = (History){0};
+
+  free(history_file_path);
+  if (fclose(history_file_append_stream)) ERROR_IO_ERRNO();
 }
 
 /**@desc append `entry` (string) of `entry_length` to history.
@@ -61,14 +202,14 @@ void history_append_entry(char const *const entry, size_t const entry_length) {
     history.entries[history.entry_count] = entry_copy;
     history.newest_entry_index = history.entry_count;
     history.entry_count++;
-    return;
+  } else { // history is full
+    free(history.entries[history.oldest_entry_index]);
+    history.entries[history.oldest_entry_index] = entry_copy;
+    history.newest_entry_index = history.oldest_entry_index;
+    history.oldest_entry_index = (history.oldest_entry_index + 1) % HISTORY_SIZE;
   }
 
-  // history is full
-  free(history.entries[history.oldest_entry_index]);
-  history.entries[history.oldest_entry_index] = entry_copy;
-  history.newest_entry_index = history.oldest_entry_index;
-  history.oldest_entry_index = (history.oldest_entry_index + 1) % HISTORY_SIZE;
+  history_file_append(entry_copy);
 }
 
 /**@desc browse older history entry (if such entry exists).
