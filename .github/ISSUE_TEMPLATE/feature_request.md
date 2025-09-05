@@ -1,3 +1,10 @@
+---
+name: Feature Request
+about: Request new feature
+title: "[FEATURE] "
+labels: feature
+---
+
 # Feature Request
 
 ## Description

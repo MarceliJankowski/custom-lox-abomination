@@ -1,3 +1,10 @@
+---
+name: Documentation Request
+about: Request documentation change
+title: "[DOCS] "
+labels: documentation
+---
+
 # Documentation Request
 
 ## Description
