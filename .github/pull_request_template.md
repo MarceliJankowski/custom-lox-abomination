@@ -1,6 +1,6 @@
 ## Description
 
-<!-- description of changes this PR introduces -->
+<!-- description of changes this PR aims to introduce -->
 
 ## How to Test
 
@@ -16,7 +16,7 @@
 
 - [ ] PR is appropriately structured and labeled
 - [ ] Passes formatting, static analysis, and tests
-- [ ] Content adheres to project standards and therefore is of the highest quality
+- [ ] Changes adhere to project standards and therefore are of the highest quality
 
 ## Additional Notes
 
