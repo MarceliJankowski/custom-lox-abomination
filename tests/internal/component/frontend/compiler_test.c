@@ -420,7 +420,6 @@ int main(void) {
     cmocka_unit_test(test_OP_CONSTANT_2B_being_generated),
     cmocka_unit_test(test_arithmetic_operators),
     cmocka_unit_test(test_arithmetic_operator_associativity),
-
     cmocka_unit_test(test_arithmetic_operator_precedence),
     cmocka_unit_test(test_grouping_expr),
     cmocka_unit_test(test_logical_operators),
