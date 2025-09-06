@@ -42,6 +42,8 @@ uint32_t memory_concatenate_bytes(int byte_count, ...);
 
 /**@desc use `memory_manager` to allocate object of `new_size`*/
 inline void *memory_allocate(MemoryManagerFn *const memory_manager, size_t const new_size) {
+  assert(memory_manager != NULL);
+
   return memory_manager(NULL, 0, new_size);
 }
 
@@ -49,11 +51,15 @@ inline void *memory_allocate(MemoryManagerFn *const memory_manager, size_t const
 inline void *memory_reallocate(
   MemoryManagerFn *const memory_manager, void *const object, size_t const old_size, size_t const new_size
 ) {
+  assert(memory_manager != NULL);
+
   return memory_manager(object, old_size, new_size);
 }
 
 /**@desc use `memory_manager` to deallocate `object` of `old_size`*/
 inline void *memory_deallocate(MemoryManagerFn *const memory_manager, void *const object, size_t const old_size) {
+  assert(memory_manager != NULL);
+
   return memory_manager(object, old_size, 0);
 }
 
