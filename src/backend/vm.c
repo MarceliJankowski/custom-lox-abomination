@@ -86,10 +86,8 @@ void vm_init(void) {
 
 /**@desc free virtual machine memory and set it to uninitialized state*/
 void vm_destroy(void) {
-  // free memory
   STACK_DESTROY(&vm.stack);
 
-  // set to uninitialized state
   vm = (VM){0};
 }
 

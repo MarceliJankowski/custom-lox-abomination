@@ -47,10 +47,8 @@ void value_list_init(ValueList *const value_list) {
 void value_list_destroy(ValueList *const value_list) {
   assert(value_list != NULL);
 
-  // free memory
   DARRAY_DESTROY(value_list);
 
-  // set to uninitialized state
   *value_list = (ValueList){0};
 }
 

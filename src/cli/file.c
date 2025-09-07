@@ -17,10 +17,7 @@ ErrorCode file_interpret(char const *const source_file_path) {
   ErrorCode error_code = ERROR_CODE_SUCCESS;
   interpreter_init();
 
-  // read source code
   char *const source_code = io_read_file(source_file_path);
-
-  // interpret source_code
   InterpreterStatus const interpreter_status = interpreter_interpret(source_code);
 
   // map interpreter_status to error_code
@@ -41,7 +38,6 @@ ErrorCode file_interpret(char const *const source_file_path) {
     default: ERROR_INTERNAL("Unknown InterpreterStatus '%d'", interpreter_status);
   }
 
-  // clean up
   free(source_code);
   interpreter_destroy();
 

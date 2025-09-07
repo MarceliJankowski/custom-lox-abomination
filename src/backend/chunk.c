@@ -54,12 +54,10 @@ void chunk_init(Chunk *const chunk) {
 void chunk_destroy(Chunk *const chunk) {
   assert(chunk != NULL);
 
-  // free memory
   DARRAY_DESTROY(&chunk->code);
   DARRAY_DESTROY(&chunk->lines);
   value_list_destroy(&chunk->constants);
 
-  // set to uninitialized state
   *chunk = (Chunk){0};
 }
 

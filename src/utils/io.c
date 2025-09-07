@@ -31,7 +31,6 @@ char *io_read_binary_stream_resource_content(FILE *const binary_stream) {
   if (errno) ERROR_IO_ERRNO();
   if (fseek(binary_stream, 0, SEEK_SET)) ERROR_IO_ERRNO();
 
-  // allocate binary_stream resource content buffer
   char *const content_buffer = malloc(content_size + 1); // account for NUL terminator
   if (content_buffer == NULL) ERROR_MEMORY_ERRNO();
 
@@ -48,14 +47,11 @@ char *io_read_binary_stream_resource_content(FILE *const binary_stream) {
 char *io_read_file(char const *const filepath) {
   assert(filepath != NULL);
 
-  // open file stream
   FILE *const file_stream = fopen(filepath, "rb");
   if (file_stream == NULL) ERROR_IO("Failed to open file '%s'" COMMON_MS "%s\n", filepath, strerror(errno));
 
-  // read file into buffer
   char *const file_buffer = io_read_binary_stream_resource_content(file_stream);
 
-  // clean up
   if (fclose(file_stream)) ERROR_IO("Failed to close file '%s'" COMMON_MS "%s\n", filepath, strerror(errno));
 
   return file_buffer;

@@ -27,7 +27,6 @@ InterpreterStatus interpreter_interpret(char const *const source_code) {
   Chunk chunk;
   chunk_init(&chunk);
 
-  // compile source_code
   CompilerStatus const compiler_status = compiler_compile(source_code, &chunk);
 
   // map compiler_status to interpreter_status
@@ -47,7 +46,6 @@ InterpreterStatus interpreter_interpret(char const *const source_code) {
     default: ERROR_INTERNAL("Unknown CompilerStatus '%d'", compiler_status);
   }
 
-  // execute source_code
   if (!vm_execute(&chunk)) interpreter_status = INTERPRETER_VM_FAILURE;
 
 clean_up:

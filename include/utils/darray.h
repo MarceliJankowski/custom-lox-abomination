@@ -71,12 +71,10 @@
   do {                                                                                                          \
     assert((darray_ptr) != NULL);                                                                               \
                                                                                                                 \
-    /* free memory */                                                                                           \
     memory_deallocate(                                                                                          \
       (darray_ptr)->memory_manager, (darray_ptr)->data, (darray_ptr)->data_object_size * (darray_ptr)->capacity \
     );                                                                                                          \
                                                                                                                 \
-    /* set to uninitialized state */                                                                            \
     memset((darray_ptr), 0, sizeof(*(darray_ptr)));                                                             \
   } while (0)
 

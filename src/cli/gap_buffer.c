@@ -121,11 +121,10 @@ char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
   size_t const post_gap_content_length = gap_buffer->capacity - gap_buffer->gap_end;
   size_t const content_length = pre_gap_content_length + post_gap_content_length;
 
-  // allocate content buffer
   char *content_buffer = malloc(content_length + 1); // account for NUL terminator
   if (!content_buffer) ERROR_MEMORY_ERRNO();
 
-  // fill allocated content_buffer
+  // fill content_buffer
   memcpy(content_buffer, gap_buffer->buffer, pre_gap_content_length);
   memcpy(content_buffer + pre_gap_content_length, gap_buffer->buffer + gap_buffer->gap_end, post_gap_content_length);
   content_buffer[content_length] = '\0'; // append NUL terminator
