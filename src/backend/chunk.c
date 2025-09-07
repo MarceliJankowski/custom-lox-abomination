@@ -50,7 +50,7 @@ void chunk_init(Chunk *const chunk) {
   value_list_init(&chunk->constants);
 }
 
-/**@desc free `chunk` memory and set it to uninitialized state*/
+/**@desc release `chunk` resources and set it to uninitialized state*/
 void chunk_destroy(Chunk *const chunk) {
   assert(chunk != NULL);
 

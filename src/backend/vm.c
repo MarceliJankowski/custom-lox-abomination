@@ -84,7 +84,7 @@ void vm_init(void) {
   STACK_INIT_EXPLICIT(&vm.stack, sizeof(Value), gc_memory_manage, VM_STACK_INITIAL_CAPACITY, VM_STACK_GROWTH_FACTOR);
 }
 
-/**@desc free virtual machine memory and set it to uninitialized state*/
+/**@desc release virtual machine resources and set it to uninitialized state*/
 void vm_destroy(void) {
   STACK_DESTROY(&vm.stack);
 

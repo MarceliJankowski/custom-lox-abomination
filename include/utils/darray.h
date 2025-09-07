@@ -65,7 +65,7 @@
   DARRAY_TYPE(data_object_type) darray_name;                             \
   DARRAY_INIT(&darray_name, sizeof(data_object_type), memory_manager_ptr)
 
-/**@desc free `darray_ptr` memory and set it to uninitialized state
+/**@desc release `darray_ptr` resources and set it to uninitialized state
 @param darray_ptr pointer to dynamic array*/
 #define DARRAY_DESTROY(darray_ptr)                                                                              \
   do {                                                                                                          \

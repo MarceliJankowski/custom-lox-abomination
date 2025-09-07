@@ -43,7 +43,7 @@ void value_list_init(ValueList *const value_list) {
   DARRAY_INIT(value_list, sizeof(Value), gc_memory_manage);
 }
 
-/**@desc free `value_list` memory and set it to uninitialized state*/
+/**@desc release `value_list` resources and set it to uninitialized state*/
 void value_list_destroy(ValueList *const value_list) {
   assert(value_list != NULL);
 

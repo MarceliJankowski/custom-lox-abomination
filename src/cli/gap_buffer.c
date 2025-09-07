@@ -64,7 +64,7 @@ void gap_buffer_init(GapBuffer *const gap_buffer, size_t const initial_capacity)
   if (gap_buffer->buffer == NULL) ERROR_MEMORY_ERRNO();
 }
 
-/**@desc free `gap_buffer` memory and set it to uninitialized state*/
+/**@desc release `gap_buffer` resources and set it to uninitialized state*/
 void gap_buffer_destroy(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 

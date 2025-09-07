@@ -13,7 +13,7 @@ void interpreter_init(void) {
   vm_init();
 }
 
-/**@desc free interpreter memory and set it to uninitialized state*/
+/**@desc release interpreter resources and set it to uninitialized state*/
 void interpreter_destroy(void) {
   vm_destroy();
 }
