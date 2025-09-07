@@ -66,7 +66,7 @@
   DARRAY_INIT(&darray_name, sizeof(data_object_type), memory_manager_ptr)
 
 /**@desc release `darray_ptr` resources and set it to uninitialized state
-@param darray_ptr pointer to dynamic array*/
+@param darray_ptr pointer to initialized dynamic array*/
 #define DARRAY_DESTROY(darray_ptr)                                                                              \
   do {                                                                                                          \
     assert((darray_ptr) != NULL);                                                                               \
@@ -79,7 +79,7 @@
   } while (0)
 
 /**@desc get `darray_ptr` next capacity
-@param darray_ptr pointer to dynamic array
+@param darray_ptr pointer to initialized dynamic array
 @result `darray_ptr` next capacity*/
 #define DARRAY__GET_NEXT_CAPACITY(darray_ptr)                                                      \
   ((assert((darray_ptr) != NULL)), ((darray_ptr)->capacity < (darray_ptr)->initial_growth_capacity \
@@ -87,7 +87,7 @@
                                       : (darray_ptr)->capacity * (darray_ptr)->capacity_growth_factor))
 
 /**@desc resize `darray_ptr` to `new_capacity`
-@param darray_ptr pointer to dynamic array
+@param darray_ptr pointer to initialized dynamic array
 @param new_capacity capacity in bytes (must be non-negative)*/
 #define DARRAY__RESIZE(darray_ptr, new_capacity)                                                                 \
   do {                                                                                                           \
@@ -105,11 +105,11 @@
   } while (0)
 
 /**@desc grow `darray_ptr` to next capacity
-@param darray_ptr pointer to dynamic array*/
+@param darray_ptr pointer to initialized dynamic array*/
 #define DARRAY_GROW(darray_ptr) DARRAY__RESIZE(darray_ptr, DARRAY__GET_NEXT_CAPACITY(darray_ptr))
 
 /**@desc resize `darray_ptr` to at least `min_capacity`
-@param darray_ptr pointer to dynamic array
+@param darray_ptr pointer to initialized dynamic array
 @param min_capacity minimum capacity in bytes (must be positive)*/
 #define DARRAY_RESERVE(darray_ptr, min_capacity)                      \
   do {                                                                \
@@ -132,7 +132,7 @@
   } while (0)
 
 /**@desc push `data_object` onto `darray_ptr`
-@param darray_ptr pointer to dynamic array
+@param darray_ptr pointer to initialized dynamic array
 @param data_object object to be pushed*/
 #define DARRAY_PUSH(darray_ptr, data_object)                                    \
   do {                                                                          \
@@ -147,7 +147,7 @@
   } while (0)
 
 /**@desc pop last data object from `darray_ptr` (count must be positive)
-@param darray_ptr pointer to dynamic array
+@param darray_ptr pointer to initialized dynamic array
 @result popped data object*/
 #define DARRAY_POP(darray_ptr)                                                                                   \
   ((assert((darray_ptr) != NULL), assert((darray_ptr)->count > 0 && "Attempt to pop from empty dynamic array")), \
