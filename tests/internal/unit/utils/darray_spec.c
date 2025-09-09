@@ -188,7 +188,7 @@ static void DARRAY_PUSH__pushes_objects_onto_the_end(void **const _) {
 static void DARRAY_POP__pops_objects_off_the_end(void **const _) {
   DARRAY_DEFINE(int, darray, memory_manage);
   int const first_object = 1;
-  int const second_object = 1;
+  int const second_object = 2;
   DARRAY_PUSH(&darray, first_object);
   DARRAY_PUSH(&darray, second_object);
 
