@@ -1,7 +1,6 @@
 ---
 name: Improvement Request
 about: Request improvement of existing component/functionality
-title: "[IMPROVEMENT] "
 labels: improvement
 ---
 
