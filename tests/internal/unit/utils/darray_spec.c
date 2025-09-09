@@ -128,10 +128,12 @@ static void DARRAY_DESTROY__sets_to_uninitialized_state(void **const _) {
 static void DARRAY_GROW__grows_by_initial_capacity_and_growth_factor(void **const _) {
 #define DATA_OBJECT_TYPE int
   size_t const data_object_size = sizeof(DATA_OBJECT_TYPE);
+  size_t const initial_growth_capacity = 100;
+  double const capacity_growth_factor = 4.5;
   DARRAY_TYPE(DATA_OBJECT_TYPE) darray;
-  DARRAY_INIT_EXPLICIT(&darray, data_object_size, spy_memory_manage, 100, 4.5);
-  size_t const expected_first_capacity = darray.initial_growth_capacity;
-  size_t const expected_second_capacity = expected_first_capacity * darray.capacity_growth_factor;
+  DARRAY_INIT_EXPLICIT(&darray, data_object_size, spy_memory_manage, initial_growth_capacity, capacity_growth_factor);
+  size_t const expected_first_capacity = initial_growth_capacity;
+  size_t const expected_second_capacity = expected_first_capacity * capacity_growth_factor;
 
   expect_value(spy_memory_manage, object, darray.data);
   expect_value(spy_memory_manage, old_size, 0);
