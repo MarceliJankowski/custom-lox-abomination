@@ -1,7 +1,14 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include <limits.h>
 #include <stdbool.h>
+
+// *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
+#define CHARACTER_STATE_COUNT (CHAR_MAX - CHAR_MIN + 1)
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *
