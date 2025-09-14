@@ -185,20 +185,26 @@ void history_destroy(void) {
   if (fclose(history_file_append_stream)) ERROR_IO_ERRNO();
 }
 
-/**@desc append `entry` (string) of `entry_length` to history.
+/**@desc append `entry` (string) of `entry_length` to history;
+unless `entry` consists solely of whitespace characters or is a duplicate of newest history entry.
 This function will stop history browsing.*/
 void history_append_entry(char const *const entry, size_t const entry_length) {
   assert(entry != NULL);
+  assert(strlen(entry) == entry_length);
 
   history_stop_browsing();
 
-  // copy entry
+  if (str_is_all_whitespace(entry)) return;
+  if (history.entry_count > 0) {
+    char const *const newest_entry = history.entries[history.newest_entry_index];
+    if (strcmp(entry, newest_entry) == 0) return;
+  }
+
   char *const entry_copy = malloc(entry_length + 1); // account for NUL terminator
   if (entry_copy == NULL) ERROR_MEMORY_ERRNO();
-  strcpy(entry_copy, entry);
+  memcpy(entry_copy, entry, entry_length + 1);
 
-  // history isn't full
-  if (history.entry_count < HISTORY_SIZE) {
+  if (history.entry_count < HISTORY_SIZE) { // history isn't full
     history.entries[history.entry_count] = entry_copy;
     history.newest_entry_index = history.entry_count;
     history.entry_count++;

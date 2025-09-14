@@ -13,7 +13,6 @@
 #include "utils/error.h"
 #include "utils/io.h"
 #include "utils/memory.h"
-#include "utils/str.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -90,7 +89,6 @@ void repl_enter(void) {
     exit(ERROR_CODE_SUCCESS);
   }
 
-  // disable buffering of stdin/stdout streams
   DISABLE_STREAM_BUFFERING(stdin);
   DISABLE_STREAM_BUFFERING(stdout);
 
@@ -139,7 +137,6 @@ void repl_enter(void) {
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {
-          // handle newline
           if (key.printable.character == '\n') {
             io_printf("\n");
             goto physical_line_end;
@@ -185,9 +182,7 @@ void repl_enter(void) {
       char *const physical_line_content = gap_buffer_get_content(&physical_line);
       size_t const physical_line_content_length = gap_buffer_get_content_length(&physical_line);
 
-      if (!str_is_all_whitespace(physical_line_content)) {
-        history_append_entry(physical_line_content, physical_line_content_length);
-      }
+      history_append_entry(physical_line_content, physical_line_content_length);
 
       size_t const new_logical_line_count =
         is_continuing_logical_line
