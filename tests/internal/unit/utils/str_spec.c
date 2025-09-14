@@ -45,7 +45,20 @@ static void str_count_lines__returns_newline_count(void **const _) {
     char const *const input_string;
     int const expected_newline_count;
   } test_cases[] = {
-    {"", 0}, {"\n", 1}, {"\n\n", 2}, {"\n\n\n", 3}, {"\n\n\n\n", 4},
+    // Empty string
+    {"", 0},
+    // Only newlines
+    {"\n", 1},
+    {"\n\n", 2},
+    {"\n\n\n", 3},
+    // Newlines in text
+    {"line1\nline2", 1},
+    {"line1\nline2\n", 2},
+    {"     \n     \n", 2},
+    // LF, CRLF
+    {"line1\nline2\r\nline3\rline4", 2},
+    // All whitespace characters
+    {whitespace_characters_str, 1}
   };
 
   for (size_t i = 0; i < sizeof(test_cases) / sizeof(test_cases[0]); ++i) {
