@@ -43,8 +43,6 @@
     }                                                             \
   } while (0)
 
-#define CAN_BROWSE_HISTORY() (history_is_browsed() || gap_buffer_get_content_length(&physical_line) == 0)
-
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
@@ -103,14 +101,9 @@ void repl_enter(void) {
   logical_line.initial_growth_capacity = INPUT_LINE_INITIAL_GROWTH_CAPACITY;
   for (bool is_continuing_logical_line = false;;) {
     // read physical line (one terminated with '\n') from stdin and append it to logical_line (forming it)
-    for (;;) {
+    for (bool is_physical_line_modified = false;;) {
       // redraw physical line
       terminal_clear_current_line();
-
-      if (history_is_browsed()) {
-        char const *const entry = history_get_browsed_entry();
-        if (entry != NULL) gap_buffer_load_content(&physical_line, entry);
-      }
 
       char const *const prompt = is_continuing_logical_line ? LOGICAL_LINE_CONTINUATION_PROMPT : LOGICAL_LINE_PROMPT;
       int const prompt_length = io_printf(prompt);
@@ -119,13 +112,13 @@ void repl_enter(void) {
       int const new_cursor_position = gap_buffer_get_cursor_position(&physical_line) + prompt_length;
       terminal_move_cursor_to_column(new_cursor_position);
 
+      bool const can_browse_history = !is_physical_line_modified || new_cursor_position == 0;
+
       // read input key
       TerminalKey const key = terminal_read_key();
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      if (key_type != TERMINAL_KEY_ARROW_UP && key_type != TERMINAL_KEY_ARROW_DOWN) history_stop_browsing();
-
       static_assert(TERMINAL_KEY_TYPE_COUNT == 8, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_EOF: {
@@ -134,6 +127,7 @@ void repl_enter(void) {
         }
         case TERMINAL_KEY_BACKSPACE: {
           gap_buffer_delete_left(&physical_line);
+          is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {
@@ -143,6 +137,7 @@ void repl_enter(void) {
           }
 
           gap_buffer_insert(&physical_line, key.printable.character);
+          is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_ARROW_LEFT: {
@@ -154,19 +149,25 @@ void repl_enter(void) {
           break;
         }
         case TERMINAL_KEY_ARROW_UP: {
-          if (CAN_BROWSE_HISTORY()) history_browse_older_entry();
+          if (!can_browse_history) break;
+
+          char const *const entry = history_browse_older_entry();
+          if (entry != NULL) gap_buffer_load_content(&physical_line, entry);
+          is_physical_line_modified = false;
           break;
         }
         case TERMINAL_KEY_ARROW_DOWN: {
-          if (!CAN_BROWSE_HISTORY()) break;
+          if (!can_browse_history) break;
 
           if (history_is_newest_entry_browsed()) {
             history_stop_browsing();
             gap_buffer_clear_content(&physical_line);
-            break;
+          } else {
+            char const *const entry = history_browse_newer_entry();
+            if (entry != NULL) gap_buffer_load_content(&physical_line, entry);
           }
 
-          history_browse_newer_entry();
+          is_physical_line_modified = false;
           break;
         }
         case TERMINAL_KEY_UNKNOWN: { // ignored
@@ -201,6 +202,8 @@ void repl_enter(void) {
       }
       logical_line.count = new_logical_line_count;
 
+      history_stop_browsing();
+      is_physical_line_modified = false;
       free(physical_line_content);
       gap_buffer_clear_content(&physical_line);
       break;

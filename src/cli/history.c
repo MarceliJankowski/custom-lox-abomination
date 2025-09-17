@@ -156,6 +156,12 @@ static void history_file_append(char const *const entry) {
   if (fflush(history_file_append_stream) == EOF) ERROR_IO_ERRNO();
 }
 
+/**@desc determine whether oldest history entry is being browsed
+@return true if it is, false otherwise*/
+static inline bool history_is_oldest_entry_browsed(void) {
+  return history.browsed_entry_index == history.oldest_entry_index;
+}
+
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
@@ -218,26 +224,30 @@ void history_append_entry(char const *const entry, size_t const entry_length) {
   history_file_append(entry_copy);
 }
 
-/**@desc browse older history entry (if such entry exists).
-If history isn't already being browsed, this function will begin browsing it at the newest entry.*/
-void history_browse_older_entry(void) {
-  if (history.entry_count == 0) return; // history is empty
-  if (history.browsed_entry_index == history.oldest_entry_index) return; // already at oldest entry
+/**@desc browse older history entry.
+If history isn't already being browsed, this function will begin browsing it at the newest entry.
+@return pointer to older history entry (string), or NULL if such entry does not exist*/
+char const *history_browse_older_entry(void) {
+  if (history.entry_count == 0) return NULL;
+  if (history_is_oldest_entry_browsed()) return NULL;
 
   if (!history_is_browsed()) { // begin browsing history
     history.browsed_entry_index = history.newest_entry_index;
-    return;
+  } else {
+    history.browsed_entry_index = history.browsed_entry_index == 0 ? HISTORY_SIZE - 1 : history.browsed_entry_index - 1;
   }
 
-  history.browsed_entry_index = history.browsed_entry_index == 0 ? HISTORY_SIZE - 1 : history.browsed_entry_index - 1;
+  return history.entries[history.browsed_entry_index];
 }
 
-/**@desc browse newer history entry (if such entry exists)*/
-void history_browse_newer_entry(void) {
-  if (!history_is_browsed()) return;
-  if (history_is_newest_entry_browsed()) return;
+/**@desc browse newer history entry
+@return pointer to newer history entry (string), or NULL if such entry does not exist*/
+char const *history_browse_newer_entry(void) {
+  if (!history_is_browsed()) return NULL;
+  if (history_is_newest_entry_browsed()) return NULL;
 
   history.browsed_entry_index = (history.browsed_entry_index + 1) % HISTORY_SIZE;
+  return history.entries[history.browsed_entry_index];
 }
 
 /**@desc stop browsing history*/
@@ -255,12 +265,4 @@ bool history_is_browsed(void) {
 @return true if it is, false otherwise*/
 bool history_is_newest_entry_browsed(void) {
   return history.browsed_entry_index == history.newest_entry_index;
-}
-
-/**@desc get browsed history entry (history must be browsed)
-@return browsed history entry*/
-char const *history_get_browsed_entry(void) {
-  assert(history_is_browsed());
-
-  return history.entries[history.browsed_entry_index];
 }
