@@ -126,8 +126,7 @@ void repl_enter(void) {
           goto clean_up;
         }
         case TERMINAL_KEY_BACKSPACE: {
-          gap_buffer_delete_left(&physical_line);
-          is_physical_line_modified = true;
+          if (gap_buffer_delete_left(&physical_line)) is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {

@@ -2,6 +2,7 @@
 #define GAP_BUFFER_H
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +24,7 @@ typedef struct {
 void gap_buffer_init(GapBuffer *gap_buffer, size_t initial_capacity);
 void gap_buffer_destroy(GapBuffer *gap_buffer);
 void gap_buffer_insert(GapBuffer *gap_buffer, char character);
-void gap_buffer_delete_left(GapBuffer *gap_buffer);
+bool gap_buffer_delete_left(GapBuffer *gap_buffer);
 void gap_buffer_clear_content(GapBuffer *gap_buffer);
 char *gap_buffer_get_content(GapBuffer const *gap_buffer);
 void gap_buffer_load_content(GapBuffer *gap_buffer, char const *new_content);
