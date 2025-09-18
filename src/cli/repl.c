@@ -102,17 +102,18 @@ void repl_enter(void) {
   for (bool is_continuing_logical_line = false;;) {
     // read physical line (one terminated with '\n') from stdin and append it to logical_line (forming it)
     for (bool is_physical_line_modified = false;;) {
-      // redraw physical line
-      terminal_clear_current_line();
+      { // redraw physical line
+        terminal_clear_current_line();
 
-      char const *const prompt = is_continuing_logical_line ? LOGICAL_LINE_CONTINUATION_PROMPT : LOGICAL_LINE_PROMPT;
-      int const prompt_length = io_printf(prompt);
-      gap_buffer_print_content(&physical_line);
+        char const *const prompt = is_continuing_logical_line ? LOGICAL_LINE_CONTINUATION_PROMPT : LOGICAL_LINE_PROMPT;
+        int const prompt_length = io_printf(prompt);
+        gap_buffer_print_content(&physical_line);
 
-      int const new_cursor_position = gap_buffer_get_cursor_position(&physical_line) + prompt_length;
-      terminal_move_cursor_to_column(new_cursor_position);
+        size_t const new_cursor_position = gap_buffer_get_cursor_position(&physical_line) + prompt_length;
+        terminal_move_cursor_to_column(new_cursor_position);
+      }
 
-      bool const can_browse_history = !is_physical_line_modified || new_cursor_position == 0;
+      bool const can_browse_history = !is_physical_line_modified || gap_buffer_get_cursor_position(&physical_line) == 0;
 
       // read input key
       TerminalKey const key = terminal_read_key();
