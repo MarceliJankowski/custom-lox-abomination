@@ -85,11 +85,15 @@ void gap_buffer_insert(GapBuffer *const gap_buffer, char const character) {
   gap_buffer->gap_start++;
 }
 
-/**@desc delete character from `gap_buffer` left to cursor position (if such character exists)*/
-void gap_buffer_delete_left(GapBuffer *const gap_buffer) {
+/**@desc delete character from `gap_buffer` left to cursor position (if such character exists)
+@return true if character was deleted, false otherwise*/
+bool gap_buffer_delete_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
-  if (gap_buffer->gap_start > 0) gap_buffer->gap_start--;
+  if (gap_buffer->gap_start == 0) return false;
+
+  gap_buffer->gap_start--;
+  return true;
 }
 
 /**@desc clear `gap_buffer` content while preserving its internal buffer*/
