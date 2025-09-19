@@ -166,13 +166,13 @@ static LexerToken lexer_make_identifier_token(
   assert(keyword_beginning_length > 0);
   assert(keyword_rest_length > 0);
 
-  if (lexer.char_cursor - lexer.lexeme != keyword_beginning_length + keyword_rest_length) goto identifier;
-  if (memcmp(lexer.lexeme + keyword_beginning_length, keyword_rest, keyword_rest_length)) goto identifier;
+  if (lexer.char_cursor - lexer.lexeme != keyword_beginning_length + keyword_rest_length) goto handle_identifier;
+  if (memcmp(lexer.lexeme + keyword_beginning_length, keyword_rest, keyword_rest_length)) goto handle_identifier;
 
   // keyword
   return lexer_make_token(keyword_type);
 
-identifier:
+handle_identifier:
   return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
 }
 

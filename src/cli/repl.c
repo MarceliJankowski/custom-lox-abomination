@@ -133,7 +133,7 @@ void repl_enter(void) {
         case TERMINAL_KEY_PRINTABLE: {
           if (key.printable.character == '\n') {
             io_printf("\n");
-            goto physical_line_end;
+            goto handle_physical_line_end;
           }
 
           gap_buffer_insert(&physical_line, key.printable.character);
@@ -179,7 +179,7 @@ void repl_enter(void) {
       // keep reading physical line
       continue;
 
-    physical_line_end:;
+    handle_physical_line_end:;
       char *const physical_line_content = gap_buffer_get_content(&physical_line);
       size_t const physical_line_content_length = gap_buffer_get_content_length(&physical_line);
 
