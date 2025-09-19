@@ -245,7 +245,7 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 TerminalKey terminal_read_key(void) {
-#define MAX_CONTROL_SEQUENCE_LENGTH 3
+#define MAX_CONTROL_SEQUENCE_LENGTH 4
 #define CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY MAX_CONTROL_SEQUENCE_LENGTH - 1
 
 #define ENQUEUE_CONTROL_SEQUENCE_REJECT(character)                                                 \
@@ -287,33 +287,46 @@ TerminalKey terminal_read_key(void) {
     }
     case 0x1B: { // ESC
       if (is_handling_control_sequence_reject) goto handle_esc_key;
-      else { // attempt to construct control sequence
-        int const intermediate_character = read_control_sequence_continuation_character();
-        if (intermediate_character == EOF) goto handle_esc_key;
 
-        if (intermediate_character != '[') {
-          ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
-          goto handle_esc_key;
-        }
+      // attempt to construct control sequence
+      int const character_2 = read_control_sequence_continuation_character();
+      if (character_2 == EOF) goto handle_esc_key;
+      if (character_2 != '[') goto reject_2_character_sequence;
 
-        int const final_character = read_control_sequence_continuation_character();
-        if (final_character == EOF) {
-          ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
-          goto handle_esc_key;
-        }
+      int const character_3 = read_control_sequence_continuation_character();
+      if (character_3 == EOF) goto reject_2_character_sequence;
 
-        switch (final_character) {
-          case 'A': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_UP);
-          case 'B': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_DOWN);
-          case 'C': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_RIGHT);
-          case 'D': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_LEFT);
-          default: {
-            ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
-            ENQUEUE_CONTROL_SEQUENCE_REJECT(final_character);
-            goto handle_esc_key;
-          }
+      int character_4;
+
+      switch (character_3) {
+        case 'A': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_UP);
+        case 'B': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_DOWN);
+        case 'C': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_RIGHT);
+        case 'D': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_LEFT);
+        case '3': {
+          character_4 = read_control_sequence_continuation_character();
+          if (character_4 == EOF) goto reject_3_character_sequence;
+          if (character_4 != '~') goto reject_4_character_sequence;
+
+          return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE);
         }
+        default: goto reject_3_character_sequence;
       }
+
+    reject_2_character_sequence:
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_2);
+      goto handle_esc_key;
+
+    reject_3_character_sequence:
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_2);
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_3);
+      goto handle_esc_key;
+
+    reject_4_character_sequence:
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_2);
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_3);
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_4);
+      goto handle_esc_key;
 
     handle_esc_key:
       goto handle_unknown_key;

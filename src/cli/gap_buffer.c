@@ -96,6 +96,17 @@ bool gap_buffer_delete_left(GapBuffer *const gap_buffer) {
   return true;
 }
 
+/**@desc delete character from `gap_buffer` right to cursor position (if such character exists)
+@return true if character was deleted, false otherwise*/
+bool gap_buffer_delete_right(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  if (gap_buffer->gap_end == gap_buffer->capacity) return false;
+
+  gap_buffer->gap_end++;
+  return true;
+}
+
 /**@desc clear `gap_buffer` content while preserving its internal buffer*/
 void gap_buffer_clear_content(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
