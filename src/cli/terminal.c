@@ -286,20 +286,20 @@ TerminalKey terminal_read_key(void) {
       return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
     }
     case 0x1B: { // ESC
-      if (is_handling_control_sequence_reject) goto esc_key;
+      if (is_handling_control_sequence_reject) goto handle_esc_key;
       else { // attempt to construct control sequence
         int const intermediate_character = read_control_sequence_continuation_character();
-        if (intermediate_character == EOF) goto esc_key;
+        if (intermediate_character == EOF) goto handle_esc_key;
 
         if (intermediate_character != '[') {
           ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
-          goto esc_key;
+          goto handle_esc_key;
         }
 
         int const final_character = read_control_sequence_continuation_character();
         if (final_character == EOF) {
           ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
-          goto esc_key;
+          goto handle_esc_key;
         }
 
         switch (final_character) {
@@ -310,20 +310,20 @@ TerminalKey terminal_read_key(void) {
           default: {
             ENQUEUE_CONTROL_SEQUENCE_REJECT(intermediate_character);
             ENQUEUE_CONTROL_SEQUENCE_REJECT(final_character);
-            goto esc_key;
+            goto handle_esc_key;
           }
         }
       }
 
-    esc_key:
-      goto unknown_key;
+    handle_esc_key:
+      goto handle_unknown_key;
     }
   }
 
   // handle printable characters
   if (character == '\n' || (character >= 32 && character < 127)) return MAKE_PRINTABLE_KEY(character);
 
-unknown_key:
+handle_unknown_key:
   // handle character(s) that do not constitute a known key type
   return MAKE_CONTROL_KEY(TERMINAL_KEY_UNKNOWN);
 
