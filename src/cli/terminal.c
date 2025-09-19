@@ -271,7 +271,7 @@ TerminalKey terminal_read_key(void) {
 
   /**@desc queue for characters rejected from control sequences*/
   static struct {
-    char frames[CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY - 1];
+    char frames[CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY];
     int frame_count, current_frame_index;
   } control_sequence_reject_queue = {0};
 
