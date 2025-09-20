@@ -120,7 +120,7 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 9, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 13, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_EOF: {
           io_printf("\n");
@@ -174,6 +174,10 @@ void repl_enter(void) {
           is_physical_line_modified = false;
           break;
         }
+        case TERMINAL_KEY_CTRL_ARROW_LEFT:
+        case TERMINAL_KEY_CTRL_ARROW_RIGHT:
+        case TERMINAL_KEY_CTRL_ARROW_UP:
+        case TERMINAL_KEY_CTRL_ARROW_DOWN:
         case TERMINAL_KEY_UNKNOWN: { // ignored
           break;
         }

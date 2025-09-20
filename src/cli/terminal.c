@@ -245,7 +245,7 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 TerminalKey terminal_read_key(void) {
-#define MAX_CONTROL_SEQUENCE_LENGTH 4
+#define MAX_CONTROL_SEQUENCE_LENGTH 6
 #define CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY MAX_CONTROL_SEQUENCE_LENGTH - 1
 
 #define ENQUEUE_CONTROL_SEQUENCE_REJECT(character)                                                 \
@@ -253,7 +253,6 @@ TerminalKey terminal_read_key(void) {
     assert(control_sequence_reject_queue.frame_count < CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY);    \
                                                                                                    \
     control_sequence_reject_queue.frames[control_sequence_reject_queue.frame_count] = (character); \
-                                                                                                   \
     control_sequence_reject_queue.frame_count++;                                                   \
   } while (0)
 
@@ -269,6 +268,15 @@ TerminalKey terminal_read_key(void) {
     else control_sequence_reject_queue.current_frame_index++;                                                   \
   } while (0)
 
+#define REJECT_CONTROL_SEQUENCE_CHARS(...)                          \
+  do {                                                              \
+    char const control_sequence_rejects[] = {__VA_ARGS__};          \
+    for (size_t i = 0; i < sizeof(control_sequence_rejects); i++) { \
+      ENQUEUE_CONTROL_SEQUENCE_REJECT(control_sequence_rejects[i]); \
+    }                                                               \
+    goto handle_esc_key;                                            \
+  } while (0)
+
   /**@desc queue for characters rejected from control sequences*/
   static struct {
     char frames[CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY];
@@ -276,12 +284,12 @@ TerminalKey terminal_read_key(void) {
   } control_sequence_reject_queue = {0};
 
   bool const is_handling_control_sequence_reject = control_sequence_reject_queue.frame_count;
-  int character;
-  if (is_handling_control_sequence_reject) DEQUEUE_CONTROL_SEQUENCE_REJECT(&character);
-  else character = read_character();
+  int char_1;
+  if (is_handling_control_sequence_reject) DEQUEUE_CONTROL_SEQUENCE_REJECT(&char_1);
+  else char_1 = read_character();
 
   // handle control sequence characters
-  switch (character) {
+  switch (char_1) {
     case 0x7F: { // DEL
       return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
     }
@@ -289,44 +297,46 @@ TerminalKey terminal_read_key(void) {
       if (is_handling_control_sequence_reject) goto handle_esc_key;
 
       // attempt to construct control sequence
-      int const character_2 = read_control_sequence_continuation_character();
-      if (character_2 == EOF) goto handle_esc_key;
-      if (character_2 != '[') goto reject_2_character_sequence;
+      int const char_2 = read_control_sequence_continuation_character();
+      if (char_2 == EOF) goto handle_esc_key;
+      if (char_2 != '[') REJECT_CONTROL_SEQUENCE_CHARS(char_2);
 
-      int const character_3 = read_control_sequence_continuation_character();
-      if (character_3 == EOF) goto reject_2_character_sequence;
-
-      int character_4;
-
-      switch (character_3) {
+      int const char_3 = read_control_sequence_continuation_character();
+      if (char_3 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2);
+      switch (char_3) {
         case 'A': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_UP);
         case 'B': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_DOWN);
         case 'C': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_RIGHT);
         case 'D': return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_LEFT);
+        case '1': {
+          int const char_4 = read_control_sequence_continuation_character();
+          if (char_4 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
+          if (char_4 != ';') REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4);
+
+          int const char_5 = read_control_sequence_continuation_character();
+          if (char_5 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4);
+          if (char_5 != '5') REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4, char_5);
+
+          int const char_6 = read_control_sequence_continuation_character();
+          if (char_6 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4, char_5);
+          switch (char_6) {
+            case 'A': return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_UP);
+            case 'B': return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_DOWN);
+            case 'C': return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_RIGHT);
+            case 'D': return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_LEFT);
+
+            default: REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4, char_5, char_6);
+          }
+        }
         case '3': {
-          character_4 = read_control_sequence_continuation_character();
-          if (character_4 == EOF) goto reject_3_character_sequence;
-          if (character_4 != '~') goto reject_4_character_sequence;
+          int const char_4 = read_control_sequence_continuation_character();
+          if (char_4 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
+          if (char_4 != '~') REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4);
 
           return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE);
         }
-        default: goto reject_3_character_sequence;
+        default: REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
       }
-
-    reject_2_character_sequence:
-      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_2);
-      goto handle_esc_key;
-
-    reject_3_character_sequence:
-      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_2);
-      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_3);
-      goto handle_esc_key;
-
-    reject_4_character_sequence:
-      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_2);
-      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_3);
-      ENQUEUE_CONTROL_SEQUENCE_REJECT(character_4);
-      goto handle_esc_key;
 
     handle_esc_key:
       goto handle_unknown_key;
@@ -334,7 +344,7 @@ TerminalKey terminal_read_key(void) {
   }
 
   // handle printable characters
-  if (character == '\n' || (character >= 32 && character < 127)) return MAKE_PRINTABLE_KEY(character);
+  if (char_1 == '\n' || (char_1 >= 32 && char_1 < 127)) return MAKE_PRINTABLE_KEY(char_1);
 
 handle_unknown_key:
   // handle character(s) that do not constitute a known key type
@@ -344,6 +354,7 @@ handle_unknown_key:
 #undef CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY
 #undef ENQUEUE_CONTROL_SEQUENCE_REJECT
 #undef DEQUEUE_CONTROL_SEQUENCE_REJECT
+#undef REJECT_CONTROL_SEQUENCE_CHARS
 }
 
 void terminal_clear_current_line(void) {
