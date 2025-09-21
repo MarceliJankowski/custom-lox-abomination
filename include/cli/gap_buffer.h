@@ -31,8 +31,10 @@ char *gap_buffer_get_content(GapBuffer const *gap_buffer);
 void gap_buffer_load_content(GapBuffer *gap_buffer, char const *new_content);
 void gap_buffer_print_content(GapBuffer const *gap_buffer);
 size_t gap_buffer_get_content_length(GapBuffer const *gap_buffer);
-void gap_buffer_move_cursor_left(GapBuffer *gap_buffer);
-void gap_buffer_move_cursor_right(GapBuffer *gap_buffer);
+void gap_buffer_move_cursor_left_by_char(GapBuffer *gap_buffer);
+void gap_buffer_move_cursor_left_by_word(GapBuffer *gap_buffer);
+void gap_buffer_move_cursor_right_by_char(GapBuffer *gap_buffer);
+void gap_buffer_move_cursor_right_by_word(GapBuffer *gap_buffer);
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *
