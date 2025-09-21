@@ -145,11 +145,19 @@ void repl_enter(void) {
           break;
         }
         case TERMINAL_KEY_ARROW_LEFT: {
-          gap_buffer_move_cursor_left(&physical_line);
+          gap_buffer_move_cursor_left_by_char(&physical_line);
+          break;
+        }
+        case TERMINAL_KEY_CTRL_ARROW_LEFT: {
+          gap_buffer_move_cursor_left_by_word(&physical_line);
           break;
         }
         case TERMINAL_KEY_ARROW_RIGHT: {
-          gap_buffer_move_cursor_right(&physical_line);
+          gap_buffer_move_cursor_right_by_char(&physical_line);
+          break;
+        }
+        case TERMINAL_KEY_CTRL_ARROW_RIGHT: {
+          gap_buffer_move_cursor_right_by_word(&physical_line);
           break;
         }
         case TERMINAL_KEY_ARROW_UP: {
@@ -174,8 +182,6 @@ void repl_enter(void) {
           is_physical_line_modified = false;
           break;
         }
-        case TERMINAL_KEY_CTRL_ARROW_LEFT:
-        case TERMINAL_KEY_CTRL_ARROW_RIGHT:
         case TERMINAL_KEY_CTRL_ARROW_UP:
         case TERMINAL_KEY_CTRL_ARROW_DOWN:
         case TERMINAL_KEY_UNKNOWN: { // ignored

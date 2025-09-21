@@ -1,5 +1,6 @@
 #include "cli/gap_buffer.h"
 
+#include "utils/character.h"
 #include "utils/error.h"
 #include "utils/io.h"
 
@@ -46,6 +47,42 @@ static void gap_buffer_grow(GapBuffer *const gap_buffer) {
   size_t const new_capacity = gap_buffer->capacity * GAP_BUFFER_GROWTH_FACTOR;
 
   gap_buffer_resize(gap_buffer, new_capacity);
+}
+
+/**@desc move `gap_buffer` cursor to `new_index`; `new_index` cannot exceed content length*/
+static void gap_buffer_move_cursor_to_index(GapBuffer *const gap_buffer, size_t const new_index) {
+  assert(gap_buffer != NULL);
+  assert(new_index <= gap_buffer_get_content_length(gap_buffer));
+
+  // don't move cursor
+  if (gap_buffer->gap_start == new_index) return;
+
+  // move cursor to the left
+  if (gap_buffer->gap_start > new_index) {
+    size_t const chars_to_move_count = gap_buffer->gap_start - new_index;
+    void *const source = gap_buffer->buffer + new_index;
+    void *const destination = gap_buffer->buffer + gap_buffer->gap_end - chars_to_move_count;
+    memmove(destination, source, chars_to_move_count);
+
+    gap_buffer->gap_start = new_index;
+    gap_buffer->gap_end -= chars_to_move_count;
+    return;
+  }
+
+  // move cursor to the right
+  size_t const chars_to_move_count = new_index - gap_buffer->gap_start;
+  void *const source = gap_buffer->buffer + gap_buffer->gap_end;
+  void *const destination = gap_buffer->buffer + gap_buffer->gap_start;
+  memmove(destination, source, chars_to_move_count);
+
+  gap_buffer->gap_start = new_index;
+  gap_buffer->gap_end += chars_to_move_count;
+}
+
+/**@desc determine whether `character` is a word boundary character
+@return true if it is, false otherwise*/
+static bool is_word_boundary_char(char const character) {
+  return character_is_whitespace(character);
 }
 
 // *---------------------------------------------*
@@ -177,7 +214,7 @@ inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
 }
 
 /**@desc move `gap_buffer` cursor one character to the left (if possible)*/
-void gap_buffer_move_cursor_left(GapBuffer *const gap_buffer) {
+void gap_buffer_move_cursor_left_by_char(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   if (gap_buffer->gap_start == 0) return;
@@ -187,8 +224,23 @@ void gap_buffer_move_cursor_left(GapBuffer *const gap_buffer) {
   gap_buffer->buffer[gap_buffer->gap_end] = gap_buffer->buffer[gap_buffer->gap_start];
 }
 
+/**@desc move `gap_buffer` cursor one word to the left (if possible)*/
+void gap_buffer_move_cursor_left_by_word(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  size_t new_index = gap_buffer_get_cursor_index(gap_buffer);
+
+  // skip word-boundary characters
+  while (new_index > 0 && is_word_boundary_char(gap_buffer->buffer[new_index - 1])) new_index--;
+
+  // skip word characters
+  while (new_index > 0 && !is_word_boundary_char(gap_buffer->buffer[new_index - 1])) new_index--;
+
+  gap_buffer_move_cursor_to_index(gap_buffer, new_index);
+}
+
 /**@desc move `gap_buffer` cursor one character to the right (if possible)*/
-void gap_buffer_move_cursor_right(GapBuffer *const gap_buffer) {
+void gap_buffer_move_cursor_right_by_char(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   if (gap_buffer->gap_end == gap_buffer->capacity) return;
@@ -196,4 +248,20 @@ void gap_buffer_move_cursor_right(GapBuffer *const gap_buffer) {
   gap_buffer->buffer[gap_buffer->gap_start] = gap_buffer->buffer[gap_buffer->gap_end];
   gap_buffer->gap_start++;
   gap_buffer->gap_end++;
+}
+
+/**@desc move `gap_buffer` cursor one word to the right (if possible)*/
+void gap_buffer_move_cursor_right_by_word(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  size_t const content_length = gap_buffer_get_content_length(gap_buffer);
+  size_t new_index = gap_buffer_get_cursor_index(gap_buffer);
+
+  // skip word-boundary characters
+  while (new_index < content_length && is_word_boundary_char(gap_buffer->buffer[new_index])) new_index++;
+
+  // skip word characters
+  while (new_index < content_length && !is_word_boundary_char(gap_buffer->buffer[new_index])) new_index++;
+
+  gap_buffer_move_cursor_to_index(gap_buffer, new_index);
 }
