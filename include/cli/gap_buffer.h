@@ -38,9 +38,9 @@ void gap_buffer_move_cursor_right(GapBuffer *gap_buffer);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc get `gap_buffer` cursor position
-@return index representing cursor position*/
-inline size_t gap_buffer_get_cursor_position(GapBuffer const *const gap_buffer) {
+/**@desc get `gap_buffer` cursor index
+@return cursor index*/
+inline size_t gap_buffer_get_cursor_index(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   return gap_buffer->gap_start;

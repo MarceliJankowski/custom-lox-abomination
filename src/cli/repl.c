@@ -109,11 +109,11 @@ void repl_enter(void) {
         int const prompt_length = io_printf(prompt);
         gap_buffer_print_content(&physical_line);
 
-        size_t const new_cursor_position = gap_buffer_get_cursor_position(&physical_line) + prompt_length;
-        terminal_move_cursor_to_column(new_cursor_position);
+        size_t const new_cursor_index = gap_buffer_get_cursor_index(&physical_line) + prompt_length;
+        terminal_move_cursor_to_column(new_cursor_index);
       }
 
-      bool const can_browse_history = !is_physical_line_modified || gap_buffer_get_cursor_position(&physical_line) == 0;
+      bool const can_browse_history = !is_physical_line_modified || gap_buffer_get_cursor_index(&physical_line) == 0;
 
       // read input key
       TerminalKey const key = terminal_read_key();
