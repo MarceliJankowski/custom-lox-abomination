@@ -22,22 +22,26 @@ static struct {
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc determine whether given `character` is a digit*/
+/**@desc determine whether `character` is a digit
+@return true if it is, false otherwise*/
 static inline bool is_digit(char const character) {
   return character >= '0' && character <= '9';
 }
 
-/**@desc determine whether given `character` can begin identifier literal*/
+/**@desc determine whether `character` can begin identifier literal
+@return true if it can, false otherwise*/
 static inline bool can_begin_identifier_literal(char const character) {
   return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
 }
 
-/**@desc determine whether given `character` can be a part of identifier literal*/
+/**@desc determine whether `character` can be a part of identifier literal
+@return true if it can, false otherwise*/
 static inline bool can_constitute_identifier_literal(char const character) {
   return can_begin_identifier_literal(character) || is_digit(character);
 }
 
-/**@desc determine whether lexer reached source code end*/
+/**@desc determine whether lexer reached source code end
+@return true if it did, false otherwise*/
 static inline bool lexer_reached_end(void) {
   return *lexer.char_cursor == '\0';
 }
@@ -49,7 +53,8 @@ static inline char lexer_advance(void) {
   return *lexer.char_cursor++;
 }
 
-/**@desc determine whether `expected_char` matches lexer.char_cursor and call lexer_advance if it does*/
+/**@desc determine whether `expected_char` matches lexer.char_cursor and call lexer_advance if it does
+@return true if it does, false otherwise*/
 static inline bool lexer_match(char const expected_char) {
   if (*lexer.char_cursor != expected_char) return false;
   lexer_advance();
