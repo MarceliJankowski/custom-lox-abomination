@@ -16,7 +16,7 @@
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-size_t gap_buffer_get_cursor_position(GapBuffer const *gap_buffer);
+size_t gap_buffer_get_cursor_index(GapBuffer const *gap_buffer);
 
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
@@ -72,20 +72,20 @@ void gap_buffer_destroy(GapBuffer *const gap_buffer) {
   *gap_buffer = (GapBuffer){0};
 }
 
-/**@desc insert into `gap_buffer` a `character` at cursor position*/
+/**@desc insert into `gap_buffer` a `character` at cursor index*/
 void gap_buffer_insert(GapBuffer *const gap_buffer, char const character) {
   assert(gap_buffer != NULL);
 
   // grow if needed
   if (gap_buffer->gap_start == gap_buffer->gap_end) gap_buffer_grow(gap_buffer);
 
-  // insert character at cursor position
-  size_t const cursor_position = gap_buffer->gap_start;
-  gap_buffer->buffer[cursor_position] = character;
+  // insert character at cursor index
+  size_t const cursor_index = gap_buffer->gap_start;
+  gap_buffer->buffer[cursor_index] = character;
   gap_buffer->gap_start++;
 }
 
-/**@desc delete character from `gap_buffer` left to cursor position (if such character exists)
+/**@desc delete character from `gap_buffer` left to cursor (if such character exists)
 @return true if character was deleted, false otherwise*/
 bool gap_buffer_delete_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -96,7 +96,7 @@ bool gap_buffer_delete_left(GapBuffer *const gap_buffer) {
   return true;
 }
 
-/**@desc delete character from `gap_buffer` right to cursor position (if such character exists)
+/**@desc delete character from `gap_buffer` right to cursor (if such character exists)
 @return true if character was deleted, false otherwise*/
 bool gap_buffer_delete_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -176,7 +176,7 @@ inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
   free(content);
 }
 
-/**@desc move `gap_buffer` cursor one position to the left (if possible)*/
+/**@desc move `gap_buffer` cursor one character to the left (if possible)*/
 void gap_buffer_move_cursor_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -187,7 +187,7 @@ void gap_buffer_move_cursor_left(GapBuffer *const gap_buffer) {
   gap_buffer->buffer[gap_buffer->gap_end] = gap_buffer->buffer[gap_buffer->gap_start];
 }
 
-/**@desc move `gap_buffer` cursor one position to the right (if possible)*/
+/**@desc move `gap_buffer` cursor one character to the right (if possible)*/
 void gap_buffer_move_cursor_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
