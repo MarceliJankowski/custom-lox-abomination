@@ -22,4 +22,10 @@ inline bool character_is_whitespace(char const character) {
   }
 }
 
+/**@desc determine whether `character` is a digit
+@return true if it is, false otherwise*/
+inline bool character_is_digit(char const character) {
+  return character >= '0' && character <= '9';
+}
+
 #endif // CHARACTER_H

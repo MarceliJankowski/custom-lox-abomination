@@ -5,3 +5,4 @@
 // *---------------------------------------------*
 
 bool character_is_whitespace(char character);
+bool character_is_digit(char character);

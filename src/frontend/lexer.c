@@ -1,5 +1,6 @@
 #include "frontend/lexer.h"
 
+#include "utils/character.h"
 #include "utils/debug.h"
 #include "utils/io.h"
 
@@ -22,12 +23,6 @@ static struct {
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc determine whether `character` is a digit
-@return true if it is, false otherwise*/
-static inline bool is_digit(char const character) {
-  return character >= '0' && character <= '9';
-}
-
 /**@desc determine whether `character` can begin identifier literal
 @return true if it can, false otherwise*/
 static inline bool can_begin_identifier_literal(char const character) {
@@ -37,7 +32,7 @@ static inline bool can_begin_identifier_literal(char const character) {
 /**@desc determine whether `character` can be a part of identifier literal
 @return true if it can, false otherwise*/
 static inline bool can_constitute_identifier_literal(char const character) {
-  return can_begin_identifier_literal(character) || is_digit(character);
+  return can_begin_identifier_literal(character) || character_is_digit(character);
 }
 
 /**@desc determine whether lexer reached source code end
@@ -148,13 +143,13 @@ static LexerToken lexer_tokenize_string_literal(void) {
 @return numeric literal token*/
 static LexerToken lexer_tokenize_numeric_literal(void) {
   // advance past integer part
-  while (is_digit(lexer_peek())) lexer_advance();
+  while (character_is_digit(lexer_peek())) lexer_advance();
 
-  if (lexer_peek() == '.' && is_digit(lexer_peek_next())) {
+  if (lexer_peek() == '.' && character_is_digit(lexer_peek_next())) {
     lexer_advance(); // advance past decimal point
 
     // advance past fractional part
-    while (is_digit(lexer_peek())) lexer_advance();
+    while (character_is_digit(lexer_peek())) lexer_advance();
   }
 
   return lexer_make_token(LEXER_TOKEN_NUMBER);
@@ -285,7 +280,7 @@ LexerToken lexer_scan(void) {
 
   // literals
   if (previous_char == '"') return lexer_tokenize_string_literal();
-  if (is_digit(previous_char)) return lexer_tokenize_numeric_literal();
+  if (character_is_digit(previous_char)) return lexer_tokenize_numeric_literal();
   if (can_begin_identifier_literal(previous_char)) return lexer_tokenize_identifier_literal();
 
   static_assert(LEXER_TOKEN_SINGLE_CHAR_COUNT == 18, "Exhaustive single-character token handling");
