@@ -23,16 +23,16 @@ static struct {
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc determine whether `character` can begin identifier literal
-@return true if it can, false otherwise*/
-static inline bool can_begin_identifier_literal(char const character) {
-  return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
-}
-
 /**@desc determine whether `character` can be a part of identifier literal
 @return true if it can, false otherwise*/
 static inline bool can_constitute_identifier_literal(char const character) {
-  return can_begin_identifier_literal(character) || character_is_digit(character);
+  return character_is_alphanumeric(character) || character == '_';
+}
+
+/**@desc determine whether `character` can begin identifier literal
+@return true if it can, false otherwise*/
+static inline bool can_begin_identifier_literal(char const character) {
+  return can_constitute_identifier_literal(character) && !character_is_digit(character);
 }
 
 /**@desc determine whether lexer reached source code end

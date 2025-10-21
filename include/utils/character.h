@@ -28,4 +28,11 @@ inline bool character_is_digit(char const character) {
   return character >= '0' && character <= '9';
 }
 
+/**@desc determine whether `character` is alphanumeric
+@return true if it is, false otherwise*/
+inline bool character_is_alphanumeric(char const character) {
+  return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') ||
+         character_is_digit(character);
+}
+
 #endif // CHARACTER_H
