@@ -54,8 +54,8 @@ abort_action_pipeline() {
 log_action "Checking required formatter availability and version conformance"
 if ! is_cmd_available "clang-format"; then
   error "clang-format is unavailable" $GENERIC_ERROR_CODE
-elif [[ $(clang-format --version) != "clang-format version 20."* ]]; then
-  error "clang-format version doesn't conform to required '^20.0.0'" $GENERIC_ERROR_CODE
+elif [[ $(clang-format --version) != "clang-format version 21."* ]]; then
+  error "clang-format version doesn't conform to required '^21.0.0'" $GENERIC_ERROR_CODE
 fi
 if ! is_cmd_available "stylua"; then
   error "stylua is unavailable" $GENERIC_ERROR_CODE
