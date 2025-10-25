@@ -290,6 +290,9 @@ TerminalKey terminal_read_key(void) {
 
   // handle control sequence characters
   switch (char_1) {
+    case 0x4: { // EOT
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_EOF);
+    }
     case 0x7F: { // DEL
       return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
     }
