@@ -82,7 +82,7 @@ static void gap_buffer_move_cursor_to_index(GapBuffer *const gap_buffer, size_t 
 /**@desc determine whether `character` is a word boundary character
 @return true if it is, false otherwise*/
 static bool is_word_boundary_char(char const character) {
-  return character_is_whitespace(character);
+  return !character_is_alphanumeric(character) && character != '_';
 }
 
 // *---------------------------------------------*
