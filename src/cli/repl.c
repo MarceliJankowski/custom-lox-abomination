@@ -120,7 +120,7 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 23, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 24, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_PRINTABLE: {
           if (key.printable.character == '\n') {
@@ -182,6 +182,7 @@ void repl_enter(void) {
           gap_buffer_move_cursor_right_by_word(&physical_line);
           break;
         }
+        case TERMINAL_KEY_CTRL_P:
         case TERMINAL_KEY_ARROW_UP: {
           if (!can_browse_history) break;
 
