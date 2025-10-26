@@ -120,18 +120,22 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 13, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 14, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_EOF: {
           io_printf("\n");
           goto clean_up;
         }
-        case TERMINAL_KEY_BACKSPACE: {
-          if (gap_buffer_delete_left(&physical_line)) is_physical_line_modified = true;
+        case TERMINAL_KEY_DELETE_LEFT_CHAR: {
+          if (gap_buffer_delete_left_char(&physical_line)) is_physical_line_modified = true;
           break;
         }
-        case TERMINAL_KEY_DELETE: {
-          if (gap_buffer_delete_right(&physical_line)) is_physical_line_modified = true;
+        case TERMINAL_KEY_DELETE_LEFT_WORD: {
+          if (gap_buffer_delete_left_word(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_DELETE_RIGHT_CHAR: {
+          if (gap_buffer_delete_right_char(&physical_line)) is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {
@@ -140,7 +144,7 @@ void repl_enter(void) {
             goto handle_physical_line_end;
           }
 
-          gap_buffer_insert(&physical_line, key.printable.character);
+          gap_buffer_insert_char(&physical_line, key.printable.character);
           is_physical_line_modified = true;
           break;
         }

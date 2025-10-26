@@ -295,7 +295,10 @@ TerminalKey terminal_read_key(void) {
     }
     case 0x8: // BS (Ctrl-H)
     case 0x7F: { // DEL
-      return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LEFT_CHAR);
+    }
+    case 0x17: { // ETB (Ctrl-W)
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LEFT_WORD);
     }
     case 0x1B: { // ESC
       if (is_handling_control_sequence_reject) goto handle_esc_key;
@@ -337,7 +340,7 @@ TerminalKey terminal_read_key(void) {
           if (char_4 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
           if (char_4 != '~') REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4);
 
-          return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE);
+          return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_RIGHT_CHAR);
         }
         default: REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
       }
