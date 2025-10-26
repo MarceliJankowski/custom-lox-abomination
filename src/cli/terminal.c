@@ -290,11 +290,11 @@ TerminalKey terminal_read_key(void) {
 
   // handle control sequence characters
   switch (char_1) {
-    case 0x04: { // EOT
+    case 0x04: { // EOT (Ctrl-D)
       return MAKE_CONTROL_KEY(TERMINAL_KEY_EOF);
     }
     case 0x08: // BS (Ctrl-H)
-    case 0x7F: { // DEL (Ctrl-Backspace)
+    case 0x7F: { // DEL (Backspace)
       return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_CHAR_LEFT);
     }
     case 0x17: { // ETB (Ctrl-W)
