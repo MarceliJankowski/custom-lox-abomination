@@ -79,10 +79,16 @@ static void gap_buffer_move_cursor_to_index(GapBuffer *const gap_buffer, size_t 
   gap_buffer->gap_end += chars_to_move_count;
 }
 
+/**@desc determine whether `character` is a word character
+@return true if it is, false otherwise*/
+static inline bool is_word_char(char const character) {
+  return character_is_alphanumeric(character) || character == '_';
+}
+
 /**@desc determine whether `character` is a word boundary character
 @return true if it is, false otherwise*/
-static bool is_word_boundary_char(char const character) {
-  return !character_is_alphanumeric(character) && character != '_';
+static inline bool is_word_boundary_char(char const character) {
+  return !is_word_char(character);
 }
 
 // *---------------------------------------------*
@@ -138,7 +144,7 @@ bool gap_buffer_delete_left_char(GapBuffer *const gap_buffer) {
 bool gap_buffer_delete_left_word(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
-  size_t const original_gap_start = gap_buffer->gap_start;
+  size_t const initial_gap_start = gap_buffer->gap_start;
 
   // delete word-boundary characters
   while (gap_buffer->gap_start > 0 && is_word_boundary_char(gap_buffer->buffer[gap_buffer->gap_start - 1])) {
@@ -146,11 +152,11 @@ bool gap_buffer_delete_left_word(GapBuffer *const gap_buffer) {
   }
 
   // delete word characters
-  while (gap_buffer->gap_start > 0 && !is_word_boundary_char(gap_buffer->buffer[gap_buffer->gap_start - 1])) {
+  while (gap_buffer->gap_start > 0 && is_word_char(gap_buffer->buffer[gap_buffer->gap_start - 1])) {
     gap_buffer->gap_start--;
   }
 
-  return gap_buffer->gap_start != original_gap_start;
+  return gap_buffer->gap_start != initial_gap_start;
 }
 
 /**@desc delete character from `gap_buffer` right to cursor (if such character exists)
@@ -162,6 +168,26 @@ bool gap_buffer_delete_right_char(GapBuffer *const gap_buffer) {
 
   gap_buffer->gap_end++;
   return true;
+}
+
+/**@desc delete word from `gap_buffer` right to cursor (if such word exists)
+@return true if word was deleted, false otherwise*/
+bool gap_buffer_delete_right_word(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  size_t const initial_gap_end = gap_buffer->gap_end;
+
+  // delete word-boundary characters
+  while (gap_buffer->gap_end < gap_buffer->capacity && is_word_boundary_char(gap_buffer->buffer[gap_buffer->gap_end])) {
+    gap_buffer->gap_end++;
+  }
+
+  // delete word characters
+  while (gap_buffer->gap_end < gap_buffer->capacity && is_word_char(gap_buffer->buffer[gap_buffer->gap_end])) {
+    gap_buffer->gap_end++;
+  }
+
+  return gap_buffer->gap_end != initial_gap_end;
 }
 
 /**@desc clear `gap_buffer` content while preserving its internal buffer*/
@@ -254,7 +280,7 @@ void gap_buffer_move_cursor_left_by_word(GapBuffer *const gap_buffer) {
   while (new_index > 0 && is_word_boundary_char(gap_buffer->buffer[new_index - 1])) new_index--;
 
   // skip word characters
-  while (new_index > 0 && !is_word_boundary_char(gap_buffer->buffer[new_index - 1])) new_index--;
+  while (new_index > 0 && is_word_char(gap_buffer->buffer[new_index - 1])) new_index--;
 
   gap_buffer_move_cursor_to_index(gap_buffer, new_index);
 }
@@ -281,7 +307,7 @@ void gap_buffer_move_cursor_right_by_word(GapBuffer *const gap_buffer) {
   while (new_index < content_length && is_word_boundary_char(gap_buffer->buffer[new_index])) new_index++;
 
   // skip word characters
-  while (new_index < content_length && !is_word_boundary_char(gap_buffer->buffer[new_index])) new_index++;
+  while (new_index < content_length && is_word_char(gap_buffer->buffer[new_index])) new_index++;
 
   gap_buffer_move_cursor_to_index(gap_buffer, new_index);
 }

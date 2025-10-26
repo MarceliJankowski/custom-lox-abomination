@@ -306,6 +306,7 @@ TerminalKey terminal_read_key(void) {
       // attempt to construct control sequence
       int const char_2 = read_control_sequence_continuation_character();
       if (char_2 == EOF) goto handle_esc_key;
+      if (char_2 == 'd') return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_RIGHT_WORD);
       if (char_2 != '[') REJECT_CONTROL_SEQUENCE_CHARS(char_2);
 
       int const char_3 = read_control_sequence_continuation_character();
