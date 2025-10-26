@@ -24,10 +24,11 @@ typedef struct {
 void gap_buffer_init(GapBuffer *gap_buffer, size_t initial_capacity);
 void gap_buffer_destroy(GapBuffer *gap_buffer);
 void gap_buffer_insert_char(GapBuffer *gap_buffer, char character);
-bool gap_buffer_delete_left_char(GapBuffer *gap_buffer);
-bool gap_buffer_delete_left_word(GapBuffer *gap_buffer);
-bool gap_buffer_delete_right_char(GapBuffer *gap_buffer);
-bool gap_buffer_delete_right_word(GapBuffer *gap_buffer);
+bool gap_buffer_delete_char_left(GapBuffer *gap_buffer);
+bool gap_buffer_delete_char_right(GapBuffer *gap_buffer);
+bool gap_buffer_delete_word_left(GapBuffer *gap_buffer);
+bool gap_buffer_delete_word_right(GapBuffer *gap_buffer);
+bool gap_buffer_delete_content_left(GapBuffer *gap_buffer);
 void gap_buffer_clear_content(GapBuffer *gap_buffer);
 char *gap_buffer_get_content(GapBuffer const *gap_buffer);
 void gap_buffer_load_content(GapBuffer *gap_buffer, char const *new_content);
