@@ -295,10 +295,13 @@ TerminalKey terminal_read_key(void) {
     }
     case 0x8: // BS (Ctrl-H)
     case 0x7F: { // DEL
-      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LEFT_CHAR);
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_CHAR_LEFT);
     }
     case 0x17: { // ETB (Ctrl-W)
-      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LEFT_WORD);
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_WORD_LEFT);
+    }
+    case 0x15: { // NAK (Ctrl-U)
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LINE_LEFT);
     }
     case 0x1B: { // ESC
       if (is_handling_control_sequence_reject) goto handle_esc_key;
@@ -306,7 +309,7 @@ TerminalKey terminal_read_key(void) {
       // attempt to construct control sequence
       int const char_2 = read_control_sequence_continuation_character();
       if (char_2 == EOF) goto handle_esc_key;
-      if (char_2 == 'd') return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_RIGHT_WORD);
+      if (char_2 == 'd') return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_WORD_RIGHT);
       if (char_2 != '[') REJECT_CONTROL_SEQUENCE_CHARS(char_2);
 
       int const char_3 = read_control_sequence_continuation_character();
@@ -341,7 +344,7 @@ TerminalKey terminal_read_key(void) {
           if (char_4 == EOF) REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
           if (char_4 != '~') REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3, char_4);
 
-          return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_RIGHT_CHAR);
+          return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_CHAR_RIGHT);
         }
         default: REJECT_CONTROL_SEQUENCE_CHARS(char_2, char_3);
       }

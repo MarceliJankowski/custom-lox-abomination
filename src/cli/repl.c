@@ -120,26 +120,30 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 15, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 16, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_EOF: {
           io_printf("\n");
           goto clean_up;
         }
-        case TERMINAL_KEY_DELETE_LEFT_CHAR: {
-          if (gap_buffer_delete_left_char(&physical_line)) is_physical_line_modified = true;
+        case TERMINAL_KEY_DELETE_CHAR_LEFT: {
+          if (gap_buffer_delete_char_left(&physical_line)) is_physical_line_modified = true;
           break;
         }
-        case TERMINAL_KEY_DELETE_LEFT_WORD: {
-          if (gap_buffer_delete_left_word(&physical_line)) is_physical_line_modified = true;
+        case TERMINAL_KEY_DELETE_CHAR_RIGHT: {
+          if (gap_buffer_delete_char_right(&physical_line)) is_physical_line_modified = true;
           break;
         }
-        case TERMINAL_KEY_DELETE_RIGHT_CHAR: {
-          if (gap_buffer_delete_right_char(&physical_line)) is_physical_line_modified = true;
+        case TERMINAL_KEY_DELETE_WORD_LEFT: {
+          if (gap_buffer_delete_word_left(&physical_line)) is_physical_line_modified = true;
           break;
         }
-        case TERMINAL_KEY_DELETE_RIGHT_WORD: {
-          if (gap_buffer_delete_right_word(&physical_line)) is_physical_line_modified = true;
+        case TERMINAL_KEY_DELETE_WORD_RIGHT: {
+          if (gap_buffer_delete_word_right(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_DELETE_LINE_LEFT: {
+          if (gap_buffer_delete_content_left(&physical_line)) is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {

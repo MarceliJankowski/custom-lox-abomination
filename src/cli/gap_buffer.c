@@ -130,7 +130,7 @@ void gap_buffer_insert_char(GapBuffer *const gap_buffer, char const character) {
 
 /**@desc delete character from `gap_buffer` left to cursor (if such character exists)
 @return true if character was deleted, false otherwise*/
-bool gap_buffer_delete_left_char(GapBuffer *const gap_buffer) {
+bool gap_buffer_delete_char_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   if (gap_buffer->gap_start == 0) return false;
@@ -139,9 +139,20 @@ bool gap_buffer_delete_left_char(GapBuffer *const gap_buffer) {
   return true;
 }
 
+/**@desc delete character from `gap_buffer` right to cursor (if such character exists)
+@return true if character was deleted, false otherwise*/
+bool gap_buffer_delete_char_right(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  if (gap_buffer->gap_end == gap_buffer->capacity) return false;
+
+  gap_buffer->gap_end++;
+  return true;
+}
+
 /**@desc delete word from `gap_buffer` left to cursor (if such word exists)
 @return true if word was deleted, false otherwise*/
-bool gap_buffer_delete_left_word(GapBuffer *const gap_buffer) {
+bool gap_buffer_delete_word_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   size_t const initial_gap_start = gap_buffer->gap_start;
@@ -159,20 +170,9 @@ bool gap_buffer_delete_left_word(GapBuffer *const gap_buffer) {
   return gap_buffer->gap_start != initial_gap_start;
 }
 
-/**@desc delete character from `gap_buffer` right to cursor (if such character exists)
-@return true if character was deleted, false otherwise*/
-bool gap_buffer_delete_right_char(GapBuffer *const gap_buffer) {
-  assert(gap_buffer != NULL);
-
-  if (gap_buffer->gap_end == gap_buffer->capacity) return false;
-
-  gap_buffer->gap_end++;
-  return true;
-}
-
 /**@desc delete word from `gap_buffer` right to cursor (if such word exists)
 @return true if word was deleted, false otherwise*/
-bool gap_buffer_delete_right_word(GapBuffer *const gap_buffer) {
+bool gap_buffer_delete_word_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
   size_t const initial_gap_end = gap_buffer->gap_end;
@@ -188,6 +188,18 @@ bool gap_buffer_delete_right_word(GapBuffer *const gap_buffer) {
   }
 
   return gap_buffer->gap_end != initial_gap_end;
+}
+
+/**@desc delete content from `gap_buffer` left to cursor (if such content exists)
+@return true if content was deleted, false otherwise*/
+bool gap_buffer_delete_content_left(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  size_t const initial_gap_start = gap_buffer->gap_start;
+
+  gap_buffer->gap_start = 0;
+
+  return initial_gap_start != gap_buffer->gap_start;
 }
 
 /**@desc clear `gap_buffer` content while preserving its internal buffer*/
