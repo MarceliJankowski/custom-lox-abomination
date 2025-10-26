@@ -120,36 +120,8 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 17, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 19, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
-        case TERMINAL_KEY_EOF: {
-          io_printf("\n");
-          goto clean_up;
-        }
-        case TERMINAL_KEY_DELETE_CHAR_LEFT: {
-          if (gap_buffer_delete_char_left(&physical_line)) is_physical_line_modified = true;
-          break;
-        }
-        case TERMINAL_KEY_DELETE_CHAR_RIGHT: {
-          if (gap_buffer_delete_char_right(&physical_line)) is_physical_line_modified = true;
-          break;
-        }
-        case TERMINAL_KEY_DELETE_WORD_LEFT: {
-          if (gap_buffer_delete_word_left(&physical_line)) is_physical_line_modified = true;
-          break;
-        }
-        case TERMINAL_KEY_DELETE_WORD_RIGHT: {
-          if (gap_buffer_delete_word_right(&physical_line)) is_physical_line_modified = true;
-          break;
-        }
-        case TERMINAL_KEY_DELETE_LINE_LEFT: {
-          if (gap_buffer_delete_content_left(&physical_line)) is_physical_line_modified = true;
-          break;
-        }
-        case TERMINAL_KEY_DELETE_LINE_RIGHT: {
-          if (gap_buffer_delete_content_right(&physical_line)) is_physical_line_modified = true;
-          break;
-        }
         case TERMINAL_KEY_PRINTABLE: {
           if (key.printable.character == '\n') {
             io_printf("\n");
@@ -158,6 +130,36 @@ void repl_enter(void) {
 
           gap_buffer_insert_char(&physical_line, key.printable.character);
           is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_EOF:
+        case TERMINAL_KEY_CTRL_D: {
+          io_printf("\n");
+          goto clean_up;
+        }
+        case TERMINAL_KEY_CTRL_H:
+        case TERMINAL_KEY_BACKSPACE: {
+          if (gap_buffer_delete_char_left(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_DELETE: {
+          if (gap_buffer_delete_char_right(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_CTRL_W: {
+          if (gap_buffer_delete_word_left(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_ALT_D: {
+          if (gap_buffer_delete_word_right(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_CTRL_U: {
+          if (gap_buffer_delete_content_left(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_CTRL_K: {
+          if (gap_buffer_delete_content_right(&physical_line)) is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_ARROW_LEFT: {
