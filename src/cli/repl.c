@@ -120,7 +120,7 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 14, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 15, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_EOF: {
           io_printf("\n");
@@ -136,6 +136,10 @@ void repl_enter(void) {
         }
         case TERMINAL_KEY_DELETE_RIGHT_CHAR: {
           if (gap_buffer_delete_right_char(&physical_line)) is_physical_line_modified = true;
+          break;
+        }
+        case TERMINAL_KEY_DELETE_RIGHT_WORD: {
+          if (gap_buffer_delete_right_word(&physical_line)) is_physical_line_modified = true;
           break;
         }
         case TERMINAL_KEY_PRINTABLE: {
