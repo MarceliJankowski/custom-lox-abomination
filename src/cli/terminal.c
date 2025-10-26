@@ -290,11 +290,11 @@ TerminalKey terminal_read_key(void) {
 
   // handle control sequence characters
   switch (char_1) {
-    case 0x4: { // EOT
+    case 0x04: { // EOT
       return MAKE_CONTROL_KEY(TERMINAL_KEY_EOF);
     }
-    case 0x8: // BS (Ctrl-H)
-    case 0x7F: { // DEL
+    case 0x08: // BS (Ctrl-H)
+    case 0x7F: { // DEL (Ctrl-Backspace)
       return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_CHAR_LEFT);
     }
     case 0x17: { // ETB (Ctrl-W)
@@ -302,6 +302,9 @@ TerminalKey terminal_read_key(void) {
     }
     case 0x15: { // NAK (Ctrl-U)
       return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LINE_LEFT);
+    }
+    case 0x0B: { // VT (Ctrl-K)
+      return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE_LINE_RIGHT);
     }
     case 0x1B: { // ESC
       if (is_handling_control_sequence_reject) goto handle_esc_key;

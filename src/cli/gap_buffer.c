@@ -202,6 +202,18 @@ bool gap_buffer_delete_content_left(GapBuffer *const gap_buffer) {
   return initial_gap_start != gap_buffer->gap_start;
 }
 
+/**@desc delete content from `gap_buffer` right to cursor (if such content exists)
+@return true if content was deleted, false otherwise*/
+bool gap_buffer_delete_content_right(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  size_t const initial_gap_end = gap_buffer->gap_end;
+
+  gap_buffer->gap_end = gap_buffer->capacity;
+
+  return initial_gap_end != gap_buffer->gap_end;
+}
+
 /**@desc clear `gap_buffer` content while preserving its internal buffer*/
 void gap_buffer_clear_content(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
