@@ -335,3 +335,10 @@ void gap_buffer_move_cursor_right_by_word(GapBuffer *const gap_buffer) {
 
   gap_buffer_move_cursor_to_index(gap_buffer, new_index);
 }
+
+/**@desc move `gap_buffer` cursor to the start of content (if possible)*/
+void gap_buffer_move_cursor_to_start(GapBuffer *const gap_buffer) {
+  assert(gap_buffer != NULL);
+
+  gap_buffer_move_cursor_to_index(gap_buffer, 0);
+}

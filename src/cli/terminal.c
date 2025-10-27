@@ -294,6 +294,7 @@ TerminalKey terminal_read_key(void) {
 
   // handle control sequence characters
   switch (char_1) {
+    case 0x01: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_A);
     case 0x02: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_B);
     case 0x04: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_D);
     case 0x06: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_F);
