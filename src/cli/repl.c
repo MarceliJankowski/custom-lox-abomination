@@ -120,7 +120,7 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 27, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 28, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_PRINTABLE: {
           if (key.printable.character == '\n') {
@@ -166,10 +166,6 @@ void repl_enter(void) {
           if (gap_buffer_delete_content_right(&physical_line)) is_physical_line_modified = true;
           break;
         }
-        case TERMINAL_KEY_CTRL_A: {
-          gap_buffer_move_cursor_to_start(&physical_line);
-          break;
-        }
         case TERMINAL_KEY_CTRL_B:
         case TERMINAL_KEY_ARROW_LEFT: {
           gap_buffer_move_cursor_left_by_char(&physical_line);
@@ -188,6 +184,14 @@ void repl_enter(void) {
         case TERMINAL_KEY_ALT_F:
         case TERMINAL_KEY_CTRL_ARROW_RIGHT: {
           gap_buffer_move_cursor_right_by_word(&physical_line);
+          break;
+        }
+        case TERMINAL_KEY_CTRL_A: {
+          gap_buffer_move_cursor_to_start(&physical_line);
+          break;
+        }
+        case TERMINAL_KEY_CTRL_E: {
+          gap_buffer_move_cursor_to_end(&physical_line);
           break;
         }
         case TERMINAL_KEY_CTRL_P:
