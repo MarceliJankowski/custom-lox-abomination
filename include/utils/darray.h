@@ -28,7 +28,7 @@
 @param darray_ptr pointer to dynamic array
 @param data_obj_size size in bytes of objects that comprise data (must be positive)
 @param memory_manager_ptr pointer to MemoryManagerFn
-@param init_growth_capacity initial capacity in bytes to be allocated during first growth (must be positive)
+@param init_growth_capacity initial data object capacity to be allocated during first growth (must be positive)
 @param growth_factor double specifying rate at which capacity should grow (must be greater than 1)*/
 #define DARRAY_INIT_EXPLICIT(darray_ptr, data_obj_size, memory_manager_ptr, init_growth_capacity, growth_factor) \
   do {                                                                                                           \
@@ -88,7 +88,7 @@
 
 /**@desc resize `darray_ptr` to `new_capacity`
 @param darray_ptr pointer to initialized dynamic array
-@param new_capacity capacity in bytes (must be non-negative)*/
+@param new_capacity data object capacity (must be non-negative)*/
 #define DARRAY__RESIZE(darray_ptr, new_capacity)                                                                 \
   do {                                                                                                           \
     assert((darray_ptr) != NULL);                                                                                \
@@ -110,7 +110,7 @@
 
 /**@desc resize `darray_ptr` to at least `min_capacity`
 @param darray_ptr pointer to initialized dynamic array
-@param min_capacity minimum capacity in bytes (must be positive)*/
+@param min_capacity minimum data object capacity (must be positive)*/
 #define DARRAY_RESERVE(darray_ptr, min_capacity)                      \
   do {                                                                \
     assert((darray_ptr) != NULL);                                     \
