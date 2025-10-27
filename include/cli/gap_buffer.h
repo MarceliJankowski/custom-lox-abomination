@@ -39,6 +39,7 @@ void gap_buffer_move_cursor_left_by_char(GapBuffer *gap_buffer);
 void gap_buffer_move_cursor_left_by_word(GapBuffer *gap_buffer);
 void gap_buffer_move_cursor_right_by_char(GapBuffer *gap_buffer);
 void gap_buffer_move_cursor_right_by_word(GapBuffer *gap_buffer);
+void gap_buffer_move_cursor_to_start(GapBuffer *gap_buffer);
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *
