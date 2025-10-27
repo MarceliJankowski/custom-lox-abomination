@@ -132,8 +132,13 @@ void repl_enter(void) {
           is_physical_line_modified = true;
           break;
         }
-        case TERMINAL_KEY_EOF:
+        case TERMINAL_KEY_EOF: {
+          io_printf("\n");
+          goto clean_up;
+        }
         case TERMINAL_KEY_CTRL_D: {
+          if (gap_buffer_get_content_length(&physical_line) != 0) break;
+
           io_printf("\n");
           goto clean_up;
         }
