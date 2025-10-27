@@ -120,7 +120,7 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 25, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 26, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_PRINTABLE: {
           if (key.printable.character == '\n') {
@@ -136,6 +136,10 @@ void repl_enter(void) {
         case TERMINAL_KEY_CTRL_D: {
           io_printf("\n");
           goto clean_up;
+        }
+        case TERMINAL_KEY_CTRL_L: {
+          terminal_clear_screen();
+          break;
         }
         case TERMINAL_KEY_CTRL_H:
         case TERMINAL_KEY_BACKSPACE: {

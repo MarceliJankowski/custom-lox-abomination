@@ -106,6 +106,10 @@ bool terminal_enable_noncannonical_mode(void) {
   return true;
 }
 
+void terminal_clear_screen(void) {
+  // TODO: implement
+}
+
 void terminal_clear_current_line(void) {
   // TODO: implement
 }
@@ -294,6 +298,7 @@ TerminalKey terminal_read_key(void) {
     case 0x04: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_D);
     case 0x06: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_F);
     case 0x08: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_H);
+    case 0x0C: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_L);
     case 0x0E: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_N);
     case 0x10: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_P);
     case 0x7F: return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
@@ -365,6 +370,10 @@ handle_unknown_key:
 #undef ENQUEUE_CONTROL_SEQUENCE_REJECT
 #undef DEQUEUE_CONTROL_SEQUENCE_REJECT
 #undef REJECT_CONTROL_SEQUENCE_CHARS
+}
+
+void terminal_clear_screen(void) {
+  io_printf("\033[2J\033[H");
 }
 
 void terminal_clear_current_line(void) {
