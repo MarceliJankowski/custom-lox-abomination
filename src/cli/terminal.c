@@ -374,16 +374,19 @@ handle_unknown_key:
 
 void terminal_clear_screen(void) {
   io_printf("\033[2J\033[H");
+  if (fflush(stdout) == EOF) ERROR_IO_ERRNO();
 }
 
 void terminal_clear_current_line(void) {
   io_printf("\r\x1b[2K");
+  if (fflush(stdout) == EOF) ERROR_IO_ERRNO();
 }
 
 void terminal_move_cursor_to_column(int const index) {
   assert(index >= 0 && "Attempt to move terminal cursor to a negative column");
 
   io_printf("\r\x1b[%dC", index);
+  if (fflush(stdout) == EOF) ERROR_IO_ERRNO();
 }
 
 #endif // _WIN32
