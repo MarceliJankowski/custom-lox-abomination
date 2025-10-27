@@ -297,6 +297,7 @@ TerminalKey terminal_read_key(void) {
     case 0x01: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_A);
     case 0x02: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_B);
     case 0x04: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_D);
+    case 0x05: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_E);
     case 0x06: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_F);
     case 0x08: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_H);
     case 0x0C: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_L);
