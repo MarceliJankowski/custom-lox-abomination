@@ -25,6 +25,7 @@ typedef enum {
   TERMINAL_KEY_CTRL_D,
   TERMINAL_KEY_CTRL_F,
   TERMINAL_KEY_CTRL_H,
+  TERMINAL_KEY_CTRL_L,
   TERMINAL_KEY_CTRL_N,
   TERMINAL_KEY_CTRL_P,
   TERMINAL_KEY_BACKSPACE,
@@ -70,6 +71,9 @@ bool terminal_enable_noncannonical_mode(void);
 /**@desc read key press from terminal's command-line interface (only supports ASCII)
 @return key that was read*/
 TerminalKey terminal_read_key(void);
+
+/**@desc clear all characters from terminal screen (resets cursor positon appropriately)*/
+void terminal_clear_screen(void);
 
 /**@desc clear all characters from current terminal line (resets cursor position appropriately)*/
 void terminal_clear_current_line(void);
