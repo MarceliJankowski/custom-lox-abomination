@@ -349,5 +349,5 @@ void gap_buffer_move_cursor_to_end(GapBuffer *const gap_buffer) {
 
   size_t const content_length = gap_buffer_get_content_length(gap_buffer);
 
-  gap_buffer_move_cursor_to_index(gap_buffer, content_length - 1);
+  gap_buffer_move_cursor_to_index(gap_buffer, content_length);
 }
