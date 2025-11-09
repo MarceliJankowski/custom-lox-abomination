@@ -3,7 +3,7 @@
 ##################################################
 # meant to provide simple layer of customizability
 
-LANG_IMPL_EXEC_NAME ?= cla
+LANG_IMPL_NAME := cla
 SRC_DIR := src
 SCRIPTS_DIR := scripts
 INCLUDE_DIR := include
@@ -12,19 +12,22 @@ BIN_DIR := bin
 TESTS_DIR := tests
 TEST_LIBS := cmocka
 
+# either posix or windows
+TARGET_SYSTEM ?= posix
+
+CC ?=
+WINDOWS_CC ?= x86_64-w64-mingw32-gcc
+CFLAGS ?=
+CPPFLAGS ?=
+TARGET_ARCH ?=
+LDFLAGS ?=
+LDLIBS ?=
 FIND ?= find
 ECHO ?= echo
 MKDIR := mkdir -p
 RM := rm -rf
 GENERATE_COMPILATION_DATABASE := ${SCRIPTS_DIR}/miscellaneous/generate_compilation_database.sh
 RUN_TESTS := ${SCRIPTS_DIR}/test_runner/run_tests.sh
-
-CC ?=
-CFLAGS ?=
-CPPFLAGS ?=
-TARGET_ARCH ?=
-LDFLAGS ?=
-LDLIBS ?=
 
 # this variable gets used by script executing targets for argument passing
 ARGS ?=
@@ -46,6 +49,16 @@ DEFAULT_TARGET ?= help
 ##################################################
 #               INTERNAL VARIABLES               #
 ##################################################
+
+ifeq "${TARGET_SYSTEM}" "posix"
+  c_compiler := ${CC}
+  lang_impl_exec_name := ${LANG_IMPL_NAME}
+else ifeq "${TARGET_SYSTEM}" "windows"
+  c_compiler := ${WINDOWS_CC}
+  lang_impl_exec_name := ${LANG_IMPL_NAME}.exe
+else
+  $(error TARGET_SYSTEM '${TARGET_SYSTEM}' is invalid)
+endif
 
 internal_tests_dir := ${TESTS_DIR}/internal
 test_utils_dir := ${internal_tests_dir}/utils
@@ -96,7 +109,7 @@ test-executables: compile_cflags += -Wno-unused-parameter
 test-executables: link_libs += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
 
 # fix clang failing to link test executables (this happens when some but not all objects are compiled with '-flto' flag)
-ifeq "${CC}" "clang"
+ifeq "${c_compiler}" "clang"
   test-executables: link_flags += -fuse-ld=lld
 endif
 
@@ -106,7 +119,7 @@ endif
 
 # $(call compile,source_file,output_file)
 define compile
-$(strip ${CC} \
+$(strip ${c_compiler} \
   -c -MMD -MP \
   ${compile_cppflags} ${CPPFLAGS} \
   ${compile_cflags} ${CFLAGS} \
@@ -116,7 +129,7 @@ endef
 
 # $(call link,object_files,output_file)
 define link
-$(strip ${CC} \
+$(strip ${c_compiler} \
   ${compile_cppflags} ${CPPFLAGS} \
   ${compile_cflags} ${CFLAGS} \
   ${TARGET_ARCH} \
@@ -160,14 +173,14 @@ endef
 all: ${BUILDS}
 
 # make language implementation builds
-${LANG_IMPL_BUILDS}: %: ${BIN_DIR}/%/${LANG_IMPL_EXEC_NAME}
+${LANG_IMPL_BUILDS}: %: ${BIN_DIR}/%/${lang_impl_exec_name}
 
 # make tests build (split into 2 targets to avoid release/tests specific variables being applied simultaneously)
 tests: release test-executables
 test-executables: ${unit_test_executables} ${component_test_executables}
 
 # make language implementation executables
-${BIN_DIR}/%/${LANG_IMPL_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
+${BIN_DIR}/%/${lang_impl_exec_name}: $(addprefix ${BUILD_DIR}/%/,${source_objects})
 	${make_target_dir_and_link_prerequisites_into_target}
 
 # make test executables
