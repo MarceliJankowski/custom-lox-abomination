@@ -49,7 +49,23 @@ static FILE *history_file_append_stream = NULL;
 /// @return Pointer to dynamically allocated string with history file path.
 static char *history_file_get_path(void) {
 #ifdef _WIN32
-  // TODO: implement
+  char const *const appdata_roaming_dir_path = getenv("APPDATA");
+  char const *const appdata_local_dir_path = getenv("LOCALAPPDATA");
+  char const *const userprofile_dir_path = getenv("USERPROFILE");
+
+  char const *history_dir_path;
+  if (appdata_roaming_dir_path) history_dir_path = appdata_roaming_dir_path;
+  else if (appdata_local_dir_path) history_dir_path = appdata_local_dir_path;
+  else if (userprofile_dir_path) history_dir_path = userprofile_dir_path;
+  else ERROR_SYSTEM("APPDATA/LOCALAPPDATA/USERPROFILE environment variables are unset");
+
+  size_t const history_file_path_length = strlen(history_dir_path) + sizeof(HISTORY_FILE_NAME) + 1; // account for '\\'
+  char *const history_file_path = malloc(history_file_path_length);
+  if (!history_file_path) ERROR_MEMORY_ERRNO();
+
+  if (sprintf(history_file_path, "%s\\%s", history_dir_path, HISTORY_FILE_NAME) < 0) ERROR_IO_ERRNO();
+
+  return history_file_path;
 #else // POSIX
   char const *home_dir_path = getenv("HOME");
   if (home_dir_path == NULL) {
