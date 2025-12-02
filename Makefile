@@ -35,7 +35,7 @@ ARGS ?=
 LANG_IMPL_BUILDS += release debug
 BUILDS := ${LANG_IMPL_BUILDS} tests
 
-RELEASE_CFLAGS ?= -O3 -flto -march=native
+RELEASE_CFLAGS ?= -O2 -flto -march=native
 
 # no optimizations; I've seen them interfere with UBSAN (-Og included)
 DEBUG_CFLAGS ?= -ggdb -fno-omit-frame-pointer -fsanitize=address,undefined
