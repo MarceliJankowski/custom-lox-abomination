@@ -249,6 +249,8 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 TerminalKey terminal_read_key(void) {
+  static_assert(TERMINAL_KEY_TYPE_COUNT == 29, "Exhaustive TerminalKeyType handling");
+
 #define MAX_CONTROL_SEQUENCE_LENGTH 6
 #define CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY MAX_CONTROL_SEQUENCE_LENGTH - 1
 
@@ -292,8 +294,9 @@ TerminalKey terminal_read_key(void) {
   if (is_handling_control_sequence_reject) DEQUEUE_CONTROL_SEQUENCE_REJECT(&char_1);
   else char_1 = read_character();
 
-  // handle control sequence characters
+  // handle control keys
   switch (char_1) {
+    case '\n': return MAKE_CONTROL_KEY(TERMINAL_KEY_ENTER);
     case 0x01: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_A);
     case 0x02: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_B);
     case 0x04: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_D);
@@ -360,8 +363,8 @@ TerminalKey terminal_read_key(void) {
     }
   }
 
-  // handle printable characters
-  if (char_1 == '\n' || (char_1 >= 32 && char_1 < 127)) return MAKE_PRINTABLE_KEY(char_1);
+  // handle printable keys
+  if (char_1 >= 32 && char_1 < 127) return MAKE_PRINTABLE_KEY(char_1);
 
 handle_unknown_key:
   // handle character(s) that do not constitute a known key type
