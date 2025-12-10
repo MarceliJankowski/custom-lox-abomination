@@ -120,14 +120,9 @@ void repl_enter(void) {
       TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 28, "Exhaustive TerminalKeyType handling");
+      static_assert(TERMINAL_KEY_TYPE_COUNT == 29, "Exhaustive TerminalKeyType handling");
       switch (key_type) {
         case TERMINAL_KEY_PRINTABLE: {
-          if (key.printable.character == '\n') {
-            io_printf("\n");
-            goto handle_physical_line_end;
-          }
-
           gap_buffer_insert_char(&physical_line, key.printable.character);
           is_physical_line_modified = true;
           break;
@@ -135,6 +130,10 @@ void repl_enter(void) {
         case TERMINAL_KEY_EOF: {
           io_printf("\n");
           goto clean_up;
+        }
+        case TERMINAL_KEY_ENTER: {
+          io_printf("\n");
+          goto handle_physical_line_end;
         }
         case TERMINAL_KEY_CTRL_D: {
           if (gap_buffer_get_content_length(&physical_line) != 0) break;
