@@ -47,7 +47,7 @@
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc set stdin stream to binary mode*/
+/// Set stdin stream to binary mode.
 static inline void set_stdin_stream_to_binary_mode(void) {
 #ifdef _WIN32
   int const stdin_file_descriptor = _fileno(stdin);
@@ -58,7 +58,7 @@ static inline void set_stdin_stream_to_binary_mode(void) {
 #endif
 }
 
-/**@desc interpret stdin stream resource content*/
+/// Interpret stdin stream resource content.
 static inline void interpret_stdin_stream_resource_content(void) {
   interpreter_init();
 
@@ -75,7 +75,7 @@ static inline void interpret_stdin_stream_resource_content(void) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc enter REPL interaction mode; once entered it persists until process termination*/
+/// Enter REPL interaction mode; once entered it persists until process termination.
 void repl_enter(void) {
   g_source_file_path = "repl";
 

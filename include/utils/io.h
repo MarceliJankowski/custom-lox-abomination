@@ -18,7 +18,7 @@ char *io_read_file(char const *filepath);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc stdlib `fprintf` wrapper with error handling*/
+/// Stdlib `fprintf` wrapper with error handling.
 inline int io_fprintf(FILE *const stream, char const *const format, ...) {
   va_list format_args;
   va_start(format_args, format);
@@ -30,7 +30,7 @@ inline int io_fprintf(FILE *const stream, char const *const format, ...) {
   return printed_byte_count;
 }
 
-/**@desc stdlib `printf` wrapper with error handling*/
+/// Stdlib `printf` wrapper with error handling.
 inline int io_printf(char const *const format, ...) {
   va_list format_args;
   va_start(format_args, format);
@@ -42,7 +42,7 @@ inline int io_printf(char const *const format, ...) {
   return printed_byte_count;
 }
 
-/**@desc stdlib `puts` wrapper with error handling*/
+/// Stdlib `puts` wrapper with error handling.
 inline void io_puts(char const *const string) {
   if (puts(string) == EOF) ERROR_IO_ERRNO();
 }

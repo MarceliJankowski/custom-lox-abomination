@@ -11,7 +11,7 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-/**@desc gap buffer data structure tailored for REPL*/
+/// Gap buffer data structure tailored for REPL.
 typedef struct {
   char *buffer;
   size_t capacity, gap_start, gap_end;
@@ -46,8 +46,8 @@ void gap_buffer_move_cursor_to_end(GapBuffer *gap_buffer);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc get `gap_buffer` cursor index
-@return cursor index*/
+/// Get `gap_buffer` cursor index.
+/// @return Cursor index.
 inline size_t gap_buffer_get_cursor_index(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
 

@@ -8,18 +8,18 @@
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc initialize interpreter*/
+/// Initialize interpreter.
 void interpreter_init(void) {
   vm_init();
 }
 
-/**@desc release interpreter resources and set it to uninitialized state*/
+/// Release interpreter resources and set it to uninitialized state.
 void interpreter_destroy(void) {
   vm_destroy();
 }
 
-/**@desc interpret `source_code`; interpreter state persists across `source_code` interpretations
-@return interpreter status indicating interpretation result*/
+/// Interpret `source_code`; interpreter state persists across `source_code` interpretations.
+/// @return Interpreter status indicating interpretation result.
 InterpreterStatus interpreter_interpret(char const *const source_code) {
   assert(source_code != NULL);
 

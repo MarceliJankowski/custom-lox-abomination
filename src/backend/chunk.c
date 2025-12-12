@@ -19,7 +19,7 @@ void chunk_reset(Chunk *chunk);
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc create new ChunkLineCount from `line` and append it to `chunk`*/
+/// Create new ChunkLineCount from `line` and append it to `chunk`.
 static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
   assert(chunk != NULL);
   assert(line >= 1 && "Expected lines to begin at 1");
@@ -28,8 +28,8 @@ static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_
   DARRAY_PUSH(&chunk->lines, line_count);
 }
 
-/**@desc append `value` to `chunk` constant pool
-@return index of appended constant*/
+/// Append `value` to `chunk` constant pool.
+/// @return Index of appended constant.
 static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
   assert(chunk != NULL);
 
@@ -41,7 +41,7 @@ static inline int32_t chunk_append_constant(Chunk *const chunk, Value const valu
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc initialize bytecode `chunk`*/
+/// Initialize bytecode `chunk`.
 void chunk_init(Chunk *const chunk) {
   assert(chunk != NULL);
 
@@ -50,7 +50,7 @@ void chunk_init(Chunk *const chunk) {
   value_list_init(&chunk->constants);
 }
 
-/**@desc release `chunk` resources and set it to uninitialized state*/
+/// Release `chunk` resources and set it to uninitialized state.
 void chunk_destroy(Chunk *const chunk) {
   assert(chunk != NULL);
 
@@ -61,7 +61,7 @@ void chunk_destroy(Chunk *const chunk) {
   *chunk = (Chunk){0};
 }
 
-/**@desc append instruction `opcode` and corresponding `line` to `chunk`*/
+/// Append instruction `opcode` and corresponding `line` to `chunk`.
 void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t const line) {
   assert(chunk != NULL);
 
@@ -77,14 +77,14 @@ void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t 
   else chunk_create_and_append_line_count(chunk, line);
 }
 
-/**@desc append single byte instruction `operand` to `chunk`*/
+/// Append single byte instruction `operand` to `chunk`.
 void chunk_append_operand(Chunk *const chunk, uint8_t const operand) {
   assert(chunk != NULL);
 
   DARRAY_PUSH(&chunk->code, operand);
 }
 
-/**@desc append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk.code`*/
+/// Append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk.code`.
 void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   assert(chunk != NULL);
   assert(byte_count >= 2 && "Expected multibyte operand");
@@ -105,7 +105,7 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   va_end(bytes);
 }
 
-/**@desc append `value` constant and corresponding instruction along with its `line` to `chunk`*/
+/// Append `value` constant and corresponding instruction along with its `line` to `chunk`.
 void chunk_append_constant_instruction(Chunk *const chunk, Value const value, int32_t const line) {
   assert(chunk != NULL);
 
@@ -124,8 +124,8 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, in
   chunk_append_operand(chunk, constant_index);
 }
 
-/**@desc get line corresponding to `chunk` instruction located at byte `offset`
-@return line corresponding to `offset` instruction*/
+/// Get line corresponding to `chunk` instruction located at byte `offset`.
+/// @return Line corresponding to `offset` instruction.
 int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offset) {
   assert(chunk != NULL);
   assert(chunk->lines.count > 0 && "Expected chunk to contain at least one line");

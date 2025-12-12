@@ -44,7 +44,7 @@ local P_S = CLA_P_S -- Position Separator
 -- forward declarations
 local e2e_testfile_path
 
--- @desc log error consisting of `error_type` and `message` to stderr and terminate execution
+-- Log error consisting of `error_type` and `message` to stderr and terminate execution.
 local function log_error_and_terminate_execution(error_type, message)
   assert(type(error_type) == "string")
   assert(type(message) == "string")
@@ -53,30 +53,30 @@ local function log_error_and_terminate_execution(error_type, message)
   os.exit(1)
 end
 
--- @desc log Input/Output error `message` to stderr and terminate execution
+-- Log Input/Output error `message` to stderr and terminate execution.
 local function io_error(message)
   assert(type(message) == "string")
 
   log_error_and_terminate_execution("IO_ERROR", message)
 end
 
--- @desc log invalid argument error `message` to stderr and terminate execution
+-- Log invalid argument error `message` to stderr and terminate execution.
 local function invalid_arg_error(message)
   assert(type(message) == "string")
 
   log_error_and_terminate_execution("INVALID_ARG_ERROR", message)
 end
 
--- @desc decode `assertion_message_arg` escape sequences
--- @return `assertion_message_arg` with its escape sequences decoded (enabled)
+-- Decode `assertion_message_arg` escape sequences.
+-- @return `assertion_message_arg` with its escape sequences decoded (enabled).
 local function decode_assertion_message_arg_escape_sequences(assertion_message_arg)
   assert(type(assertion_message_arg) == "string")
 
   return assertion_message_arg:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("\\t", "\t")
 end
 
--- @desc read file at `filepath`
--- @return `filepath` file content
+-- Read file at `filepath`.
+-- @return `filepath` file content.
 local function read_file(filepath)
   assert(type(filepath) == "string")
 
@@ -151,7 +151,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
   --             ASSERTION UTILITIES              --
   --------------------------------------------------
 
-  -- @desc log assertion syntax error `message` with e2e_testfile_line_number/`column` position and terminate execution
+  -- Log assertion syntax error `message` with e2e_testfile_line_number/`column` position and terminate execution.
   local function syntax_error(message, column)
     assert(type(message) == "string")
     assert(type(column) == "number")
@@ -162,7 +162,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
     )
   end
 
-  -- @desc log assertion failure `message` with optional e2e_testfile_line_number/`column` position and terminate execution
+  -- Log assertion failure `message` with optional e2e_testfile_line_number/`column` position and terminate execution.
   local function assertion_failure(message, column)
     assert(type(message) == "string")
     if column ~= nil then
@@ -178,7 +178,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
     log_error_and_terminate_execution("ASSERTION_FAILURE", message)
   end
 
-  -- @desc assert `string_descriptor` `string_a` and `string_b` equality
+  -- Assert `string_descriptor` `string_a` and `string_b` equality.
   local function assert_string_equality(string_descriptor, string_a, string_b)
     assert(type(string_descriptor) == "string")
     assert(type(string_a) == "string")
@@ -192,11 +192,11 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
     end
   end
 
-  -- @desc process assertion argument
-  -- @param assertion_arg_descriptor string describing argument being processed
-  -- @param processed_assertion_end_index end index of currently processed assertion up to this invocation
-  -- @param assertion_arg_processor callback invoked with assertion_arg_delimiter_end_index and assertion_arg_start_index
-  -- @return value(s) returned by `assertion_arg_processor`
+  -- Process assertion argument.
+  -- @param assertion_arg_descriptor String describing argument being processed.
+  -- @param processed_assertion_end_index End index of currently processed assertion up to this invocation>
+  -- @param assertion_arg_processor Callback invoked with assertion_arg_delimiter_end_index and assertion_arg_start_index.
+  -- @return Value(s) returned by `assertion_arg_processor`.
   local function process_assertion_arg(assertion_arg_descriptor, processed_assertion_end_index, assertion_arg_processor)
     assert(type(assertion_arg_descriptor) == "string")
     assert(type(processed_assertion_end_index) == "number")
@@ -241,8 +241,8 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
     return assertion_arg_processor(assertion_arg_delimiter_end_index, assertion_arg_start_index)
   end
 
-  -- @desc convert `assertion_arg` starting at `assertion_arg_start_index` into signless integer
-  -- @return `assertion_arg` signless integer
+  -- Convert `assertion_arg` starting at `assertion_arg_start_index` into signless integer.
+  -- @return `assertion_arg` signless integer.
   local function convert_assertion_arg_to_signless_int(assertion_arg, assertion_arg_start_index)
     assert(type(assertion_arg) == "string")
     assert(type(assertion_arg_start_index) == "number")
@@ -266,7 +266,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
   --               GETTERS/SETTERS                --
   --------------------------------------------------
 
-  -- @desc set expected_e2e_testfile_exit_code to `expected_exit_code`
+  -- Set expected_e2e_testfile_exit_code to `expected_exit_code`.
   local set_expected_e2e_testfile_exit_code = (function()
     local setting_assertion_id = nil
 

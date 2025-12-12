@@ -8,9 +8,9 @@
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
-/**@desc get `terminal_key` type
-@param terminal_key TerminalKey object
-@result type of `terminal_key`*/
+/// Get `terminal_key` type.
+/// @param terminal_key TerminalKey object.
+/// @result Type of `terminal_key`.
 #define TERMINAL_KEY_GET_TYPE(terminal_key) ((terminal_key).control.type)
 
 // *---------------------------------------------*
@@ -63,24 +63,24 @@ typedef union {
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-/**@desc enable noncannonical terminal mode (unless stdin is not connected to a terminal).
-Once enabled, it persists until process termination.
-This function registers handlers for terminal parameter restoration upon imminent process termination.
-Invocations are permitted until noncannonical terminal mode gets enabled.
-@return true if noncannonical terminal mode was enabled, false otherwise (stdin is not connected to a terminal)*/
+/// Enable noncannonical terminal mode (unless stdin is not connected to a terminal).
+/// Once enabled, it persists until process termination.
+/// @note This function registers handlers for terminal parameter restoration upon imminent process termination.
+/// @warning Invocations are permitted until noncannonical terminal mode gets enabled.
+/// @return true if noncannonical terminal mode was enabled, false otherwise (stdin is not connected to a terminal).
 bool terminal_enable_noncannonical_mode(void);
 
-/**@desc read key press from terminal's command-line interface (only supports ASCII)
-@return key that was read*/
+/// Read key press from terminal's command-line interface (only supports ASCII).
+/// @return Key that was read.
 TerminalKey terminal_read_key(void);
 
-/**@desc clear all characters from terminal screen (resets cursor positon appropriately)*/
+/// Clear all characters from terminal screen (resets cursor positon appropriately).
 void terminal_clear_screen(void);
 
-/**@desc clear all characters from current terminal line (resets cursor position appropriately)*/
+/// Clear all characters from current terminal line (resets cursor position appropriately).
 void terminal_clear_current_line(void);
 
-/**@desc move terminal cursor to a column located at `index` on the current line (`index` must be nonnegative)*/
+/// Move terminal cursor to a column located at `index` on the current line (`index` must be nonnegative).
 void terminal_move_cursor_to_column(int index);
 
 #endif // TERMINAL_H

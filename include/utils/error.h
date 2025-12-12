@@ -26,8 +26,8 @@
 #define ERROR__IO_PREFIX "[ERROR_IO]"
 #define ERROR__SYSTEM_PREFIX "[ERROR_SYSTEM]"
 
-/**@desc print error message content
-@param ... printf arguments constituting error message content*/
+/// Print error message content.
+/// @param ... printf arguments constituting error message content.
 #define ERROR__PRINT_MESSAGE_CONTENT(...)                                                                    \
   do {                                                                                                       \
     fprintf(stderr, COMMON_MS);                                                                              \
@@ -35,10 +35,10 @@
     fprintf(stderr, "\n");                                                                                   \
   } while (0)
 
-/**@desc boilerplate shared across error handling macros
-@param error_code ErrorCode identifying error type
-@param message_prefix string literal containing error message prefix
-@param ... printf arguments constituting error message content*/
+/// Boilerplate shared across error handling macros.
+/// @param error_code ErrorCode identifying error type.
+/// @param message_prefix String literal containing error message prefix.
+/// @param ... printf arguments constituting error message content.
 #define ERROR__BOILERPLATE(error_code, message_prefix, ...) \
   do {                                                      \
     fprintf(stderr, ERROR__DEBUG_FILE_LINE message_prefix); \
@@ -46,8 +46,8 @@
     exit(error_code);                                       \
   } while (0)
 
-/**@desc report internal error and trigger corresponding behavior
-@param ... printf arguments constituting error message*/
+/// Report internal error and trigger corresponding behavior.
+/// @param ... printf arguments constituting error message.
 #define ERROR_INTERNAL(...)                                             \
   do {                                                                  \
     fprintf(stderr, ERROR__INTERNAL_PREFIX COMMON_MS ERROR__FILE_LINE); \
@@ -55,33 +55,33 @@
     abort();                                                            \
   } while (0)
 
-/**@desc report invalid argument error and trigger corresponding behavior
-@param ... printf arguments constituting error message*/
+/// Report invalid argument error and trigger corresponding behavior.
+/// @param ... printf arguments constituting error message.
 #define ERROR_INVALID_ARG(...) ERROR__BOILERPLATE(ERROR_CODE_INVALID_ARG, ERROR__INVALID_ARG_PREFIX, __VA_ARGS__)
 
-/**@desc report memory error and trigger corresponding behavior
-@param ... printf arguments constituting error message*/
+/// Report memory error and trigger corresponding behavior.
+/// @param ... printf arguments constituting error message.
 #define ERROR_MEMORY(...) ERROR__BOILERPLATE(ERROR_CODE_MEMORY, ERROR__MEMORY_PREFIX, __VA_ARGS__)
 
-/**@desc report memory error with message comming from errno, and trigger corresponding behavior*/
+/// Report memory error with message comming from errno, and trigger corresponding behavior.
 #define ERROR_MEMORY_ERRNO() ERROR_MEMORY("%s\n", strerror(errno))
 
-/**@desc report IO error and trigger corresponding behavior
-@param ... printf arguments constituting error message*/
+/// Report IO error and trigger corresponding behavior.
+/// @param ... printf arguments constituting error message.
 #define ERROR_IO(...) ERROR__BOILERPLATE(ERROR_CODE_IO, ERROR__IO_PREFIX, __VA_ARGS__)
 
-/**@desc report IO error with message comming from errno, and trigger corresponding behavior*/
+/// Report IO error with message comming from errno, and trigger corresponding behavior.
 #define ERROR_IO_ERRNO() ERROR_IO("%s\n", strerror(errno))
 
-/**@desc report system error and trigger corresponding behavior
-@param ... printf arguments constituting error message*/
+/// Report system error and trigger corresponding behavior
+/// @param ... printf arguments constituting error message.
 #define ERROR_SYSTEM(...) ERROR__BOILERPLATE(ERROR_CODE_SYSTEM, ERROR__SYSTEM_PREFIX, __VA_ARGS__)
 
-/**@desc report system error with message comming from errno, and trigger corresponding behavior*/
+/// Report system error with message comming from errno, and trigger corresponding behavior.
 #define ERROR_SYSTEM_ERRNO() ERROR_SYSTEM("%s\n", strerror(errno))
 
 #ifdef _WIN32
-/**@desc report system error caused by latest Windows API error, and trigger corresponding behavior*/
+/// Report system error caused by latest Windows API error, and trigger corresponding behavior.
 #define ERROR_WINDOWS_LAST()                                                \
   do {                                                                      \
     fprintf(stderr, ERROR__DEBUG_FILE_LINE ERROR__SYSTEM_PREFIX COMMON_MS); \

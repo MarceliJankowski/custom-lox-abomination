@@ -10,7 +10,7 @@
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc assert `binary_stream` resource content being equal to `expected_resource_content`*/
+/// Assert `binary_stream` resource content being equal to `expected_resource_content`.
 void component_test_assert_binary_stream_resource_content(
   FILE *const binary_stream, char const *const expected_resource_content
 ) {
@@ -26,7 +26,7 @@ void component_test_assert_binary_stream_resource_content(
   free(resource_content);
 }
 
-/**@desc clear `binary_stream` resource content*/
+/// Clear `binary_stream` resource content.
 void component_test_clear_binary_stream_resource_content(FILE *binary_stream) {
   assert(binary_stream != NULL);
 
@@ -34,7 +34,7 @@ void component_test_clear_binary_stream_resource_content(FILE *binary_stream) {
   if (binary_stream == NULL) ERROR_IO_ERRNO();
 }
 
-/**@desc assert `value_a` and `value_b` equality*/
+/// Assert `value_a` and `value_b` equality.
 void component_test_assert_value_equality(Value const value_a, Value const value_b) {
   assert_int_equal(value_a.type, value_b.type);
 

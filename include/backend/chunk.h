@@ -12,8 +12,8 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-/**@desc chunk operation code representing bytecode instruction.
-Instruction operands are stored in little-endian order.*/
+/// Chunk operation code representing bytecode instruction.
+/// @note Instruction operands are stored in little-endian order.
 typedef enum {
   // simple-instruction opcodes (without operands)
   CHUNK_OP_RETURN,
@@ -52,16 +52,16 @@ static_assert(
   CHUNK_OP_OPCODE_COUNT <= UCHAR_MAX, "Too many ChunkOpCodes defined; bytecode instruction can't fit all of them"
 );
 
-/**@desc `count` of bytecode chunk instructions at a given `line`*/
+/// `count` of bytecode chunk instructions at a given `line`.
 typedef struct {
   int32_t line;
   int count;
 } ChunkLineCount;
 
-/**@desc bytecode chunk*/
+/// Bytecode chunk.
 typedef struct {
-  /**@desc dynamic array of Chunk instructions and their operands.
-  Each instruction is encoded as 1 byte long ChunkOpCode.*/
+  /// Dynamic array of Chunk instructions and their operands.
+  /// @note Each instruction is encoded as 1 byte long ChunkOpCode.
   DARRAY_TYPE(uint8_t) code;
   DARRAY_TYPE(ChunkLineCount) lines;
   ValueList constants;
@@ -83,7 +83,7 @@ int32_t chunk_get_instruction_line(Chunk const *chunk, int32_t offset);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc reset `chunk` back to initialized state*/
+/// Reset `chunk` back to initialized state.
 inline void chunk_reset(Chunk *const chunk) {
   chunk_destroy(chunk);
   chunk_init(chunk);

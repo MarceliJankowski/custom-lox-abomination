@@ -36,14 +36,14 @@ char const *const value_type_to_string_table[] = {
 // *        EXTERNAL-LINKAGE FUNCTIONS           *
 // *---------------------------------------------*
 
-/**@desc initialize `value_list`*/
+/// Initialize `value_list`.
 void value_list_init(ValueList *const value_list) {
   assert(value_list != NULL);
 
   DARRAY_INIT(value_list, sizeof(Value), gc_memory_manage);
 }
 
-/**@desc release `value_list` resources and set it to uninitialized state*/
+/// Release `value_list` resources and set it to uninitialized state.
 void value_list_destroy(ValueList *const value_list) {
   assert(value_list != NULL);
 
@@ -52,14 +52,14 @@ void value_list_destroy(ValueList *const value_list) {
   *value_list = (ValueList){0};
 }
 
-/**@desc append `value` to `value_list`*/
+/// Append `value` to `value_list`.
 void value_list_append(ValueList *const value_list, Value const value) {
   assert(value_list != NULL);
 
   DARRAY_PUSH(value_list, value);
 }
 
-/**@desc print `value`*/
+/// Print `value`.
 void value_print(Value const value) {
 #define PRINTF_BREAK(...)                                  \
   io_fprintf(g_source_program_output_stream, __VA_ARGS__); \
@@ -77,8 +77,8 @@ void value_print(Value const value) {
 #undef PRINTF_BREAK
 }
 
-/**@desc determine whether `value_a` equals `value_b`
-@return true if it does, false otherwise*/
+/// Determine whether `value_a` equals `value_b`.
+/// @return true if it does, false otherwise.
 bool value_equals(Value const value_a, Value const value_b) {
   if (value_a.type != value_b.type) return false;
 

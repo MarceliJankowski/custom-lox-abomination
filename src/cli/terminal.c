@@ -42,8 +42,8 @@ static HANDLE stdin_handle = INVALID_HANDLE_VALUE;
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc restore console mode to its original state.
-Requires noncannonical mode to be enabled.*/
+/// Restore console mode to its original state.
+/// @note Requires noncannonical mode to be enabled.
 static void restore_console_mode(void) {
   assert(stdin_handle != INVALID_HANDLE_VALUE);
   assert(is_noncannonical_mode_enabled == true);
@@ -52,7 +52,7 @@ static void restore_console_mode(void) {
   if (SetConsoleMode(stdin_handle, original_console_mode) == 0) error_windows_log_last();
 }
 
-/**@desc handle console `control_event_type`*/
+/// Handle console `control_event_type`.
 static BOOL WINAPI console_control_event_handler(DWORD const control_event_type) {
   switch (control_event_type) {
     case CTRL_C_EVENT:
@@ -65,7 +65,7 @@ static BOOL WINAPI console_control_event_handler(DWORD const control_event_type)
   return FALSE; // continue with default handling
 }
 
-/**@desc register console mode restoration handlers for appropriate console control events and atexit()*/
+/// Register console mode restoration handlers for appropriate console control events and atexit().
 static void register_console_mode_restoration_handlers(void) {
   if (atexit(restore_console_mode) != 0) ERROR_SYSTEM("Failed to register atexit() handler");
   if (SetConsoleCtrlHandler(console_control_event_handler, TRUE) == 0) ERROR_WINDOWS_LAST();
@@ -132,8 +132,8 @@ static bool is_noncannonical_mode_enabled;
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc restore terminal parameters to their original state.
-Requires noncannonical mode to be enabled.*/
+/// Restore terminal parameters to their original state.
+/// @warning Requires noncannonical mode to be enabled.
 static void restore_terminal_parameters(void) {
   assert(is_noncannonical_mode_enabled == true);
 
@@ -143,7 +143,7 @@ static void restore_terminal_parameters(void) {
   }
 }
 
-/**@desc handle `signal_num` signal*/
+/// Handle `signal_num` signal.
 static void signal_handler(int const signal_num) {
   restore_terminal_parameters();
 
@@ -151,7 +151,7 @@ static void signal_handler(int const signal_num) {
   if (raise(signal_num) != 0) ERROR_SYSTEM("Failed to re-raise '%d' signal", signal_num);
 }
 
-/**@desc register terminal parameter restoration handlers for appropriate signals and atexit()*/
+/// Register terminal parameter restoration handlers for appropriate signals and atexit().
 static void register_terminal_parameter_restoration_handlers(void) {
   struct sigaction terminal_signal_action = {
     .sa_handler = signal_handler, // set signal handler
@@ -169,8 +169,8 @@ static void register_terminal_parameter_restoration_handlers(void) {
   if (-1 == sigaction(SIGQUIT, &terminal_signal_action, NULL)) ERROR_SYSTEM_ERRNO();
 }
 
-/**@desc determine whether stdin resource is readable (reads won't block) within `timeout_ms` millisecond timeout
-@return true if it is, false otherwise*/
+/// Determine whether stdin resource is readable (reads won't block) within `timeout_ms` millisecond timeout.
+/// @return true if it is, false otherwise.
 static bool is_stdin_resource_readable_within_timeout(int const timeout_ms) {
   assert(timeout_ms > 0);
 
@@ -201,8 +201,8 @@ static bool is_stdin_resource_readable_within_timeout(int const timeout_ms) {
   }
 }
 
-/**@desc read character from stdin stream resource content
-@return character that was read, or EOF if stdin EOF indicator was set*/
+/// Read character from stdin stream resource content.
+/// @return Character that was read, or EOF if stdin EOF indicator was set.
 static inline int read_character(void) {
   int const character = getchar();
   if (character == EOF) {
@@ -213,8 +213,8 @@ static inline int read_character(void) {
   return character;
 }
 
-/**@desc read control sequence continuation character from stdin resource content
-@return control sequence continuation character, or EOF if none were available*/
+/// Read control sequence continuation character from stdin resource content.
+/// @return Control sequence continuation character, or EOF if none were available.
 static inline int read_control_sequence_continuation_character(void) {
   if (!is_stdin_resource_readable_within_timeout(50)) return EOF;
   return read_character();
@@ -281,7 +281,7 @@ TerminalKey terminal_read_key(void) {
     goto handle_esc_key;                                            \
   } while (0)
 
-  /**@desc queue for characters rejected from control sequences*/
+  /// Queue for characters rejected from control sequences.
   static struct {
     char frames[CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY];
     int frame_count, current_frame_index;

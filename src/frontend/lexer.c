@@ -23,54 +23,54 @@ static struct {
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc determine whether `character` can be a part of identifier literal
-@return true if it can, false otherwise*/
+/// Determine whether `character` can be a part of identifier literal.
+/// @return true if it can, false otherwise.
 static inline bool can_constitute_identifier_literal(char const character) {
   return character_is_alphanumeric(character) || character == '_';
 }
 
-/**@desc determine whether `character` can begin identifier literal
-@return true if it can, false otherwise*/
+/// Determine whether `character` can begin identifier literal.
+/// @return true if it can, false otherwise.
 static inline bool can_begin_identifier_literal(char const character) {
   return can_constitute_identifier_literal(character) && !character_is_digit(character);
 }
 
-/**@desc determine whether lexer reached source code end
-@return true if it did, false otherwise*/
+/// Determine whether lexer reached source code end.
+/// @return true if it did, false otherwise.
 static inline bool lexer_reached_end(void) {
   return *lexer.char_cursor == '\0';
 }
 
-/**@desc advance lexer.char_cursor to next source code character
-@return previous (advanced past) character*/
+/// Advance lexer.char_cursor to next source code character.
+/// @return Previous (advanced past) character.
 static inline char lexer_advance(void) {
   lexer.column++;
   return *lexer.char_cursor++;
 }
 
-/**@desc determine whether `expected_char` matches lexer.char_cursor and call lexer_advance if it does
-@return true if it does, false otherwise*/
+/// Determine whether `expected_char` matches lexer.char_cursor and call lexer_advance if it does.
+/// @return true if it does, false otherwise.
 static inline bool lexer_match(char const expected_char) {
   if (*lexer.char_cursor != expected_char) return false;
   lexer_advance();
   return true;
 }
 
-/**@desc peek at lexer.char_cursor character without advancing it
-@return lexer.char_cursor character*/
+/// Peek at lexer.char_cursor character without advancing it.
+/// @return lexer.char_cursor character.
 static inline char lexer_peek(void) {
   return *lexer.char_cursor;
 }
 
-/**@desc peek at next lexer.char_cursor character without advancing char_cursor
-@return upcoming source character or NUL if source end was reached*/
+/// Peek at next lexer.char_cursor character without advancing char_cursor.
+/// @return Upcoming source character or NUL if source end was reached.
 static inline char lexer_peek_next(void) {
   if (lexer_reached_end()) return '\0';
   return lexer.char_cursor[1];
 }
 
-/**@desc make `token_type` token
-@return constructed token*/
+/// Make `token_type` token.
+/// @return Constructed token.
 static LexerToken lexer_make_token(LexerTokenType const token_type) {
   LexerToken const token = {
     .type = token_type,
@@ -87,8 +87,8 @@ static LexerToken lexer_make_token(LexerTokenType const token_type) {
   return token;
 }
 
-/**@desc make error token with `message` lexeme
-@return constructed error token*/
+/// Make error token with `message` lexeme.
+/// @return Constructed error token.
 static LexerToken lexer_make_error_token(char const *const message) {
   assert(message != NULL);
 
@@ -107,8 +107,8 @@ static LexerToken lexer_make_error_token(char const *const message) {
   return error_token;
 }
 
-/**@desc make EOF token
-@return EOF token*/
+/// Make EOF token.
+/// @return EOF token.
 static LexerToken lexer_make_eof_token(void) {
   LexerToken const eof_token = {
     .type = LEXER_TOKEN_EOF,
@@ -125,8 +125,8 @@ static LexerToken lexer_make_eof_token(void) {
   return eof_token;
 }
 
-/**@desc tokenize string literal
-@return string literal token*/
+/// Tokenize string literal.
+/// @return String literal token.
 static LexerToken lexer_tokenize_string_literal(void) {
   // advance until closing quote
   while (lexer_peek() != '"') {
@@ -139,8 +139,8 @@ static LexerToken lexer_tokenize_string_literal(void) {
   return lexer_make_token(LEXER_TOKEN_STRING);
 }
 
-/**@desc tokenize numeric literal
-@return numeric literal token*/
+/// Tokenize numeric literal.
+/// @return Numeric literal token.
 static LexerToken lexer_tokenize_numeric_literal(void) {
   // advance past integer part
   while (character_is_digit(lexer_peek())) lexer_advance();
@@ -155,9 +155,9 @@ static LexerToken lexer_tokenize_numeric_literal(void) {
   return lexer_make_token(LEXER_TOKEN_NUMBER);
 }
 
-/**@desc make either identifier or `keyword_type` (reserved identifier) token
-@return `keyword_type` token if lexer.lexeme offsetted by `keyword_beginning_length` matches `keyword_rest`,
-identifier token otherwise*/
+/// Make either identifier or `keyword_type` (reserved identifier) token.
+/// @return `keyword_type` token if lexer.lexeme offsetted by `keyword_beginning_length` matches `keyword_rest`,
+/// identifier token otherwise.
 static LexerToken lexer_make_identifier_token(
   int const keyword_beginning_length, int const keyword_rest_length, const char *const keyword_rest,
   LexerTokenType const keyword_type
@@ -176,8 +176,8 @@ handle_identifier:
   return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
 }
 
-/**@desc tokenize identifier literal; handles both regular and reserved identifiers (keywords)
-@return regular or reserved identifier token*/
+/// Tokenize identifier literal; handles both regular and reserved identifiers (keywords).
+/// @return Regular or reserved identifier token.
 static LexerToken lexer_tokenize_identifier_literal(void) {
   // advance past identifier literal
   while (can_constitute_identifier_literal(lexer_peek())) lexer_advance();
@@ -219,7 +219,7 @@ static LexerToken lexer_tokenize_identifier_literal(void) {
   return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
 }
 
-/**@desc advance past all whitespace characters*/
+/// Advance past all whitespace characters.
 static void lexer_skip_whitespace(void) {
   for (;;) {
     switch (lexer_peek()) {
@@ -251,7 +251,7 @@ static void lexer_skip_whitespace(void) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc initialize lexer with `source_code`*/
+/// Initialize lexer with `source_code`.
 void lexer_init(char const *const source_code) {
   assert(source_code != NULL);
 
@@ -265,8 +265,8 @@ void lexer_init(char const *const source_code) {
   lexer.column = 1;
 }
 
-/**@desc scan lexer source code for next lexeme, bundle it up with metadata, and produce new token
-@return produced token*/
+/// Scan lexer source code for next lexeme, bundle it up with metadata, and produce new token.
+/// @return Produced token.
 LexerToken lexer_scan(void) {
   lexer_skip_whitespace();
 

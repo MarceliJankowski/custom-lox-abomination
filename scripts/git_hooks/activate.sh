@@ -16,7 +16,7 @@ readonly GIT_HOOKS_DIR=${SCRIPTS_DIR}/git_hooks
 #                   UTILITIES                    #
 ##################################################
 
-# @desc create symbolic link pointing to GIT_HOOKS_DIR/`target_path` located at REPO_ROOT_DIR/.git/hooks/`link_path`
+# Create symbolic link pointing to GIT_HOOKS_DIR/`target_path` located at REPO_ROOT_DIR/.git/hooks/`link_path`.
 symlink_git_hook() {
   [[ $# -ne 2 ]] && internal_error "symlink_git_hook() expects 'target_path' and 'link_path' arguments"
 

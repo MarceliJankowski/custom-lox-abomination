@@ -18,8 +18,8 @@ uint8_t memory_get_byte(uint32_t object, int index);
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc standard MemoryManagerFn implementation
-@see MemoryManagerFn for further documentation*/
+/// Standard MemoryManagerFn implementation.
+/// @see MemoryManagerFn for further documentation.
 void *memory_manage(void *const object, size_t const old_size, size_t const new_size) {
   assert(
     !(object == NULL && old_size > 0 && new_size != 0) && "Invalid operation; can't allocate object with existing size"
@@ -44,8 +44,8 @@ void *memory_manage(void *const object, size_t const old_size, size_t const new_
   return reallocated_object;
 }
 
-/**@desc concatenate `byte_count` uint8_t `bytes`; `bytes` go from MSB to LSB
-@return uint32_t formed from `bytes` concatenation*/
+/// Concatenate `byte_count` uint8_t `bytes`; `bytes` go from MSB to LSB.
+/// @return uint32_t formed from `bytes` concatenation.
 uint32_t memory_concatenate_bytes(int byte_count, ...) {
   assert(byte_count >= 2 && "Expected at least 2 bytes to concatenate");
   assert(

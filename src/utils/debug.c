@@ -14,8 +14,8 @@
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc print simple instruction (one without operands) encoded by `opcode` and located at `offset`
-@return offset to next instruction*/
+/// Print simple instruction (one without operands) encoded by `opcode` and located at `offset`.
+/// @return Offset to next instruction.
 static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t const offset) {
 #define PUTS_BREAK(string) \
   io_puts(string);         \
@@ -51,8 +51,8 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
 #undef PUTS_BREAK
 }
 
-/**@desc print `chunk` constant instruction encoded by `opcode` and located at `offset`
-@return offset to next instruction*/
+/// Print `chunk` constant instruction encoded by `opcode` and located at `offset`.
+/// @return Offset to next instruction.
 static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t const opcode, int32_t const offset) {
   assert(chunk != NULL);
 
@@ -84,7 +84,7 @@ static int32_t debug_constant_instruction(Chunk const *const chunk, uint8_t cons
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc print lexical `token`*/
+/// Print lexical `token`.
 void debug_token(LexerToken const *const token) {
 #define PRINTF_BREAK(...) \
   io_printf(__VA_ARGS__); \
@@ -155,7 +155,7 @@ void debug_token(LexerToken const *const token) {
 #undef PRINTF_BREAK
 }
 
-/**@desc disassemble and print `chunk` annotated with `name`*/
+/// Disassemble and print `chunk` annotated with `name`.
 void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
   assert(chunk != NULL);
   assert(name != NULL);
@@ -164,8 +164,8 @@ void debug_disassemble_chunk(Chunk const *const chunk, char const *const name) {
   for (size_t offset = 0; offset < chunk->code.count;) offset = debug_disassemble_instruction(chunk, offset);
 }
 
-/**@desc disassemble and print `chunk` instruction located at `offset`
-@return offset to next instruction*/
+/// Disassemble and print `chunk` instruction located at `offset`.
+/// @return Offset to next instruction.
 int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const offset) {
   assert(chunk != NULL);
   assert(offset >= 0 && "Expected offset to be nonnegative");

@@ -26,7 +26,7 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-/**@desc ring buffer data structure tailored for REPL physical line history*/
+/// Ring buffer data structure tailored for REPL physical line history.
 typedef struct {
   char *entries[HISTORY_SIZE];
   int entry_count, oldest_entry_index, newest_entry_index;
@@ -45,8 +45,8 @@ static FILE *history_file_append_stream = NULL;
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc get absolute path to history file
-@return pointer to dynamically allocated string with history file path*/
+/// Get absolute path to history file.
+/// @return Pointer to dynamically allocated string with history file path.
 static char *history_file_get_path(void) {
 #ifdef _WIN32
   // TODO: implement
@@ -72,8 +72,8 @@ static char *history_file_get_path(void) {
 #endif
 }
 
-/**@desc trim history file so that entry count does not exceed HISTORY_SIZE (removes excessive oldest entries)
-This function does nothing if history file fails to be opened for reading.*/
+/// Trim history file so that entry count does not exceed HISTORY_SIZE (removes excessive oldest entries).
+/// @note This function does nothing if history file fails to be opened for reading.
 static void history_file_trim(void) {
   assert(history_file_path != NULL);
 
@@ -104,8 +104,8 @@ static void history_file_trim(void) {
   if (fclose(history_file_stream)) ERROR_IO_ERRNO();
 }
 
-/**@desc trim history file and load its content into history data structure
-This function does nothing if history file fails to be opened for reading.*/
+/// Trim history file and load its content into history data structure.
+/// @note This function does nothing if history file fails to be opened for reading.
 static void history_file_trim_and_load(void) {
   assert(history_file_path != NULL);
 
@@ -147,7 +147,7 @@ static void history_file_trim_and_load(void) {
   if (fclose(history_file_stream)) ERROR_IO_ERRNO();
 }
 
-/**@desc append `entry` to history file*/
+/// Append `entry` to history file.
 static void history_file_append(char const *const entry) {
   assert(history_file_append_stream != NULL);
   assert(entry != NULL);
@@ -156,8 +156,8 @@ static void history_file_append(char const *const entry) {
   if (fflush(history_file_append_stream) == EOF) ERROR_IO_ERRNO();
 }
 
-/**@desc determine whether oldest history entry is being browsed
-@return true if it is, false otherwise*/
+/// Determine whether oldest history entry is being browsed.
+/// @return true if it is, false otherwise.
 static inline bool history_is_oldest_entry_browsed(void) {
   return history.browsed_entry_index == history.oldest_entry_index;
 }
@@ -166,7 +166,7 @@ static inline bool history_is_oldest_entry_browsed(void) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc initialize history*/
+/// Initialize history.
 void history_init(void) {
   assert(history_file_path == NULL);
   assert(history_file_append_stream == NULL);
@@ -179,7 +179,7 @@ void history_init(void) {
   if (history_file_append_stream == NULL) ERROR_IO_ERRNO();
 }
 
-/**@desc release history resources and set it to uninitialized state*/
+/// Release history resources and set it to uninitialized state.
 void history_destroy(void) {
   assert(history_file_path != NULL);
   assert(history_file_append_stream != NULL);
@@ -191,9 +191,9 @@ void history_destroy(void) {
   if (fclose(history_file_append_stream)) ERROR_IO_ERRNO();
 }
 
-/**@desc append `entry` (string) of `entry_length` to history;
-unless `entry` consists solely of whitespace characters or is a duplicate of newest history entry.
-This function will stop history browsing.*/
+/// Append `entry` (string) of `entry_length` to history;
+/// unless `entry` consists solely of whitespace characters or is a duplicate of newest history entry.
+/// @note This function will stop history browsing.
 void history_append_entry(char const *const entry, size_t const entry_length) {
   assert(entry != NULL);
   assert(strlen(entry) == entry_length);
@@ -224,9 +224,9 @@ void history_append_entry(char const *const entry, size_t const entry_length) {
   history_file_append(entry_copy);
 }
 
-/**@desc browse older history entry.
-If history isn't already being browsed, this function will begin browsing it at the newest entry.
-@return pointer to older history entry (string), or NULL if such entry does not exist*/
+/// Browse older history entry.
+/// @note If history isn't already being browsed, this function will begin browsing it at the newest entry.
+/// @return Pointer to older history entry (string), or NULL if such entry does not exist.
 char const *history_browse_older_entry(void) {
   if (history.entry_count == 0) return NULL;
   if (history_is_oldest_entry_browsed()) return NULL;
@@ -240,8 +240,8 @@ char const *history_browse_older_entry(void) {
   return history.entries[history.browsed_entry_index];
 }
 
-/**@desc browse newer history entry
-@return pointer to newer history entry (string), or NULL if such entry does not exist*/
+/// Browse newer history entry.
+/// @return Pointer to newer history entry (string), or NULL if such entry does not exist.
 char const *history_browse_newer_entry(void) {
   if (!history_is_browsed()) return NULL;
   if (history_is_newest_entry_browsed()) return NULL;
@@ -250,19 +250,19 @@ char const *history_browse_newer_entry(void) {
   return history.entries[history.browsed_entry_index];
 }
 
-/**@desc stop browsing history*/
+/// Stop browsing history.
 void history_stop_browsing(void) {
   history.browsed_entry_index = -1;
 }
 
-/**@desc determine whether history is being browsed
-@return true if it is, false otherwise*/
+/// Determine whether history is being browsed.
+/// @return true if it is, false otherwise.
 bool history_is_browsed(void) {
   return history.browsed_entry_index != -1;
 }
 
-/**@desc determine whether newest history entry is being browsed
-@return true if it is, false otherwise*/
+/// Determine whether newest history entry is being browsed.
+/// @return true if it is, false otherwise.
 bool history_is_newest_entry_browsed(void) {
   return history.browsed_entry_index == history.newest_entry_index;
 }

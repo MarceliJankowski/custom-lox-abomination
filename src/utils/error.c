@@ -9,7 +9,7 @@
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc log the most recent Windows API error*/
+/// Log the most recent Windows API error.
 void error_windows_log_last(void) {
   DWORD const error_code = GetLastError();
   LPSTR error_message = NULL;

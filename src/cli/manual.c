@@ -10,7 +10,7 @@
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc print manual*/
+/// Print manual.
 void manual_print(void) {
   static_assert(ERROR_CODE_COUNT == 7, "Exhaustive error code handling");
   io_printf(

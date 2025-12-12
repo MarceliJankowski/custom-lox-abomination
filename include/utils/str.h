@@ -11,8 +11,8 @@
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc determine whether `string` is comprised entirely of whitespace characters
-@return true if it is, false otherwise*/
+/// Determine whether `string` is comprised entirely of whitespace characters.
+/// @return true if it is, false otherwise.
 inline bool str_is_all_whitespace(char const *string) {
   assert(string != NULL);
 
@@ -23,8 +23,8 @@ inline bool str_is_all_whitespace(char const *string) {
   return true;
 }
 
-/**@desc count number of newlines within a `string`
-@return newline count*/
+/// Count number of newlines within a `string`.
+/// @return Newline count.
 inline size_t str_count_lines(char const *string) {
   assert(string != NULL);
 

@@ -10,7 +10,7 @@
 // *          INTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
 
-/**@desc cli options bitfield*/
+/// Cli options bitfield.
 static struct {
   unsigned int help : 1;
 } options;
@@ -19,7 +19,7 @@ static struct {
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc process `flag_arg` (cli argument that begins with a '-')*/
+/// Process `flag_arg` (cli argument that begins with a '-').
 static inline void process_flag_arg(char const *flag_arg) {
   assert(flag_arg != NULL);
   assert(*flag_arg == '-');
@@ -55,8 +55,8 @@ static inline void process_flag_arg(char const *flag_arg) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc process cli arguments; requires forwarding process's `argc` and `argv`
-@return cli path argument if supplied, NULL otherwise*/
+/// Process cli arguments; requires forwarding process's `argc` and `argv`.
+/// @return cli path argument if supplied, NULL otherwise.
 char const *args_process(int const argc, char const *const *const argv) {
   assert(argc >= 0);
   assert(argv != NULL);

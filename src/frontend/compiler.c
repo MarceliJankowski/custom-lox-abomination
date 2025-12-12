@@ -18,7 +18,7 @@ typedef enum { PARSER_OK, PARSER_PANIC, PARSER_UNEXPECTED_EOF } ParserState;
 
 typedef enum { ERROR_LEXICAL, ERROR_SYNTAX, ERROR_SEMANTIC, ERROR_TYPE_COUNT } ErrorType;
 
-/**@desc token precedence*/
+/// Token precedence.
 typedef enum {
   PRECEDENCE_NONE,
   PRECEDENCE_ASSIGNMENT, // right-associative
@@ -33,7 +33,7 @@ typedef enum {
   PRECEDENCE_PRIMARY
 } Precedence;
 
-/**@desc function handling (compiling) specified TokenType*/
+/// Function handling (compiling) specified TokenType.
 typedef void(TokenHandlerFn)(void);
 
 typedef struct {
@@ -120,12 +120,12 @@ static struct {
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc retrieve currently compiled chunk*/
+/// Retrieve currently compiled chunk.
 static inline Chunk *get_current_chunk(void) {
   return current_chunk;
 }
 
-/**@desc handle `error_type` error at `token` with `message`*/
+/// Handle `error_type` error at `token` with `message`.
 static void compiler_error_at(ErrorType const error_type, LexerToken const *const token, char const *const message) {
   assert(token != NULL);
   assert(message != NULL);
@@ -162,17 +162,17 @@ static void compiler_error_at(ErrorType const error_type, LexerToken const *cons
   } else io_fprintf(g_static_analysis_error_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);
 }
 
-/**@desc handle `error_type` error at parser.previous token with `message`*/
+/// Handle `error_type` error at parser.previous token with `message`.
 static inline void compiler_error_at_previous(ErrorType const error_type, char const *const message) {
   compiler_error_at(error_type, &parser.previous, message);
 }
 
-/**@desc handle `error_type` error at parser.current token with `message`*/
+/// Handle `error_type` error at parser.current token with `message`.
 static inline void compiler_error_at_current(ErrorType const error_type, char const *const message) {
   compiler_error_at(error_type, &parser.current, message);
 }
 
-/**@desc update parser.previous, advance parser.current, and handle any error tokens*/
+/// Update parser.previous, advance parser.current, and handle any error tokens.
 static void compiler_advance(void) {
   parser.previous = parser.current;
 
@@ -183,31 +183,31 @@ static void compiler_advance(void) {
   }
 }
 
-/**@desc advance compiler if parser.current.type matches `type`, report error with `message` otherwise*/
+/// Advance compiler if parser.current.type matches `type`, report error with `message` otherwise.
 static inline void compiler_consume(LexerTokenType const type, char const *const message) {
   if (parser.current.type != type) compiler_error_at_current(ERROR_SYNTAX, message);
   compiler_advance();
 }
 
-/**@desc advance compiler if parser.current.type matches `type`
-@return true if it does, false otherwise*/
+/// Advance compiler if parser.current.type matches `type`.
+/// @return true if it does, false otherwise.
 static inline bool compiler_match(LexerTokenType const type) {
   if (parser.current.type != type) return false;
   compiler_advance();
   return true;
 }
 
-/**@desc generate `opcode` bytecode instruction and append it to current_chunk*/
+/// Generate `opcode` bytecode instruction and append it to current_chunk.
 static inline void emit_instruction(ChunkOpCode const opcode) {
   chunk_append_instruction(get_current_chunk(), opcode, parser.previous.line);
 }
 
-/**@desc generate bytecode constant instruction and append it to current_chunk*/
+/// Generate bytecode constant instruction and append it to current_chunk.
 static inline void emit_constant_instruction(Value const value) {
   chunk_append_constant_instruction(get_current_chunk(), value, parser.previous.line);
 }
 
-/**@desc compile `precedence` level expression*/
+/// Compile `precedence` level expression.
 static void compile_precedence_expr(Precedence const precedence) {
   compiler_advance();
 
@@ -225,12 +225,12 @@ static void compile_precedence_expr(Precedence const precedence) {
   }
 }
 
-/**@desc compile expression*/
+/// Compile expression.
 static void compile_expr(void) {
   compile_precedence_expr(PRECEDENCE_ASSIGNMENT);
 }
 
-/**@desc compile binary expression*/
+/// Compile binary expression.
 static void compile_binary_expr(void) {
   LexerTokenType const operator_type = parser.previous.type;
   compile_precedence_expr(parse_rules[operator_type].precedence + 1);
@@ -284,7 +284,7 @@ static void compile_binary_expr(void) {
   }
 }
 
-/**@desc compile unary expression*/
+/// Compile unary expression.
 static void compile_unary_expr(void) {
   LexerTokenType const operator_type = parser.previous.type;
   compile_precedence_expr(PRECEDENCE_UNARY);
@@ -302,13 +302,13 @@ static void compile_unary_expr(void) {
   }
 }
 
-/**@desc compile '(...)' grouping expression*/
+/// Compile '(...)' grouping expression.
 static void compile_grouping_expr(void) {
   compile_expr();
   compiler_consume(LEXER_TOKEN_CLOSE_PAREN, "Expected ')' closing grouping expression");
 }
 
-/**@desc compile numeric literal*/
+/// Compile numeric literal.
 static void compile_numeric_literal(void) {
   errno = 0;
   double const value = strtod(parser.previous.lexeme, NULL);
@@ -321,7 +321,7 @@ static void compile_numeric_literal(void) {
   emit_constant_instruction(value_make_number(value));
 }
 
-/**@desc compile invariable literal (one with fixed lexeme)*/
+/// Compile invariable literal (one with fixed lexeme).
 static void compile_invariable_literal(void) {
   LexerTokenType const literal_type = parser.previous.type;
 
@@ -342,21 +342,21 @@ static void compile_invariable_literal(void) {
   }
 }
 
-/**@desc compile expression statement*/
+/// Compile expression statement.
 static void compile_expr_stmt(void) {
   compile_expr();
   compiler_consume(LEXER_TOKEN_SEMICOLON, "Expected ';' terminating expression statement");
   emit_instruction(CHUNK_OP_POP); // discard expression result
 }
 
-/**@desc compile print statement*/
+/// Compile print statement.
 static void compile_print_stmt(void) {
   compile_expr();
   compiler_consume(LEXER_TOKEN_SEMICOLON, "Expected ';' terminating print statement");
   emit_instruction(CHUNK_OP_PRINT);
 }
 
-/**@desc compile statement*/
+/// Compile statement.
 static void compile_stmt(void) {
   if (compiler_match(LEXER_TOKEN_PRINT)) compile_print_stmt();
   else compile_expr_stmt();
@@ -366,8 +366,8 @@ static void compile_stmt(void) {
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc compile `source_code` into bytecode instructions and append them to `chunk`
-@return compiler status indicating compilation result*/
+/// Compile `source_code` into bytecode instructions and append them to `chunk`.
+/// @return Compiler status indicating compilation result.
 CompilerStatus compiler_compile(char const *const source_code, Chunk *const chunk) {
   assert(source_code != NULL);
   assert(chunk != NULL);

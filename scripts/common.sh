@@ -7,7 +7,7 @@ set -o pipefail
 #                   UTILITIES                    #
 ##################################################
 
-# @desc log internal error `message` to stderr and exit with INTERNAL_ERROR_CODE
+# Log internal error `message` to stderr and exit with INTERNAL_ERROR_CODE.
 internal_error() {
   local message="$1"
 
@@ -18,7 +18,7 @@ internal_error() {
   exit $INTERNAL_ERROR_CODE
 }
 
-# @desc log error `message` to stderr and exit with `exit_code`
+# Log error `message` to stderr and exit with `exit_code`.
 error() {
   [[ $# -ne 2 ]] && internal_error "error() expects 'message' and 'exit_code' arguments"
 
@@ -30,7 +30,7 @@ error() {
   exit $exit_code
 }
 
-# @desc log warning `message` to stdout
+# Log warning `message` to stdout.
 warning() {
   [[ $# -ne 1 ]] && internal_error "warning() expects 'message' argument"
 
@@ -39,7 +39,7 @@ warning() {
   echo -e "[WARNING] - $message"
 }
 
-# @desc log action `message` to stdout
+# Log action `message` to stdout.
 log_action() {
   [[ $# -ne 1 ]] && internal_error "log_action() expects 'message' argument"
 
@@ -48,8 +48,8 @@ log_action() {
   echo -e "[ACTION] - ${message}..."
 }
 
-# @desc determine whether `cmd` is available in PATH
-# @return TRUE if it is, FALSE otherwise
+# Determine whether `cmd` is available in PATH.
+# @return TRUE if it is, FALSE otherwise.
 is_cmd_available() {
   [[ $# -ne 1 ]] && internal_error "is_cmd_available() expects 'cmd' argument"
 

@@ -10,7 +10,7 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-/**@desc CLA value type*/
+/// CLA value type.
 typedef enum {
   VALUE_NIL,
   VALUE_BOOL,
@@ -18,7 +18,7 @@ typedef enum {
   VALUE_TYPE_COUNT,
 } ValueType;
 
-/**@desc CLA value*/
+/// CLA value.
 typedef struct {
   ValueType type;
   union {
@@ -27,7 +27,7 @@ typedef struct {
   } payload;
 } Value;
 
-/**@desc dynamic array used for storing CLA values*/
+/// Dynamic array used for storing CLA values.
 typedef DARRAY_TYPE(Value) ValueList;
 
 // *---------------------------------------------*
@@ -50,8 +50,8 @@ bool value_equals(Value value_a, Value value_b);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**desc make CLA nil value
-@return made CLA nil value*/
+/// Make CLA nil value.
+/// @return Made CLA nil value.
 inline Value value_make_nil(void) {
   return (Value){
     VALUE_NIL,
@@ -59,8 +59,8 @@ inline Value value_make_nil(void) {
   };
 }
 
-/**desc make CLA bool value from `boolean`
-@return made CLA bool value*/
+/// Make CLA bool value from `boolean`.
+/// @return Made CLA bool value.
 inline Value value_make_bool(bool const boolean) {
   return (Value){
     VALUE_BOOL,
@@ -68,8 +68,8 @@ inline Value value_make_bool(bool const boolean) {
   };
 }
 
-/**desc make CLA number value from `number`
-@return made CLA number value*/
+/// Make CLA number value from `number`.
+/// @return Made CLA number value.
 inline Value value_make_number(double const number) {
   return (Value){
     VALUE_NUMBER,
@@ -77,26 +77,26 @@ inline Value value_make_number(double const number) {
   };
 }
 
-/**desc determine whether CLA `value` is of bool type
-@return true if it is, false otherwise*/
+/// Determine whether CLA `value` is of bool type.
+/// @return true if it is, false otherwise.
 inline bool value_is_bool(Value const value) {
   return value.type == VALUE_BOOL;
 }
 
-/**desc determine whether CLA `value` is of nil type
-@return true if it is, false otherwise*/
+/// Determine whether CLA `value` is of nil type.
+/// @return true if it is, false otherwise.
 inline bool value_is_nil(Value const value) {
   return value.type == VALUE_NIL;
 }
 
-/**desc determine whether CLA `value` is of number type
-@return true if it is, false otherwise*/
+/// Determine whether CLA `value` is of number type.
+/// @return true if it is, false otherwise.
 inline bool value_is_number(Value const value) {
   return value.type == VALUE_NUMBER;
 }
 
-/**desc determine whether CLA `value` is falsy
-@return true if it is, false otherwise*/
+/// Determine whether CLA `value` is falsy.
+/// @return true if it is, false otherwise.
 inline bool value_is_falsy(Value const value) {
   return value_is_nil(value) || (value_is_bool(value) && value.payload.boolean == false);
 }

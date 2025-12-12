@@ -27,7 +27,7 @@ fi
 #                   UTILITIES                    #
 ##################################################
 
-# @desc pop git stash frame
+# Pop git stash frame.
 pop_stash_frame() {
   [[ $# -ne 0 ]] && internal_error "pop_stash_frame() expects no arguments"
 
@@ -38,7 +38,7 @@ pop_stash_frame() {
   return 0
 }
 
-# @desc terminate action pipeline and exit with GENERIC_ERROR_CODE
+# Terminate action pipeline and exit with GENERIC_ERROR_CODE.
 abort_action_pipeline() {
   [[ $# -ne 0 ]] && internal_error "abort_action_pipeline() expects no arguments"
 

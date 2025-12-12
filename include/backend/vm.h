@@ -38,7 +38,7 @@ bool vm_execute(Chunk const *chunk);
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
-/**@desc reset virtual machine back to initialized state*/
+/// Reset virtual machine back to initialized state.
 inline void vm_reset(void) {
   vm_destroy();
   vm_init();

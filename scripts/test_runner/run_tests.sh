@@ -106,14 +106,14 @@ EXIT CODES
 #               UTILITY FUNCTIONS                #
 ##################################################
 
-# @desc print global MANUAL variable
+# Print global MANUAL variable.
 print_manual() {
   [[ $# -ne 0 ]] && internal_error "print_manual() expects no arguments"
 
   echo "$MANUAL" | sed -e '1d' -e '$d'
 }
 
-# @desc log verbose `message` to stdout if VERBOSE_MODE is on
+# Log verbose `message` to stdout if VERBOSE_MODE is on.
 log_if_verbose() {
   [[ $# -ne 1 ]] && internal_error "log_if_verbose() expects 'message' argument"
 
@@ -122,8 +122,8 @@ log_if_verbose() {
   [[ $VERBOSE_MODE -eq $TRUE ]] && echo -e "[VERBOSE] - $message"
 }
 
-# @desc check if `array` contains at least one element from `search_elements` arguments
-# @return 0 if it does, 1 otherwise
+# Check if `array` contains at least one element from `search_elements` arguments.
+# @return 0 if it does, 1 otherwise.
 array_contains() {
   [[ $# -lt 2 ]] && internal_error "array_contains() expects 'array' and 'search_elements' arguments"
 
@@ -142,7 +142,7 @@ array_contains() {
   return 1
 }
 
-# @desc make `target`
+# Make `target`.
 make_target() {
   [[ $# -ne 1 ]] && internal_error "make_target() expects 'target' argument"
 
@@ -152,7 +152,7 @@ make_target() {
   [[ $? -ne 0 ]] && exit $MAKE_FAILURE_ERROR_CODE
 }
 
-# @desc make `tmpfile_basename` tmpfile and write its filepath to stdout
+# Make `tmpfile_basename` tmpfile and write its filepath to stdout.
 make_tmpfile() {
   [[ $# -ne 1 ]] && internal_error "make_tmpfile() expects 'tmpfile_basename' argument"
 
@@ -163,7 +163,7 @@ make_tmpfile() {
     error "Failed to make '${tmpfile_basename}' tmpfile" $GENERIC_ERROR_CODE
 }
 
-# @desc handle `test_type` failure
+# Handle `test_type` failure.
 handle_test_type_fail() {
   [[ $# -ne 1 ]] && internal_error "handle_test_type_fail() expects 'test_type' argument"
 
@@ -173,7 +173,7 @@ handle_test_type_fail() {
   FAILED_TEST_TYPES+=("$test_type")
 }
 
-# @desc run test executables corresponding to `test_type` `test_filepaths`
+# Run test executables corresponding to `test_type` `test_filepaths`.
 run_test_executables() {
   [[ $# -ne 2 ]] && internal_error "run_test_executables() expects 'test_type' and 'test_filepaths' arguments"
 
@@ -200,7 +200,7 @@ run_test_executables() {
   [[ $did_test_executable_failure_occur -eq $TRUE ]] && handle_test_type_fail "$test_type"
 }
 
-# @desc write to stdout sorted e2e_testfile_paths (requisite path segment prefix is used as the sorting key)
+# Write to stdout sorted e2e_testfile_paths (requisite path segment prefix is used as the sorting key).
 get_sorted_e2e_testfile_paths() {
   [[ $# -ne 0 ]] && internal_error "get_sorted_e2e_testfile_paths() expects no arguments"
 

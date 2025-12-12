@@ -19,8 +19,8 @@ void io_puts(char const *string);
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc read `binary_stream` resource content into dynamically allocated buffer
-@return pointer to NUL terminated buffer with `binary_stream` resource content*/
+/// Read `binary_stream` resource content into dynamically allocated buffer.
+/// @return Pointer to NUL terminated buffer with `binary_stream` resource content.
 char *io_read_binary_stream_resource_content(FILE *const binary_stream) {
   assert(binary_stream != NULL);
 
@@ -42,8 +42,8 @@ char *io_read_binary_stream_resource_content(FILE *const binary_stream) {
   return content_buffer;
 }
 
-/**@desc read file at `filepath` into dynamically allocated buffer
-@return pointer to NUL terminated buffer with `filepath` file content*/
+/// Read file at `filepath` into dynamically allocated buffer.
+/// @return Pointer to NUL terminated buffer with `filepath` file content.
 char *io_read_file(char const *const filepath) {
   assert(filepath != NULL);
 

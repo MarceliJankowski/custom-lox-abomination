@@ -46,15 +46,15 @@ static VM vm;
 // *          EXTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
 
-/**@desc exposes vm.stack.count (meant solely for automated tests)*/
+/// Exposes vm.stack.count (meant solely for automated tests).
 size_t const *const t_vm_stack_count = &vm.stack.count;
 
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc handle bytecode execution error at `instruction_offset` with `format` message and `format_args`
-@return false (meant to be forwarded as an execution failure indication)*/
+/// Handle bytecode execution error at `instruction_offset` with `format` message and `format_args`.
+/// @return false (meant to be forwarded as an execution failure indication).
 static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const format, ...) {
   assert(instruction_offset >= 0);
   assert(format != NULL);
@@ -79,31 +79,31 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/**@desc initialize virtual machine*/
+/// Initialize virtual machine.
 void vm_init(void) {
   STACK_INIT_EXPLICIT(&vm.stack, sizeof(Value), gc_memory_manage, VM_STACK_INITIAL_CAPACITY, VM_STACK_GROWTH_FACTOR);
 }
 
-/**@desc release virtual machine resources and set it to uninitialized state*/
+/// Release virtual machine resources and set it to uninitialized state.
 void vm_destroy(void) {
   STACK_DESTROY(&vm.stack);
 
   vm = (VM){0};
 }
 
-/**@desc push `value` on top of virtual machine stack*/
+/// Push `value` on top of virtual machine stack.
 void vm_stack_push(Value const value) {
   STACK_PUSH(&vm.stack, value);
 }
 
-/**@desc pop value from virtual machine stack
-@return popped value*/
+/// Pop value from virtual machine stack.
+/// @return Popped value.
 Value vm_stack_pop(void) {
   return STACK_POP(&vm.stack);
 }
 
-/**@desc execute bytecode `chunk`; virtual machine state persists across `chunk` executions
-@return true if execution succeeded, false otherwise*/
+/// Execute bytecode `chunk`; virtual machine state persists across `chunk` executions.
+/// @return true if execution succeeded, false otherwise.
 bool vm_execute(Chunk const *const chunk) {
   assert(chunk != NULL);
 

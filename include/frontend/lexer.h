@@ -80,7 +80,7 @@ static_assert(
   LEXER_TOKEN_TYPE_COUNT <= UCHAR_MAX, "Too many LexerTokenTypes defined; LexerToken.type can't fit all of them"
 );
 
-/**@desc lexeme bundled up with metadata about itself; smallest meaningful language unit*/
+/// Lexeme bundled up with metadata about itself; smallest meaningful language unit.
 typedef struct {
   char const *lexeme;
   int32_t line;
