@@ -235,7 +235,7 @@ size_t gap_buffer_get_content_length(GapBuffer const *const gap_buffer) {
 }
 
 /// Get `gap_buffer` content.
-/// @return Pointer to NUL terminated buffer with `gap_buffer` content.
+/// @return Pointer to dynamically allocated string with `gap_buffer` content.
 char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
 
