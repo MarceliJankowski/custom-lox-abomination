@@ -81,6 +81,7 @@ bool terminal_enable_noncannonical_mode(void) {
   // get stdin handle and save it
   stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
   if (stdin_handle == INVALID_HANDLE_VALUE) ERROR_WINDOWS_LAST();
+  if (stdin_handle == NULL) ERROR_SYSTEM("Standard input handle is not assigned to this process");
 
   // check if stdin is connected to a character device
   DWORD const stdin_file_type = GetFileType(stdin_handle);
