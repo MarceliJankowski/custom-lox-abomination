@@ -118,7 +118,18 @@ void terminal_clear_current_line(void) {
 void terminal_move_cursor_to_column(int const index) {
   assert(index >= 0 && "Attempt to move terminal cursor to a negative column");
 
-  // TODO: implement
+  HANDLE const stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+  if (stdout_handle == INVALID_HANDLE_VALUE) ERROR_WINDOWS_LAST();
+  if (stdout_handle == NULL) ERROR_SYSTEM("Standard output handle is not assigned to this process");
+
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  if (!GetConsoleScreenBufferInfo(stdout_handle, &csbi)) ERROR_WINDOWS_LAST();
+  assert(index < csbi.dwSize.X && "Attempt to move terminal cursor past buffer width");
+
+  COORD new_cursor_position = csbi.dwCursorPosition;
+  new_cursor_position.X = index;
+
+  if (!SetConsoleCursorPosition(stdout_handle, new_cursor_position)) ERROR_WINDOWS_LAST();
 }
 
 #else
