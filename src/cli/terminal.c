@@ -107,6 +107,75 @@ bool terminal_enable_noncannonical_mode(void) {
   return true;
 }
 
+TerminalKey terminal_read_key(void) {
+  static_assert(TERMINAL_KEY_TYPE_COUNT == 29, "Exhaustive TerminalKeyType handling");
+
+  INPUT_RECORD input_event;
+  DWORD input_event_count;
+  for (;;) {
+    if (!ReadConsoleInput(stdin_handle, &input_event, 1, &input_event_count)) ERROR_WINDOWS_LAST();
+    if (input_event.EventType != KEY_EVENT) continue;
+
+    KEY_EVENT_RECORD const key_event = input_event.Event.KeyEvent;
+    if (!key_event.bKeyDown) continue;
+
+    bool const is_ctrl_down = (key_event.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+    bool const is_alt_down = (key_event.dwControlKeyState & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+
+    { // handle control keys
+      if (is_ctrl_down) {
+        switch (key_event.uChar.AsciiChar) {
+          case 1: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_A);
+          case 2: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_B);
+          case 4: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_D);
+          case 5: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_E);
+          case 6: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_F);
+          case 8: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_H);
+          case 12: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_L);
+          case 14: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_N);
+          case 16: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_P);
+          case 23: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_W);
+          case 21: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_U);
+          case 11: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_K);
+        }
+
+        switch (key_event.wVirtualKeyCode) {
+          case VK_UP: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_UP);
+          case VK_DOWN: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_DOWN);
+          case VK_LEFT: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_LEFT);
+          case VK_RIGHT: return MAKE_CONTROL_KEY(TERMINAL_KEY_CTRL_ARROW_RIGHT);
+        }
+      }
+
+      if (is_alt_down) {
+        switch (key_event.uChar.AsciiChar) {
+          case 'b': return MAKE_CONTROL_KEY(TERMINAL_KEY_ALT_B);
+          case 'd': return MAKE_CONTROL_KEY(TERMINAL_KEY_ALT_D);
+          case 'f': return MAKE_CONTROL_KEY(TERMINAL_KEY_ALT_F);
+        }
+      }
+
+      switch (key_event.wVirtualKeyCode) {
+        case VK_RETURN: return MAKE_CONTROL_KEY(TERMINAL_KEY_ENTER);
+        case VK_DELETE: return MAKE_CONTROL_KEY(TERMINAL_KEY_DELETE);
+        case VK_BACK: return MAKE_CONTROL_KEY(TERMINAL_KEY_BACKSPACE);
+        case VK_UP: return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_UP);
+        case VK_DOWN: return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_DOWN);
+        case VK_LEFT: return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_LEFT);
+        case VK_RIGHT: return MAKE_CONTROL_KEY(TERMINAL_KEY_ARROW_RIGHT);
+      }
+    }
+
+    // handle printable keys
+    if (key_event.uChar.AsciiChar >= 32 && key_event.uChar.AsciiChar < 127) {
+      return MAKE_PRINTABLE_KEY(key_event.uChar.AsciiChar);
+    }
+
+    // handle unknown key
+    return MAKE_CONTROL_KEY(TERMINAL_KEY_UNKNOWN);
+  }
+}
+
 void terminal_clear_screen(void) {
   HANDLE const stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
   if (stdout_handle == INVALID_HANDLE_VALUE) ERROR_WINDOWS_LAST();
