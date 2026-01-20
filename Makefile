@@ -43,6 +43,8 @@ DEBUG_CPPFLAGS ?= -D DEBUG
 DEFAULT_TARGET ?= help
 .DEFAULT_GOAL := ${DEFAULT_TARGET}
 
+SHELL := /bin/bash
+
 ##################################################
 #               INTERNAL VARIABLES               #
 ##################################################
@@ -155,16 +157,22 @@ endef
 ##################################################
 
 .DELETE_ON_ERROR:
-.PHONY: all ${BUILDS} test-executables ${clean_targets} run-tests compilation-database help
+.PHONY: all ${BUILDS} .verify-test-libs test-executables ${clean_targets} run-tests compilation-database help
 
 all: ${BUILDS}
 
 # make language implementation builds
 ${LANG_IMPL_BUILDS}: %: ${BIN_DIR}/%/${LANG_IMPL_EXEC_NAME}
 
+.verify-test-libs:
+	@ source "${SCRIPTS_DIR}/common.sh"; \
+	if [[ $$(get_library_version "cmocka") != "1.1"* ]]; then \
+		error "cmocka version doesn't conform to required '^1.1.0'" 1; \
+	fi
+
 # make tests build (split into 2 targets to avoid release/tests specific variables being applied simultaneously)
 tests: release test-executables
-test-executables: ${unit_test_executables} ${component_test_executables}
+test-executables: .verify-test-libs ${unit_test_executables} ${component_test_executables}
 
 # make language implementation executables
 ${BIN_DIR}/%/${LANG_IMPL_EXEC_NAME}: $(addprefix ${BUILD_DIR}/%/,${source_objects})

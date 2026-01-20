@@ -60,6 +60,33 @@ is_cmd_available() {
   return $TRUE # available
 }
 
+# Determine whether `library` is available.
+# @return TRUE if it is, FALSE otherwise.
+is_library_available() {
+  [[ $# -ne 1 ]] && internal_error "is_library_available() expects 'library' argument"
+
+  local -r library="$1"
+
+  is_cmd_available "pkgconf" || error "pkgconf is unavailable" $GENERIC_ERROR_CODE
+  pkgconf --exists "$library" || return $FALSE # unavailable
+
+  return $TRUE # available
+}
+
+# Retrieve version of `library`.
+# This function asserts `library` availability.
+# @stdout `library` version.
+get_library_version() {
+  [[ $# -ne 1 ]] && internal_error "get_library_version() expects 'library' argument"
+
+  local -r library="$1"
+
+  is_library_available "$library" || error "Library '${library}' is unavailable" $GENERIC_ERROR_CODE
+
+  is_cmd_available "pkgconf" || error "pkgconf is unavailable" $GENERIC_ERROR_CODE
+  pkgconf --modversion "$library" || error "Failed to retrieve version of '${library}' library"
+}
+
 ##################################################
 #                GLOBAL VARIABLES                #
 ##################################################
