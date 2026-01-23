@@ -37,8 +37,9 @@ BUILDS := ${LANG_IMPL_BUILDS} tests
 
 RELEASE_CFLAGS ?= -O2 -flto -march=native
 
-# no optimizations; I've seen them interfere with UBSAN (-Og included)
-DEBUG_CFLAGS ?= -ggdb -fno-omit-frame-pointer -fsanitize=address,undefined
+# no optimizations; they can interfere with UBSAN (-Og included)
+DEBUG_CFLAGS ?= -ggdb -fno-omit-frame-pointer
+POSIX_DEBUG_CFLAGS ?= -fsanitize=address,undefined
 DEBUG_CPPFLAGS ?= -D DEBUG
 
 # allow user to set .DEFAULT_GOAL through DEFAULT_TARGET environmental variable (or CLI)
@@ -53,11 +54,13 @@ SHELL := /bin/bash
 ##################################################
 
 ifeq "${TARGET_SYSTEM}" "posix"
-  c_compiler := ${CC}
   lang_impl_exec_name := ${LANG_IMPL_NAME}
+  c_compiler := ${CC}
+  debug_compile_cflags := ${DEBUG_CLAGS} ${POSIX_DEBUG_CFLAGS}
 else ifeq "${TARGET_SYSTEM}" "windows"
-  c_compiler := ${WINDOWS_CC}
   lang_impl_exec_name := ${LANG_IMPL_NAME}.exe
+  c_compiler := ${WINDOWS_CC}
+  debug_compile_cflags := ${DEBUG_CFLAGS}
 else
   $(error TARGET_SYSTEM '${TARGET_SYSTEM}' is invalid)
 endif
@@ -105,7 +108,7 @@ clean_targets := clean ${clean_build_targets}
 
 release: compile_cflags += ${RELEASE_CFLAGS}
 debug: compile_cppflags += ${DEBUG_CPPFLAGS}
-debug: compile_cflags += ${DEBUG_CFLAGS}
+debug: compile_cflags += ${debug_compile_cflags}
 test-executables: compile_cppflags += -I ${test_utils_dir}
 test-executables: compile_cflags += -Wno-unused-parameter
 test-executables: link_libs += $(foreach test_lib,${TEST_LIBS},-l${test_lib})
