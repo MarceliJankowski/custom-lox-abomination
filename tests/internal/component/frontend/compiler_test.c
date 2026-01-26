@@ -113,7 +113,7 @@ static CompilerStatus compile(char const *const source_code) {
   chunk_reset(&chunk);
   chunk_code_offset = 0;
   chunk_constant_instruction_index = 0;
-  component_test_clear_binary_stream_resource_content(g_static_analysis_error_stream);
+  io_clear_file(g_static_analysis_error_stream);
 
   return compiler_compile(source_code, &chunk);
 }

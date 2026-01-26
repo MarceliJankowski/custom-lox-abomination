@@ -26,14 +26,6 @@ void component_test_assert_file_content(FILE *const file_bin_stream, char const 
   free(content_string);
 }
 
-/// Clear `binary_stream` resource content.
-void component_test_clear_binary_stream_resource_content(FILE *binary_stream) {
-  assert(binary_stream != NULL);
-
-  binary_stream = freopen(NULL, "w+b", binary_stream);
-  if (binary_stream == NULL) ERROR_IO_ERRNO();
-}
-
 /// Assert `value_a` and `value_b` equality.
 void component_test_assert_value_equality(Value const value_a, Value const value_b) {
   assert_int_equal(value_a.type, value_b.type);

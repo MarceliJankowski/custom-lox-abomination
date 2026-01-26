@@ -18,11 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-#include <fcntl.h>
-#include <io.h>
-#endif
-
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
@@ -263,8 +258,7 @@ void repl_enter(void) {
     }
 
     // clear static analysis errors
-    g_static_analysis_error_stream = freopen(NULL, "w+b", g_static_analysis_error_stream);
-    if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
+    io_clear_file(g_static_analysis_error_stream);
 
     // determine if logical_line is incomplete and therefore should be continued
     if (interpreter_status == INTERPRETER_COMPILER_UNEXPECTED_EOF) is_continuing_logical_line = true;
