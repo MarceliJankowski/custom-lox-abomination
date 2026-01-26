@@ -17,7 +17,7 @@ ErrorCode file_interpret(char const *const source_file_path) {
   ErrorCode error_code = ERROR_CODE_SUCCESS;
   interpreter_init();
 
-  char *const source_code = io_read_file(source_file_path);
+  char *const source_code = io_read_text_file(source_file_path);
   InterpreterStatus const interpreter_status = interpreter_interpret(source_code);
 
   // map interpreter_status to error_code

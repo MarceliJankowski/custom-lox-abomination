@@ -28,13 +28,13 @@
 #define APPEND_INSTRUCTIONS(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(APPEND_INSTRUCTION, ChunkOpCode, __VA_ARGS__)
 
 #define ASSERT_EXECUTION_ERROR(expected_error_message)                                         \
-  component_test_assert_binary_stream_resource_content(                                        \
+  component_test_assert_file_content(                                                          \
     g_bytecode_execution_error_stream,                                                         \
     "[EXECUTION_ERROR]" COMMON_MS __FILE__ COMMON_PS "1" COMMON_MS expected_error_message "\n" \
   )
 
 #define ASSERT_SOURCE_PROGRAM_OUTPUT(expected_output) \
-  component_test_assert_binary_stream_resource_content(g_source_program_output_stream, expected_output "\n")
+  component_test_assert_file_content(g_source_program_output_stream, expected_output "\n")
 
 #define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)          \
   do {                                                                                                           \

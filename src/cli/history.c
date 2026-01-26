@@ -46,7 +46,8 @@ static FILE *history_file_append_stream = NULL;
 // *---------------------------------------------*
 
 /// Get absolute path to history file.
-/// @return Pointer to dynamically allocated string with history file path.
+/// @note Caller takes ownership of returned string.
+/// @return Heap-allocated string with history file path.
 static char *history_file_get_path(void) {
 #ifdef _WIN32
   char const *const appdata_roaming_dir_path = getenv("APPDATA");
@@ -96,7 +97,7 @@ static void history_file_trim(void) {
   FILE *history_file_stream = fopen(history_file_path, "rb");
   if (history_file_stream == NULL) return; // nothing to trim
 
-  char *const history_file_content = io_read_binary_stream_resource_content(history_file_stream);
+  char *const history_file_content = io_read_finite_seekable_binary_stream_as_str(history_file_stream);
   size_t const entry_count = str_count_lines(history_file_content);
 
   if (entry_count <= HISTORY_SIZE) return;
@@ -130,7 +131,7 @@ static void history_file_trim_and_load(void) {
   FILE *const history_file_stream = fopen(history_file_path, "rb");
   if (history_file_stream == NULL) return; // nothing to load
 
-  char *const history_file_content = io_read_binary_stream_resource_content(history_file_stream);
+  char *const history_file_content = io_read_finite_seekable_binary_stream_as_str(history_file_stream);
 
   // load history_file_content into history data structure
   int entry_count = 0;

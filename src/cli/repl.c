@@ -63,12 +63,12 @@ static inline void interpret_stdin_stream_resource_content(void) {
   interpreter_init();
 
   set_stdin_stream_to_binary_mode();
-  char *const input = io_read_binary_stream_resource_content(stdin);
+  char *const input_string = io_read_finite_seekable_binary_stream_as_str(stdin);
 
-  interpreter_interpret(input);
+  interpreter_interpret(input_string);
 
   interpreter_destroy();
-  free(input);
+  free(input_string);
 }
 
 // *---------------------------------------------*
@@ -267,7 +267,7 @@ void repl_enter(void) {
     InterpreterStatus const interpreter_status = interpreter_interpret(logical_line.data);
     if (interpreter_status == INTERPRETER_COMPILER_FAILURE) {
       if (fflush(g_static_analysis_error_stream) == EOF) ERROR_IO_ERRNO();
-      char *const static_analysis_errors = io_read_binary_stream_resource_content(g_static_analysis_error_stream);
+      char *const static_analysis_errors = io_read_finite_seekable_binary_stream_as_str(g_static_analysis_error_stream);
 
       io_fprintf(stderr, "%s", static_analysis_errors);
 
