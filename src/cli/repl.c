@@ -47,23 +47,11 @@
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/// Set stdin stream to binary mode.
-static inline void set_stdin_stream_to_binary_mode(void) {
-#ifdef _WIN32
-  int const stdin_file_descriptor = _fileno(stdin);
-  if (stdin_file_descriptor == -1) ERROR_SYSTEM_ERRNO();
-  if (_setmode(stdin_file_descriptor, _O_BINARY) == -1) ERROR_SYSTEM_ERRNO();
-#else
-  // on POSIX systems there's no difference between binary/text streams
-#endif
-}
-
 /// Interpret stdin stream resource content.
 static inline void interpret_stdin_stream_resource_content(void) {
   interpreter_init();
 
-  set_stdin_stream_to_binary_mode();
-  char *const input_string = io_read_finite_seekable_binary_stream_as_str(stdin);
+  char *const input_string = io_read_finite_stream_as_str(stdin);
 
   interpreter_interpret(input_string);
 

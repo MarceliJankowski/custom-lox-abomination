@@ -12,6 +12,8 @@
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
+uint8_t *io_read_finite_stream(FILE *stream, size_t *out_length);
+char *io_read_finite_stream_as_str(FILE *stream);
 uint8_t *io_read_finite_seekable_binary_stream(FILE *stream, size_t *out_length);
 char *io_read_finite_seekable_binary_stream_as_str(FILE *stream);
 char *io_read_text_file(char const *filepath);
