@@ -1,3 +1,7 @@
+#ifndef _WIN32
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "utils/io.h"
 
 #include "utils/error.h"
@@ -6,6 +10,12 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <io.h>
+#else // POSIX
+#include <unistd.h>
+#endif
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
@@ -140,4 +150,26 @@ char *io_read_text_file(char const *const filepath) {
   if (fclose(file_stream)) ERROR_IO("Failed to close file '%s'" COMMON_MS "%s\n", filepath, strerror(errno));
 
   return content_string;
+}
+
+/// Clear content of file connected to `file_stream`.
+void io_clear_file(FILE *const file_stream) {
+  assert(file_stream != NULL);
+
+  if (fflush(file_stream) == EOF) ERROR_IO_ERRNO();
+
+#ifdef _WIN32
+  int const stream_fd = _fileno(file_stream);
+  if (stream_fd == -1) ERROR_IO_ERRNO();
+  if (stream_fd == -2) ERROR_IO("stdout/stderr is not associated with an output stream");
+
+  if (_chsize_s(stream_fd, 0) != 0) ERROR_IO_ERRNO();
+#else // POSIX
+  int const stream_fd = fileno(file_stream);
+  if (stream_fd == -1) ERROR_IO_ERRNO();
+
+  if (ftruncate(stream_fd, 0) == -1) ERROR_IO_ERRNO();
+#endif
+
+  if (fseek(file_stream, 0, SEEK_SET)) ERROR_IO_ERRNO();
 }

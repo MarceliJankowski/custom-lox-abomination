@@ -5,6 +5,7 @@
 #include "component/component_test.h"
 #include "global.h"
 #include "utils/error.h"
+#include "utils/io.h"
 
 #include <stdio.h>
 
@@ -106,8 +107,8 @@ static Chunk chunk;
 // *---------------------------------------------*
 
 static bool execute(void) {
-  component_test_clear_binary_stream_resource_content(g_bytecode_execution_error_stream);
-  component_test_clear_binary_stream_resource_content(g_source_program_output_stream);
+  io_clear_file(g_bytecode_execution_error_stream);
+  io_clear_file(g_source_program_output_stream);
 
   return vm_execute(&chunk);
 }
