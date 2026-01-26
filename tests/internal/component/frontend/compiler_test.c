@@ -147,7 +147,7 @@ static void assert_static_analysis_error(
       ) < 0)
     ERROR_IO_ERRNO();
 
-  component_test_assert_binary_stream_resource_content(g_static_analysis_error_stream, expected_static_analysis_error);
+  component_test_assert_file_content(g_static_analysis_error_stream, expected_static_analysis_error);
 
   free(expected_static_analysis_error);
 }
@@ -203,7 +203,7 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
 
 static int setup_test_group_env(void **const _) {
   g_source_file_path = __FILE__;
-  g_static_analysis_error_stream = tmpfile(); // assert_static_analysis_error expects this stream to be binary
+  g_static_analysis_error_stream = tmpfile();
   if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
 
   chunk_init(&chunk);

@@ -5,14 +5,16 @@
 #include "utils/error.h"
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-char *io_read_binary_stream_resource_content(FILE *binary_stream);
-char *io_read_file(char const *filepath);
+uint8_t *io_read_finite_seekable_binary_stream(FILE *stream, size_t *out_length);
+char *io_read_finite_seekable_binary_stream_as_str(FILE *stream);
+char *io_read_text_file(char const *filepath);
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *

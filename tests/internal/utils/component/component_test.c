@@ -10,20 +10,20 @@
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/// Assert `binary_stream` resource content being equal to `expected_resource_content`.
-void component_test_assert_binary_stream_resource_content(
-  FILE *const binary_stream, char const *const expected_resource_content
-) {
-  assert(binary_stream != NULL);
-  assert(expected_resource_content != NULL);
+/// Assert `file_bin_stream` file content being equal to `expected_content`.
+/// @param file_bin_stream Binary stream connected to a file.
+/// @param expected_content String with expected `file_bin_stream` file content.
+void component_test_assert_file_content(FILE *const file_bin_stream, char const *const expected_content) {
+  assert(file_bin_stream != NULL);
+  assert(expected_content != NULL);
 
-  if (fflush(binary_stream)) ERROR_IO_ERRNO();
+  if (fflush(file_bin_stream)) ERROR_IO_ERRNO();
 
-  char *const resource_content = io_read_binary_stream_resource_content(binary_stream);
+  char *const content_string = io_read_finite_seekable_binary_stream_as_str(file_bin_stream);
 
-  assert_string_equal(resource_content, expected_resource_content);
+  assert_string_equal(content_string, expected_content);
 
-  free(resource_content);
+  free(content_string);
 }
 
 /// Clear `binary_stream` resource content.

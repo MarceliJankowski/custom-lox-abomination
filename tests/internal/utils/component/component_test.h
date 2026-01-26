@@ -20,7 +20,7 @@
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-void component_test_assert_binary_stream_resource_content(FILE *binary_stream, char const *expected_resource_content);
+void component_test_assert_file_content(FILE *file_bin_stream, char const *expected_content);
 void component_test_clear_binary_stream_resource_content(FILE *binary_stream);
 void component_test_assert_value_equality(Value value_a, Value value_b);
 
