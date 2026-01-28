@@ -72,6 +72,7 @@ typedef union {
 bool terminal_enable_noncannonical_mode(void);
 
 /// Read key press from terminal's command-line interface (only supports ASCII).
+/// @pre Stdin must be connected to a terminal.
 /// @return Key that was read.
 TerminalKey terminal_read_key(void);
 
