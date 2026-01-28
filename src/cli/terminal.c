@@ -253,7 +253,7 @@ static bool is_noncannonical_mode_enabled;
 // *---------------------------------------------*
 
 /// Restore terminal parameters to their original state.
-/// @warning Requires noncannonical mode to be enabled.
+/// @pre Terminal noncannonical mode must be enabled.
 static void restore_terminal_parameters(void) {
   assert(is_noncannonical_mode_enabled == true);
 
