@@ -56,7 +56,7 @@ SHELL := /bin/bash
 ifeq "${TARGET_SYSTEM}" "posix"
   lang_impl_exec_name := ${LANG_IMPL_NAME}
   c_compiler := ${CC}
-  debug_compile_cflags := ${DEBUG_CLAGS} ${POSIX_DEBUG_CFLAGS}
+  debug_compile_cflags := ${DEBUG_CFLAGS} ${POSIX_DEBUG_CFLAGS}
 else ifeq "${TARGET_SYSTEM}" "windows"
   lang_impl_exec_name := ${LANG_IMPL_NAME}.exe
   c_compiler := ${WINDOWS_CC}
