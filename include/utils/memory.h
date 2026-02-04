@@ -17,8 +17,6 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-typedef enum { MEMORY_LITTLE_ENDIAN, MEMORY_BIG_ENDIAN } Endianness;
-
 /// Function managing `object` memory.
 /// Based on input arguments one of the following operations is performed:
 /// - Allocate new object (`object` == NULL, `old_size` == 0, `new_size` > 0);
