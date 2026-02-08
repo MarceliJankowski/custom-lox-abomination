@@ -253,7 +253,7 @@ static bool is_noncannonical_mode_enabled;
 // *---------------------------------------------*
 
 /// Restore terminal parameters to their original state.
-/// @warning Requires noncannonical mode to be enabled.
+/// @pre Terminal noncannonical mode must be enabled.
 static void restore_terminal_parameters(void) {
   assert(is_noncannonical_mode_enabled == true);
 
@@ -512,6 +512,12 @@ void terminal_move_cursor_to_column(int const index) {
 
   io_printf("\r\x1b[%dC", index);
   if (fflush(stdout) == EOF) ERROR_IO_ERRNO();
+}
+
+struct winsize terminal_get_dimensions(void) {
+  struct winsize w;
+  if (ioctl(0, TIOCGWINSZ, &w) == -1) ERROR_SYSTEM_ERRNO();
+  return w;
 }
 
 #endif // _WIN32

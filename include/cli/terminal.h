@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
 
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
@@ -72,6 +74,7 @@ typedef union {
 bool terminal_enable_noncannonical_mode(void);
 
 /// Read key press from terminal's command-line interface (only supports ASCII).
+/// @pre Stdin must be connected to a terminal.
 /// @return Key that was read.
 TerminalKey terminal_read_key(void);
 
@@ -83,5 +86,8 @@ void terminal_clear_current_line(void);
 
 /// Move terminal cursor to a column located at `index` on the current line (`index` must be nonnegative).
 void terminal_move_cursor_to_column(int index);
+
+/// Get dimensions of terminal.
+struct winsize terminal_get_dimensions(void);
 
 #endif // TERMINAL_H

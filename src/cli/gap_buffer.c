@@ -255,9 +255,9 @@ char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
 }
 
 /// Replace `gap_buffer` content with `new_content`; effectively loading it in.
+/// @pre Memory area of `new_content` musn't overlap with that of `gap_buffer`.
 /// @note `gap_buffer` cursor gets positioned at the end of `new_content`.
-/// @warning Memory area of `new_content` musn't overlap with `gap_buffer.buffer`.
-void gap_buffer_load_content(GapBuffer *const gap_buffer, char const *const new_content) {
+void gap_buffer_load_content(GapBuffer *restrict const gap_buffer, char const *restrict const new_content) {
   assert(gap_buffer != NULL);
   assert(new_content != NULL);
 
