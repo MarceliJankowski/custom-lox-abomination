@@ -514,4 +514,10 @@ void terminal_move_cursor_to_column(int const index) {
   if (fflush(stdout) == EOF) ERROR_IO_ERRNO();
 }
 
+struct winsize terminal_get_dimensions(void) {
+  struct winsize w;
+  if (ioctl(0, TIOCGWINSZ, &w) == -1) ERROR_SYSTEM_ERRNO();
+  return w;
+}
+
 #endif // _WIN32
