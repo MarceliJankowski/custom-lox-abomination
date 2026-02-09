@@ -4,8 +4,6 @@
 #include "utils/io.h"
 #include "utils/number.h"
 
-#include <assert.h>
-
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*

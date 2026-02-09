@@ -182,8 +182,8 @@ ${LANG_IMPL_BUILDS}: %: ${BIN_DIR}/%/${lang_impl_exec_name}
 
 .verify-test-libs:
 	@ source "${SCRIPTS_DIR}/common.sh"; \
-	if [[ $$(get_library_version "cmocka") != "1.1"* ]]; then \
-		error "cmocka version doesn't conform to required '^1.1.0'" 1; \
+	if [[ $$(get_library_version "cmocka") != "2."* ]]; then \
+		error "cmocka version doesn't conform to required '^2.0.0'" 1; \
 	fi
 
 # make tests build (split into 2 targets to avoid release/tests specific variables being applied simultaneously)

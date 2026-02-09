@@ -2,6 +2,8 @@
 #include "utils/darray.h"
 #include "utils/memory.h"
 
+#include <cmocka.h>
+
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
@@ -40,8 +42,8 @@
 static MemoryManagerFn spy_memory_manage;
 static void *spy_memory_manage(void *const object, size_t const old_size, size_t const new_size) {
   check_expected_ptr(object);
-  check_expected(old_size);
-  check_expected(new_size);
+  check_expected_uint(old_size);
+  check_expected_uint(new_size);
 
   return memory_manage(object, old_size, new_size);
 }
@@ -50,8 +52,12 @@ static void *spy_memory_manage(void *const object, size_t const old_size, size_t
 // *               CHECK FUNCTIONS               *
 // *---------------------------------------------*
 
-static int check_unsigned_param_is_gte(LargestIntegralType const param_value, LargestIntegralType const min_value) {
-  return param_value >= min_value;
+static int check_uint_param_is_gte(CMockaValueData const actual, CMockaValueData const expected_min) {
+  return actual.uint_val >= expected_min.uint_val;
+}
+
+static int check_ptr_param_equals(CMockaValueData const actual, CMockaValueData const expected) {
+  return actual.ptr == expected.ptr;
 }
 
 // *---------------------------------------------*
@@ -111,9 +117,9 @@ static void DARRAY_DESTROY__releases_resources(void **const _) {
   DARRAY_GROW(&darray);
   darray.memory_manager = spy_memory_manage;
 
-  expect_value(spy_memory_manage, object, darray.data);
-  expect_value(spy_memory_manage, old_size, darray.capacity * darray.data_object_size);
-  expect_value(spy_memory_manage, new_size, 0);
+  expect_check_data(spy_memory_manage, object, check_ptr_param_equals, cast_ptr_to_cmocka_value(darray.data));
+  expect_uint_value(spy_memory_manage, old_size, darray.capacity * darray.data_object_size);
+  expect_uint_value(spy_memory_manage, new_size, 0);
   DARRAY_DESTROY(&darray);
 }
 
@@ -135,15 +141,15 @@ static void DARRAY_GROW__grows_by_initial_capacity_and_growth_factor(void **cons
   size_t const expected_first_capacity = initial_growth_capacity;
   size_t const expected_second_capacity = expected_first_capacity * capacity_growth_factor;
 
-  expect_value(spy_memory_manage, object, darray.data);
-  expect_value(spy_memory_manage, old_size, 0);
-  expect_value(spy_memory_manage, new_size, expected_first_capacity * data_object_size);
+  expect_check_data(spy_memory_manage, object, check_ptr_param_equals, cast_ptr_to_cmocka_value(darray.data));
+  expect_uint_value(spy_memory_manage, old_size, 0);
+  expect_uint_value(spy_memory_manage, new_size, expected_first_capacity * data_object_size);
   DARRAY_GROW(&darray);
   assert_int_equal(darray.capacity, expected_first_capacity);
 
-  expect_value(spy_memory_manage, object, darray.data);
-  expect_value(spy_memory_manage, old_size, expected_first_capacity * data_object_size);
-  expect_value(spy_memory_manage, new_size, expected_second_capacity * data_object_size);
+  expect_check_data(spy_memory_manage, object, check_ptr_param_equals, cast_ptr_to_cmocka_value(darray.data));
+  expect_uint_value(spy_memory_manage, old_size, expected_first_capacity * data_object_size);
+  expect_uint_value(spy_memory_manage, new_size, expected_second_capacity * data_object_size);
   DARRAY_GROW(&darray);
   assert_int_equal(darray.capacity, expected_second_capacity);
 
@@ -154,20 +160,20 @@ static void DARRAY_GROW__grows_by_initial_capacity_and_growth_factor(void **cons
 
 static void DARRAY_RESERVE__reserves_at_least_min_capacity(void **const _) {
   DARRAY_DEFINE(int, darray, spy_memory_manage);
-  size_t const first_min_capacity = 20;
-  size_t const second_min_capacity = first_min_capacity * 10;
+  CMockaValueData const first_min_capacity = cast_int_to_cmocka_value(20);
+  CMockaValueData const second_min_capacity = cast_int_to_cmocka_value(first_min_capacity.uint_val * 10);
 
-  expect_value(spy_memory_manage, object, darray.data);
-  expect_value(spy_memory_manage, old_size, 0);
-  expect_check(spy_memory_manage, new_size, check_unsigned_param_is_gte, first_min_capacity);
-  DARRAY_RESERVE(&darray, first_min_capacity);
-  assert_true(darray.capacity >= first_min_capacity);
+  expect_check_data(spy_memory_manage, object, check_ptr_param_equals, cast_ptr_to_cmocka_value(darray.data));
+  expect_uint_value(spy_memory_manage, old_size, 0);
+  expect_check_data(spy_memory_manage, new_size, check_uint_param_is_gte, first_min_capacity);
+  DARRAY_RESERVE(&darray, first_min_capacity.uint_val);
+  assert_true(darray.capacity >= first_min_capacity.uint_val);
 
-  expect_value(spy_memory_manage, object, darray.data);
-  expect_value(spy_memory_manage, old_size, darray.capacity * darray.data_object_size);
-  expect_check(spy_memory_manage, new_size, check_unsigned_param_is_gte, second_min_capacity);
-  DARRAY_RESERVE(&darray, second_min_capacity);
-  assert_true(darray.capacity >= second_min_capacity);
+  expect_check_data(spy_memory_manage, object, check_ptr_param_equals, cast_ptr_to_cmocka_value(darray.data));
+  expect_uint_value(spy_memory_manage, old_size, darray.capacity * darray.data_object_size);
+  expect_check_data(spy_memory_manage, new_size, check_uint_param_is_gte, second_min_capacity);
+  DARRAY_RESERVE(&darray, second_min_capacity.uint_val);
+  assert_true(darray.capacity >= second_min_capacity.uint_val);
 
   darray.memory_manager = memory_manage;
   DARRAY_DESTROY(&darray);
