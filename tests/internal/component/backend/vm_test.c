@@ -1,6 +1,7 @@
 #include "backend/vm.h"
 
 #include "backend/chunk.h"
+#include "backend/object.h"
 #include "backend/value.h"
 #include "component/component_test.h"
 #include "global.h"
@@ -16,7 +17,7 @@
 #define EXECUTE_ASSERT_SUCCESS() assert_true(execute())
 #define EXECUTE_ASSERT_FAILURE() assert_false(execute())
 
-#define ASSERT_EMPTY_STACK() assert_int_equal(*t_vm_stack_count, 0)
+#define ASSERT_EMPTY_STACK() assert_int_equal(vm.stack.count, 0)
 
 #define STACK_POP_ASSERT(expected_value) component_test_assert_value_equality(vm_stack_pop(), expected_value)
 #define STACK_POP_ASSERT_MANY(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(STACK_POP_ASSERT, Value, __VA_ARGS__)
@@ -37,53 +38,108 @@
 #define ASSERT_SOURCE_PROGRAM_OUTPUT(expected_output) \
   component_test_assert_file_content(g_source_program_output_stream, expected_output "\n")
 
-#define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)          \
-  do {                                                                                                           \
-    reset_test_case_env();                                                                                       \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                      \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");     \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                            \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                           \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                  \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");  \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                           \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");  \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                   \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");   \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                           \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                           \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                  \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')"); \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                           \
-    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                  \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')"); \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                     \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");    \
-                                                                                                                 \
-    reset_test_case_env();                                                                                       \
-    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                    \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");    \
+#define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)            \
+  do {                                                                                                             \
+    /* nil */                                                                                                      \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");       \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                              \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(2));                                                             \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");    \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                             \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                      \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");    \
+                                                                                                                   \
+    /* bool */                                                                                                     \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                     \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");     \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                             \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(2));                                                             \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')");   \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                             \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')");   \
+                                                                                                                   \
+    /* string */                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
+      value_make_object((Object *)object_make_owning_string("a", 1)),                                              \
+      value_make_object((Object *)object_make_owning_string("b", 1))                                               \
+    );                                                                                                             \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'string')"); \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
+      value_make_object((Object *)object_make_owning_string("a", 1)), value_make_number(2),                        \
+    );                                                                                                             \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'number')"); \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
+      value_make_number(1), value_make_object((Object *)object_make_owning_string("b", 1)),                        \
+    );                                                                                                             \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'string')"); \
+                                                                                                                   \
+    /* mixed */                                                                                                    \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                       \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");      \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                      \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");      \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                              \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("b", 1)));                   \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'string')");    \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("a", 1)));                   \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                      \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'nil')");    \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                             \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("b", 1)));                   \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'string')");   \
+                                                                                                                   \
+    reset_test_case_env();                                                                                         \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("a", 1)));                   \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                    \
+    EXECUTE_ASSERT_FAILURE();                                                                                      \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'bool')");   \
   } while (0)
 
 #define ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(expected_value, instruction, ...) \
@@ -263,6 +319,12 @@ static void test_CHUNK_OP_NEGATE(void **const _) {
   APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
   EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
+
+  reset_test_case_env();
+  APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("a", 1)));
+  APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
+  EXECUTE_ASSERT_FAILURE();
+  ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'string')");
 
 #undef ASSERT_CHUNK_OP_NEGATE
 }
@@ -472,6 +534,7 @@ static void test_CHUNK_OP_NOT(void **const _) {
   ASSERT_CHUNK_OP_NOT(value_make_number(-1), false);
   ASSERT_CHUNK_OP_NOT(value_make_number(0), false);
   ASSERT_CHUNK_OP_NOT(value_make_bool(true), false);
+  ASSERT_CHUNK_OP_NOT(value_make_object((Object *)object_make_owning_string("a", 1)), false);
 
   // falsy values
   ASSERT_CHUNK_OP_NOT(value_make_bool(false), true);
@@ -503,13 +566,20 @@ static void test_CHUNK_OP_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_EQUAL(value_make_number(1), value_make_number(1), true);
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(true), true);
   ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_nil(), true);
+  ASSERT_CHUNK_OP_EQUAL(
+    value_make_object((Object *)object_make_owning_string("a", 1)),
+    value_make_object((Object *)object_make_owning_string("a", 1)), true
+  );
 
   // unequal values
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_number(1), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_bool(true), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_nil(), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_object((Object *)object_make_owning_string("b", 1)), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(false), false);
-  ASSERT_CHUNK_OP_EQUAL(value_make_bool(false), value_make_nil(), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_nil(), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_object((Object *)object_make_owning_string("b", 1)), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_object((Object *)object_make_owning_string("b", 1)), false);
 
 #undef ASSERT_CHUNK_OP_EQUAL
 }
@@ -524,13 +594,22 @@ static void test_CHUNK_OP_NOT_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(1), value_make_number(1), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(true), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_nil(), false);
+  ASSERT_CHUNK_OP_NOT_EQUAL(
+    value_make_object((Object *)object_make_owning_string("a", 1)),
+    value_make_object((Object *)object_make_owning_string("a", 1)), false
+  );
 
   // unequal values
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_number(1), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_bool(true), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_nil(), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_object((Object *)object_make_owning_string("b", 1)), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(false), true);
-  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(false), value_make_nil(), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_nil(), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(
+    value_make_bool(true), value_make_object((Object *)object_make_owning_string("b", 1)), true
+  );
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_object((Object *)object_make_owning_string("b", 1)), true);
 
 #undef ASSERT_CHUNK_OP_NOT_EQUAL
 }
