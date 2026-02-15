@@ -1,9 +1,9 @@
 #ifndef VM_H
 #define VM_H
 
-#include "chunk.h"
+#include "backend/chunk.h"
+#include "backend/value.h"
 #include "utils/stack.h"
-#include "value.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -12,7 +12,9 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
+/// Virtual Machine.
 typedef struct {
+  Object *gc_objects;
   Chunk const *chunk;
   uint8_t const *ip;
   STACK_TYPE(Value) stack;
@@ -22,7 +24,8 @@ typedef struct {
 // *             OBJECT DECLARATIONS             *
 // *---------------------------------------------*
 
-extern size_t const *const t_vm_stack_count;
+/// Global Virtual Machine.
+extern VM vm;
 
 // *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *

@@ -14,6 +14,7 @@
 Value value_make_nil(void);
 Value value_make_bool(bool value);
 Value value_make_number(double value);
+Value value_make_object(Object *object);
 
 bool value_is_bool(Value value);
 bool value_is_nil(Value value);
@@ -22,19 +23,22 @@ bool value_is_number(Value value);
 bool value_is_falsy(Value value);
 
 // *---------------------------------------------*
-// *         EXTERNAL-LINKAGE OBJECTS            *
-// *---------------------------------------------*
-
-static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
-char const *const value_type_to_string_table[] = {
-  [VALUE_NIL] = "nil",
-  [VALUE_BOOL] = "bool",
-  [VALUE_NUMBER] = "number",
-};
-
-// *---------------------------------------------*
 // *        EXTERNAL-LINKAGE FUNCTIONS           *
 // *---------------------------------------------*
+
+/// Get string with description of `value` type.
+/// @return Value type string.
+char const *value_get_type_string(Value const value) {
+  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
+  switch (value.type) {
+    case VALUE_NIL: return "nil";
+    case VALUE_BOOL: return "bool";
+    case VALUE_NUMBER: return "number";
+    case VALUE_OBJECT: return object_get_type_string(value.as.object);
+
+    default: ERROR_INTERNAL("Unknown ValueType '%d'", value.type);
+  }
+}
 
 /// Initialize `value_list`.
 void value_list_init(ValueList *const value_list) {
@@ -61,20 +65,31 @@ void value_list_append(ValueList *const value_list, Value const value) {
 
 /// Print `value`.
 void value_print(Value const value) {
-#define PRINTF_BREAK(...)                                  \
-  io_fprintf(g_source_program_output_stream, __VA_ARGS__); \
-  break
+#define PRINTF(...) io_fprintf(g_source_program_output_stream, __VA_ARGS__);
 
-  static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
+  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
   switch (value.type) {
-    case VALUE_BOOL: PRINTF_BREAK(value.payload.boolean ? "true" : "false");
-    case VALUE_NIL: PRINTF_BREAK("nil");
-    case VALUE_NUMBER: PRINTF_BREAK("%g", value.payload.number);
+    case VALUE_BOOL: {
+      PRINTF(value.as.boolean ? "true" : "false");
+      break;
+    }
+    case VALUE_NIL: {
+      PRINTF("nil");
+      break;
+    }
+    case VALUE_NUMBER: {
+      PRINTF("%g", value.as.number);
+      break;
+    }
+    case VALUE_OBJECT: {
+      object_print(value.as.object);
+      break;
+    }
 
     default: ERROR_INTERNAL("Unknown ValueType '%d'", value.type);
   }
 
-#undef PRINTF_BREAK
+#undef PRINTF
 }
 
 /// Determine whether `value_a` equals `value_b`.
@@ -82,11 +97,12 @@ void value_print(Value const value) {
 bool value_equals(Value const value_a, Value const value_b) {
   if (value_a.type != value_b.type) return false;
 
-  static_assert(VALUE_TYPE_COUNT == 3, "Exhaustive ValueType handling");
+  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
   switch (value_a.type) {
     case VALUE_NIL: return true;
-    case VALUE_BOOL: return value_a.payload.boolean == value_b.payload.boolean;
-    case VALUE_NUMBER: return value_a.payload.number == value_b.payload.number;
+    case VALUE_BOOL: return value_a.as.boolean == value_b.as.boolean;
+    case VALUE_NUMBER: return value_a.as.number == value_b.as.number;
+    case VALUE_OBJECT: return object_equals(value_a.as.object, value_b.as.object);
 
     default: ERROR_INTERNAL("Unknown ValueType '%d'", value_a.type);
   }

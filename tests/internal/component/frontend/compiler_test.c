@@ -1,6 +1,8 @@
 #include "frontend/compiler.h"
 
 #include "backend/chunk.h"
+#include "backend/object.h"
+#include "backend/value.h"
 #include "common.h"
 #include "component/component_test.h"
 #include "global.h"
@@ -279,6 +281,18 @@ static void test_numeric_literal(void **const _) {
   ASSERT_OPCODES(CHUNK_OP_NEGATE, CHUNK_OP_POP, CHUNK_OP_RETURN);
 }
 
+static void test_string_literal(void **const _) {
+  char const *const input_source = "\"Hello, World\";";
+  char const *const input_string_content = input_source + 1; // account for beginning '"'
+  size_t const input_string_content_length = strlen(input_source) - 3; // account for surrounding '"' and ';'
+  Value const expected_value =
+    value_make_object((Object *)object_make_non_owning_string(input_string_content, input_string_content_length));
+
+  COMPILE_ASSERT_SUCCESS(input_source);
+  assert_constant_instruction(expected_value);
+  ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
+}
+
 static void test_OP_CONSTANT_2B_being_generated(void **const _) {
   char source_code[(MEMORY_BYTE_STATE_COUNT + 1) * 2 + 1];
   for (size_t i = 0; i < MEMORY_BYTE_STATE_COUNT * 2; i += 2) {
@@ -417,6 +431,7 @@ int main(void) {
     cmocka_unit_test(test_nil_literal),
     cmocka_unit_test(test_bool_literal),
     cmocka_unit_test(test_numeric_literal),
+    cmocka_unit_test(test_string_literal),
     cmocka_unit_test(test_OP_CONSTANT_2B_being_generated),
     cmocka_unit_test(test_arithmetic_operators),
     cmocka_unit_test(test_arithmetic_operator_associativity),
