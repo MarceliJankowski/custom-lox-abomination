@@ -16,7 +16,7 @@
 #define EXECUTE_ASSERT_SUCCESS() assert_true(execute())
 #define EXECUTE_ASSERT_FAILURE() assert_false(execute())
 
-#define ASSERT_EMPTY_STACK() assert_int_equal(*t_vm_stack_count, 0)
+#define ASSERT_EMPTY_STACK() assert_int_equal(vm.stack.count, 0)
 
 #define STACK_POP_ASSERT(expected_value) component_test_assert_value_equality(vm_stack_pop(), expected_value)
 #define STACK_POP_ASSERT_MANY(...) COMPONENT_TEST_APPLY_TO_EACH_ARG(STACK_POP_ASSERT, Value, __VA_ARGS__)

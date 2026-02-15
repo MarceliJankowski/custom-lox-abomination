@@ -1,5 +1,6 @@
 #include "frontend/compiler.h"
 
+#include "backend/object.h"
 #include "frontend/lexer.h"
 #include "global.h"
 #include "utils/debug.h"
@@ -50,6 +51,7 @@ static TokenHandlerFn compile_binary_expr;
 static TokenHandlerFn compile_unary_expr;
 static TokenHandlerFn compile_grouping_expr;
 static TokenHandlerFn compile_numeric_literal;
+static TokenHandlerFn compile_string_literal;
 static TokenHandlerFn compile_invariable_literal;
 
 // *---------------------------------------------*
@@ -63,7 +65,7 @@ static ParseRule const parse_rules[] = {
   [LEXER_TOKEN_TRUE] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_FALSE] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_NUMBER] = {compile_numeric_literal, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_STRING] = {NULL, NULL, PRECEDENCE_NONE},
+  [LEXER_TOKEN_STRING] = {compile_string_literal, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_IDENTIFIER] = {NULL, NULL, PRECEDENCE_NONE},
 
   // single-character tokens
@@ -319,6 +321,15 @@ static void compile_numeric_literal(void) {
     );
   }
   emit_constant_instruction(value_make_number(value));
+}
+
+/// Compile string literal.
+static void compile_string_literal(void) {
+  char const *const content = parser.previous.lexeme + 1; // account for beginning '"'
+  int const content_length = parser.previous.lexeme_length - 2; // account for surrounding '"'
+  ObjectString *const string_object = object_make_non_owning_string(content, content_length);
+
+  emit_constant_instruction(value_make_object((Object *)string_object));
 }
 
 /// Compile invariable literal (one with fixed lexeme).

@@ -1,5 +1,39 @@
 #include "backend/gc.h"
 
+#include "backend/object.h"
+#include "backend/vm.h"
+#include "utils/memory.h"
+
+// *---------------------------------------------*
+// *             FUNCTION PROTOTYPES             *
+// *---------------------------------------------*
+
+void *gc_allocate(size_t new_size);
+void *gc_reallocate(void *object, size_t old_size, size_t new_size);
+void *gc_deallocate(void *object, size_t old_size);
+
+// *---------------------------------------------*
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/// Deallocate garbage-collected CLA `object`.
+static void gc_deallocate_cla_object(Object *const object) {
+  assert(object != NULL);
+
+  static_assert(OBJECT_TYPE_COUNT == 1, "Exhaustive ObjectType handling");
+  switch (object->type) {
+    case OBJECT_STRING: {
+      ObjectString const *const object_string = (ObjectString *)object;
+
+      if (object_string->is_content_owner) gc_deallocate(object_string->content, object_string->length);
+      gc_deallocate(object, sizeof(*object_string));
+      break;
+    }
+
+    default: ERROR_INTERNAL("Unknown ObjectType '%d'", object->type);
+  }
+}
+
 // *---------------------------------------------*
 // *        EXTERNAL-LINKAGE FUNCTIONS           *
 // *---------------------------------------------*
@@ -11,4 +45,15 @@ void *gc_memory_manage(void *const object, size_t const old_size, size_t const n
   // TODO: implement garbage collecting
 
   return memory_manage(object, old_size, new_size);
+}
+
+/// Deallocate garbage-collected CLA Objects belonging to VM.
+void gc_deallocate_vm_gc_objects(void) {
+  for (Object *current_object = vm.gc_objects; current_object != NULL;) {
+    Object *const next_object = current_object->next;
+
+    gc_deallocate_cla_object(current_object);
+
+    current_object = next_object;
+  }
 }

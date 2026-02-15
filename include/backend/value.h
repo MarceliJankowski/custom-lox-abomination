@@ -1,6 +1,7 @@
 #ifndef VALUE_H
 #define VALUE_H
 
+#include "backend/object.h"
 #include "utils/darray.h"
 
 #include <stdbool.h>
@@ -15,6 +16,7 @@ typedef enum {
   VALUE_NIL,
   VALUE_BOOL,
   VALUE_NUMBER,
+  VALUE_OBJECT,
   VALUE_TYPE_COUNT,
 } ValueType;
 
@@ -24,22 +26,18 @@ typedef struct {
   union {
     bool boolean;
     double number;
-  } payload;
+    Object *object;
+  } as;
 } Value;
 
 /// Dynamic array used for storing CLA values.
 typedef DARRAY_TYPE(Value) ValueList;
 
 // *---------------------------------------------*
-// *             OBJECT DECLARATIONS             *
-// *---------------------------------------------*
-
-extern char const *const value_type_to_string_table[];
-
-// *---------------------------------------------*
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
+char const *value_get_type_string(Value value);
 void value_list_init(ValueList *value_list);
 void value_list_append(ValueList *value_list, Value value);
 void value_list_destroy(ValueList *value_list);
@@ -77,6 +75,15 @@ inline Value value_make_number(double const number) {
   };
 }
 
+/// Make CLA object value from `object`.
+/// @return Made CLA object value.
+inline Value value_make_object(Object *const object) {
+  return (Value){
+    VALUE_OBJECT,
+    {.object = object},
+  };
+}
+
 /// Determine whether CLA `value` is of bool type.
 /// @return true if it is, false otherwise.
 inline bool value_is_bool(Value const value) {
@@ -98,7 +105,7 @@ inline bool value_is_number(Value const value) {
 /// Determine whether CLA `value` is falsy.
 /// @return true if it is, false otherwise.
 inline bool value_is_falsy(Value const value) {
-  return value_is_nil(value) || (value_is_bool(value) && value.payload.boolean == false);
+  return value_is_nil(value) || (value_is_bool(value) && value.as.boolean == false);
 }
 
 #endif // VALUE_H
