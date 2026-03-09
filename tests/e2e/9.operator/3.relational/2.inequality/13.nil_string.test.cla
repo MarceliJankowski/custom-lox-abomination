@@ -1,0 +1,2 @@
+print nil != "nil"; #ASSERT_STDOUT_LINE true
+print nil != "a"; #ASSERT_STDOUT_LINE true

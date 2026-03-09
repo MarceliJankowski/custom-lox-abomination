@@ -1,0 +1,2 @@
+print 0 != "0"; #ASSERT_STDOUT_LINE true
+print 1.0 != "b"; #ASSERT_STDOUT_LINE true
