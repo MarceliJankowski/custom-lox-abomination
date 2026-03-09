@@ -1,0 +1,5 @@
+print true != "true"; #ASSERT_STDOUT_LINE true
+print false != "false"; #ASSERT_STDOUT_LINE true
+
+print true != "b"; #ASSERT_STDOUT_LINE true
+print false != "c"; #ASSERT_STDOUT_LINE true
