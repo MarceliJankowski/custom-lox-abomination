@@ -27,6 +27,7 @@ typedef enum {
   PRECEDENCE_AND,
   PRECEDENCE_EQUALITY,
   PRECEDENCE_COMPARISON,
+  PRECEDENCE_CONCATENATION, // right-associative
   PRECEDENCE_TERM,
   PRECEDENCE_FACTOR,
   PRECEDENCE_UNARY,
@@ -47,7 +48,8 @@ typedef struct {
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-static TokenHandlerFn compile_binary_expr;
+static TokenHandlerFn compile_left_associative_binary_expr;
+static TokenHandlerFn compile_right_associative_binary_expr;
 static TokenHandlerFn compile_unary_expr;
 static TokenHandlerFn compile_grouping_expr;
 static TokenHandlerFn compile_numeric_literal;
@@ -58,7 +60,7 @@ static TokenHandlerFn compile_invariable_literal;
 // *          INTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
 
-static_assert(LEXER_TOKEN_TYPE_COUNT - LEXER_TOKEN_INDICATOR_COUNT == 41, "Exhaustive TokenType handling");
+static_assert(LEXER_TOKEN_TYPE_COUNT - LEXER_TOKEN_INDICATOR_COUNT == 42, "Exhaustive TokenType handling");
 static ParseRule const parse_rules[] = {
   // literals
   [LEXER_TOKEN_NIL] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
@@ -69,15 +71,15 @@ static ParseRule const parse_rules[] = {
   [LEXER_TOKEN_IDENTIFIER] = {NULL, NULL, PRECEDENCE_NONE},
 
   // single-character tokens
-  [LEXER_TOKEN_PLUS] = {NULL, compile_binary_expr, PRECEDENCE_TERM},
-  [LEXER_TOKEN_MINUS] = {compile_unary_expr, compile_binary_expr, PRECEDENCE_TERM},
-  [LEXER_TOKEN_STAR] = {NULL, compile_binary_expr, PRECEDENCE_FACTOR},
-  [LEXER_TOKEN_SLASH] = {NULL, compile_binary_expr, PRECEDENCE_FACTOR},
-  [LEXER_TOKEN_PERCENT] = {NULL, compile_binary_expr, PRECEDENCE_FACTOR},
+  [LEXER_TOKEN_PLUS] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_TERM},
+  [LEXER_TOKEN_MINUS] = {compile_unary_expr, compile_left_associative_binary_expr, PRECEDENCE_TERM},
+  [LEXER_TOKEN_STAR] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_FACTOR},
+  [LEXER_TOKEN_SLASH] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_FACTOR},
+  [LEXER_TOKEN_PERCENT] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_FACTOR},
   [LEXER_TOKEN_BANG] = {compile_unary_expr, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_EQUAL] = {NULL, NULL, PRECEDENCE_NONE},
-  [LEXER_TOKEN_LESS] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
-  [LEXER_TOKEN_GREATER] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_LESS] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_GREATER] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_COMPARISON},
   [LEXER_TOKEN_DOT] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_COMMA] = {NULL, NULL, PRECEDENCE_NONE},
   [LEXER_TOKEN_COLON] = {NULL, NULL, PRECEDENCE_NONE},
@@ -89,10 +91,11 @@ static ParseRule const parse_rules[] = {
   [LEXER_TOKEN_CLOSE_CURLY_BRACE] = {NULL, NULL, PRECEDENCE_NONE},
 
   // multi-character tokens
-  [LEXER_TOKEN_EQUAL_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_EQUALITY},
-  [LEXER_TOKEN_BANG_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_EQUALITY},
-  [LEXER_TOKEN_LESS_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
-  [LEXER_TOKEN_GREATER_EQUAL] = {NULL, compile_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_DOT_DOT] = {NULL, compile_right_associative_binary_expr, PRECEDENCE_CONCATENATION},
+  [LEXER_TOKEN_EQUAL_EQUAL] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_EQUALITY},
+  [LEXER_TOKEN_BANG_EQUAL] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_EQUALITY},
+  [LEXER_TOKEN_LESS_EQUAL] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_COMPARISON},
+  [LEXER_TOKEN_GREATER_EQUAL] = {NULL, compile_left_associative_binary_expr, PRECEDENCE_COMPARISON},
 
   // reserved identifiers (keywords)
   [LEXER_TOKEN_VAR] = {NULL, NULL, PRECEDENCE_NONE},
@@ -232,8 +235,8 @@ static void compile_expr(void) {
   compile_precedence_expr(PRECEDENCE_ASSIGNMENT);
 }
 
-/// Compile binary expression.
-static void compile_binary_expr(void) {
+/// Compile left-associaive binary expression.
+static void compile_left_associative_binary_expr(void) {
   LexerTokenType const operator_type = parser.previous.type;
   compile_precedence_expr(parse_rules[operator_type].precedence + 1);
 
@@ -280,6 +283,20 @@ static void compile_binary_expr(void) {
     }
     case LEXER_TOKEN_GREATER_EQUAL: {
       emit_instruction(CHUNK_OP_GREATER_EQUAL);
+      break;
+    }
+    default: ERROR_INTERNAL("Unknown binary operator type '%d'", operator_type);
+  }
+}
+
+/// Compile right-associative binary expression.
+static void compile_right_associative_binary_expr(void) {
+  LexerTokenType const operator_type = parser.previous.type;
+  compile_precedence_expr(parse_rules[operator_type].precedence);
+
+  switch (operator_type) {
+    case LEXER_TOKEN_DOT_DOT: {
+      emit_instruction(CHUNK_OP_CONCATENATE);
       break;
     }
     default: ERROR_INTERNAL("Unknown binary operator type '%d'", operator_type);

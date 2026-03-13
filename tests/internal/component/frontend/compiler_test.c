@@ -61,6 +61,14 @@
     ASSERT_OPCODES(operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                  \
   } while (0)
 
+#define ASSERT_BINARY_OPERATOR_IS_RIGHT_ASSOCIATIVE(operator)                                       \
+  do {                                                                                              \
+    ChunkOpCode const operator_opcode = map_binary_operator_to_its_opcode(operator);                \
+    COMPILE_ASSERT_SUCCESS("1 " operator" 2 " operator" 3;");                                       \
+    ASSERT_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2), value_make_number(3)); \
+    ASSERT_OPCODES(operator_opcode, operator_opcode, CHUNK_OP_POP, CHUNK_OP_RETURN);                \
+  } while (0)
+
 #define ASSERT_BINARY_OPERATORS_HAVE_THE_SAME_PRECEDENCE(operator_a, operator_b)         \
   do {                                                                                   \
     ChunkOpCode const operator_a_opcode = map_binary_operator_to_its_opcode(operator_a); \
@@ -195,6 +203,7 @@ static ChunkOpCode map_binary_operator_to_its_opcode(char const *const operator)
   if (0 == strcmp(operator, "<=")) return CHUNK_OP_LESS_EQUAL;
   if (0 == strcmp(operator, ">")) return CHUNK_OP_GREATER;
   if (0 == strcmp(operator, ">=")) return CHUNK_OP_GREATER_EQUAL;
+  if (0 == strcmp(operator, "..")) return CHUNK_OP_CONCATENATE;
 
   ERROR_INTERNAL("Unknown binary operator '%s'", operator);
 }
@@ -224,7 +233,7 @@ static int teardown_test_group_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive OpCode handling");
+static_assert(CHUNK_OP_OPCODE_COUNT == 22, "Exhaustive OpCode handling");
 
 static void test_lexical_error_reporting(void **const _) {
   COMPILE_ASSERT_FAILURE("\"abc");
@@ -411,6 +420,15 @@ static void test_relational_operator_precedence(void **const _) {
   ASSERT_BINARY_OPERATOR_A_HAS_HIGHER_PRECEDENCE(">", "==");
 }
 
+static void test_string_concatenation_operator(void **const _) {
+  ASSERT_BINARY_OPERATOR_SYNTAX("..");
+
+  ASSERT_BINARY_OPERATOR_IS_RIGHT_ASSOCIATIVE("..");
+
+  ASSERT_BINARY_OPERATOR_A_HAS_HIGHER_PRECEDENCE("+", "..");
+  ASSERT_BINARY_OPERATOR_A_HAS_HIGHER_PRECEDENCE("..", "==");
+}
+
 static void test_print_stmt(void **const _) {
   COMPILE_ASSERT_UNEXPECTED_EOF("print");
   ASSERT_SYNTAX_ERROR(1, 6, "Expected expression");
@@ -441,6 +459,7 @@ int main(void) {
     cmocka_unit_test(test_relational_operators),
     cmocka_unit_test(test_relational_operator_associativity),
     cmocka_unit_test(test_relational_operator_precedence),
+    cmocka_unit_test(test_string_concatenation_operator),
     cmocka_unit_test(test_print_stmt),
   };
 

@@ -176,11 +176,12 @@ static void test_single_char_tokens(void **const _) {
 }
 
 static void test_multi_char_tokens(void **const _) {
-  static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 4, "Exhaustive multi-character token handling");
+  static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 5, "Exhaustive multi-character token handling");
   init_scan_assert("!=", LEXER_TOKEN_BANG_EQUAL);
   init_scan_assert("<=", LEXER_TOKEN_LESS_EQUAL);
   init_scan_assert("==", LEXER_TOKEN_EQUAL_EQUAL);
   init_scan_assert(">=", LEXER_TOKEN_GREATER_EQUAL);
+  init_scan_assert("..", LEXER_TOKEN_DOT_DOT);
 }
 
 static void test_keyword_tokens(void **const _) {

@@ -5,6 +5,8 @@
 #include "utils/io.h"
 #include "utils/number.h"
 
+#include <cmocka.h>
+
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
@@ -55,7 +57,7 @@ void component_test_assert_value_equality(Value const value_a, Value const value
 
           assert_int_equal(string_object_a->length, string_object_b->length);
           assert_int_equal(string_object_a->is_content_owner, string_object_b->is_content_owner);
-          assert_ptr_equal(string_object_a->content, string_object_b->content);
+          assert_memory_equal(string_object_a->content, string_object_b->content, string_object_a->length);
           break;
         }
         default: ERROR_INTERNAL("Unknown ObjectType '%d'", value_a.type);

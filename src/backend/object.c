@@ -22,6 +22,7 @@ Object *object_make(size_t const size, ObjectType const type) {
 
 /// Make CLA string object from `content` of `content_length`.
 /// Resultant string object is a `content` owner.
+/// @note `content` does not need to be NUL terminated.
 /// @return Pointer to made string object.
 ObjectString *object_make_owning_string(char const *const content, int const content_length) {
   assert(content != NULL);
@@ -38,6 +39,7 @@ ObjectString *object_make_owning_string(char const *const content, int const con
 
 /// Make CLA string object from `content` of `content_length`.
 /// Resultant string object is not a `content` owner.
+/// @note `content` does not need to be NUL terminated.
 /// @return Pointer to made string object.
 ObjectString *object_make_non_owning_string(char const *const content, int const content_length) {
   assert(content != NULL);

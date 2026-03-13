@@ -1,6 +1,7 @@
 #include "backend/vm.h"
 
 #include "backend/gc.h"
+#include "backend/object.h"
 #include "backend/value.h"
 #include "global.h"
 #include "utils/debug.h"
@@ -14,6 +15,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
@@ -124,7 +126,7 @@ bool vm_execute(Chunk const *const chunk) {
     assert(vm.ip < vm.chunk->code.data + vm.chunk->code.count && "Instruction pointer out of bounds");
     uint8_t const opcode = READ_INSTRUCTION_BYTE();
 
-    static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
+    static_assert(CHUNK_OP_OPCODE_COUNT == 22, "Exhaustive ChunkOpCode handling");
     switch (opcode) {
       case CHUNK_OP_RETURN: {
         return true; // successful chunk execution
@@ -313,6 +315,32 @@ bool vm_execute(Chunk const *const chunk) {
           );
         }
         VM_STACK_TOP = value_make_bool(VM_STACK_TOP.as.number >= second_operand.as.number);
+        break;
+      }
+      case CHUNK_OP_CONCATENATE: {
+        ASSERT_MIN_VM_STACK_COUNT(2);
+
+        Value const second_operand = vm_stack_pop();
+
+        if (!value_is_string(VM_STACK_TOP) && !value_is_string(second_operand)) {
+          return vm_error_at(
+            GET_INSTRUCTION_OFFSET(1),
+            "Expected at least one string-concatenation operand to be a string (got '%s' and '%s')",
+            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+          );
+        }
+
+        ObjectString const *const first_string = value_to_string_object(VM_STACK_TOP);
+        ObjectString const *const second_string = value_to_string_object(second_operand);
+
+        size_t const new_string_length = first_string->length + second_string->length;
+        char *const new_string_content = gc_allocate(new_string_length);
+        memcpy(new_string_content, first_string->content, first_string->length);
+        memcpy(new_string_content + first_string->length, second_string->content, second_string->length);
+        Value const new_string =
+          value_make_object((Object *)object_make_non_owning_string(new_string_content, new_string_length));
+
+        VM_STACK_TOP = new_string;
         break;
       }
       default: ERROR_INTERNAL("Unknown chunk opcode '%d'", opcode);

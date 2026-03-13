@@ -43,6 +43,7 @@ typedef enum {
   LEXER_TOKEN_SINGLE_CHAR_END, // assertion utility
 
   // multi-character tokens
+  LEXER_TOKEN_DOT_DOT,
   LEXER_TOKEN_EQUAL_EQUAL,
   LEXER_TOKEN_BANG_EQUAL,
   LEXER_TOKEN_LESS_EQUAL,

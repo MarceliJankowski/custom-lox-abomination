@@ -35,6 +35,7 @@ typedef enum {
   CHUNK_OP_LESS_EQUAL,
   CHUNK_OP_GREATER,
   CHUNK_OP_GREATER_EQUAL,
+  CHUNK_OP_CONCATENATE,
   CHUNK_OP_SIMPLE_OPCODE_END, // assertion utility
 
   // complex-instruction opcodes (with operands)

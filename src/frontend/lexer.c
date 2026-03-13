@@ -284,7 +284,7 @@ LexerToken lexer_scan(void) {
   if (can_begin_identifier_literal(previous_char)) return lexer_tokenize_identifier_literal();
 
   static_assert(LEXER_TOKEN_SINGLE_CHAR_COUNT == 18, "Exhaustive single-character token handling");
-  static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 4, "Exhaustive multi-character token handling");
+  static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 5, "Exhaustive multi-character token handling");
   switch (previous_char) {
     // single-character tokens
     case '+': return lexer_make_token(LEXER_TOKEN_PLUS);
@@ -296,13 +296,13 @@ LexerToken lexer_scan(void) {
     case ')': return lexer_make_token(LEXER_TOKEN_CLOSE_PAREN);
     case '{': return lexer_make_token(LEXER_TOKEN_OPEN_CURLY_BRACE);
     case '}': return lexer_make_token(LEXER_TOKEN_CLOSE_CURLY_BRACE);
-    case '.': return lexer_make_token(LEXER_TOKEN_DOT);
     case ',': return lexer_make_token(LEXER_TOKEN_COMMA);
     case '?': return lexer_make_token(LEXER_TOKEN_QUESTION);
     case ':': return lexer_make_token(LEXER_TOKEN_COLON);
     case ';': return lexer_make_token(LEXER_TOKEN_SEMICOLON);
 
     // single-character or possibly multi-character tokens
+    case '.': return lexer_make_token(lexer_match('.') ? LEXER_TOKEN_DOT_DOT : LEXER_TOKEN_DOT);
     case '=': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_EQUAL_EQUAL : LEXER_TOKEN_EQUAL);
     case '!': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_BANG_EQUAL : LEXER_TOKEN_BANG);
     case '>': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_GREATER_EQUAL : LEXER_TOKEN_GREATER);

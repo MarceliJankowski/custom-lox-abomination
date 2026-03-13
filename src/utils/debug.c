@@ -21,7 +21,7 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
   io_puts(string);         \
   break
 
-  static_assert(CHUNK_OP_SIMPLE_OPCODE_COUNT == 19, "Exhaustive simple chunk opcode handling");
+  static_assert(CHUNK_OP_SIMPLE_OPCODE_COUNT == 20, "Exhaustive simple chunk opcode handling");
   switch (opcode) {
     case CHUNK_OP_RETURN: PUTS_BREAK("OP_RETURN");
     case CHUNK_OP_PRINT: PUTS_BREAK("OP_PRINT");
@@ -42,6 +42,7 @@ static inline int32_t debug_simple_instruction(uint8_t const opcode, int32_t con
     case CHUNK_OP_LESS_EQUAL: PUTS_BREAK("OP_LESS_EQUAL");
     case CHUNK_OP_GREATER: PUTS_BREAK("OP_GREATER");
     case CHUNK_OP_GREATER_EQUAL: PUTS_BREAK("OP_GREATER_EQUAL");
+    case CHUNK_OP_CONCATENATE: PUTS_BREAK("OP_CONCATENATE");
 
     default: ERROR_INTERNAL("Unknown chunk simple instruction opcode '%d'", opcode);
   }
@@ -92,7 +93,7 @@ void debug_token(LexerToken const *const token) {
 
   io_printf(COMMON_FILE_LINE_COLUMN_FORMAT " ", g_source_file_path, token->line, token->column);
 
-  static_assert(LEXER_TOKEN_TYPE_COUNT == 43, "Exhaustive LexerTokenType handling");
+  static_assert(LEXER_TOKEN_TYPE_COUNT == 44, "Exhaustive LexerTokenType handling");
   switch (token->type) {
     // indicators
     case LEXER_TOKEN_ERROR: PRINTF_BREAK("TOKEN_ERROR");
@@ -124,6 +125,7 @@ void debug_token(LexerToken const *const token) {
     case LEXER_TOKEN_CLOSE_CURLY_BRACE: PRINTF_BREAK("TOKEN_CLOSE_CURLY_BRACE");
 
     // multi-character tokens
+    case LEXER_TOKEN_DOT_DOT: PRINTF_BREAK("TOKEN_DOT_DOT");
     case LEXER_TOKEN_BANG_EQUAL: PRINTF_BREAK("TOKEN_BANG_EQUAL");
     case LEXER_TOKEN_LESS_EQUAL: PRINTF_BREAK("TOKEN_LESS_EQUAL");
     case LEXER_TOKEN_EQUAL_EQUAL: PRINTF_BREAK("TOKEN_EQUAL_EQUAL");
@@ -174,7 +176,7 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
 
   uint8_t const opcode = chunk->code.data[offset];
 
-  static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive chunk opcode handling");
+  static_assert(CHUNK_OP_OPCODE_COUNT == 22, "Exhaustive chunk opcode handling");
   switch (opcode) {
     case CHUNK_OP_RETURN:
     case CHUNK_OP_PRINT:
@@ -194,7 +196,8 @@ int32_t debug_disassemble_instruction(Chunk const *const chunk, int32_t const of
     case CHUNK_OP_LESS:
     case CHUNK_OP_LESS_EQUAL:
     case CHUNK_OP_GREATER:
-    case CHUNK_OP_GREATER_EQUAL: {
+    case CHUNK_OP_GREATER_EQUAL:
+    case CHUNK_OP_CONCATENATE: {
       return debug_simple_instruction(opcode, offset);
     }
     case CHUNK_OP_CONSTANT:

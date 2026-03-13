@@ -7,6 +7,7 @@
 #include "global.h"
 #include "utils/error.h"
 #include "utils/io.h"
+#include "utils/str.h"
 
 #include <stdio.h>
 
@@ -214,7 +215,7 @@ static int teardown_test_case_env(void **const _) {
 // *---------------------------------------------*
 // *                 TEST CASES                  *
 // *---------------------------------------------*
-static_assert(CHUNK_OP_OPCODE_COUNT == 21, "Exhaustive ChunkOpCode handling");
+static_assert(CHUNK_OP_OPCODE_COUNT == 22, "Exhaustive ChunkOpCode handling");
 
 static void test_CHUNK_OP_CONSTANT(void **const _) {
   APPEND_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2), value_make_number(3));
@@ -722,6 +723,84 @@ static void test_CHUNK_OP_GREATER_EQUAL(void **const _) {
 #undef ASSERT_CHUNK_OP_GREATER_EQUAL
 }
 
+static void test_CHUNK_OP_CONCATENATE(void **const _) {
+#define ASSERT_CHUNK_OP_CONCATENATE(value_a, value_b, expected_string_c)                              \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                    \
+    value_make_object(                                                                                \
+      (Object *)object_make_non_owning_string(expected_string_c, STR_ARRAY_LENGTH(expected_string_c)) \
+    ),                                                                                                \
+    CHUNK_OP_CONCATENATE, value_a, value_b                                                            \
+  )
+
+#define ASSERT_OPERAND_TYPE_ERROR(operand_a_type, operand_b_type)                               \
+  do {                                                                                          \
+    EXECUTE_ASSERT_FAILURE();                                                                   \
+    ASSERT_EXECUTION_ERROR(                                                                     \
+      "Expected at least one string-concatenation operand to be a string (got '" operand_a_type \
+      "' and '" operand_b_type "')"                                                             \
+    );                                                                                          \
+    reset_test_case_env();                                                                      \
+  } while (0)
+
+#define STRING_A value_make_object((Object *)object_make_non_owning_string("a", 1))
+#define STRING_B value_make_object((Object *)object_make_non_owning_string("b", 1))
+
+  // valid operand types
+  ASSERT_CHUNK_OP_CONCATENATE(STRING_A, STRING_B, "ab");
+  ASSERT_CHUNK_OP_CONCATENATE(STRING_A, value_make_number(2), "a2");
+  ASSERT_CHUNK_OP_CONCATENATE(value_make_number(1), STRING_B, "1b");
+  ASSERT_CHUNK_OP_CONCATENATE(STRING_A, value_make_nil(), "anil");
+  ASSERT_CHUNK_OP_CONCATENATE(value_make_nil(), STRING_B, "nilb");
+  ASSERT_CHUNK_OP_CONCATENATE(STRING_A, value_make_bool(false), "afalse");
+  ASSERT_CHUNK_OP_CONCATENATE(value_make_bool(true), STRING_B, "trueb");
+
+  // invalid operand types
+  reset_test_case_env();
+
+  /* number */
+  APPEND_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_number(2));
+  APPEND_INSTRUCTIONS(CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("number", "number");
+
+  /* nil */
+  APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("nil", "nil");
+
+  /* bool */
+  APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("bool", "bool");
+
+  /* mixed */
+  APPEND_INSTRUCTION(CHUNK_OP_NIL);
+  APPEND_CONSTANT_INSTRUCTION(value_make_number(2));
+  APPEND_INSTRUCTIONS(CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("nil", "number");
+
+  APPEND_CONSTANT_INSTRUCTION(value_make_number(1));
+  APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("number", "nil");
+
+  APPEND_INSTRUCTION(CHUNK_OP_TRUE);
+  APPEND_CONSTANT_INSTRUCTION(value_make_number(2));
+  APPEND_INSTRUCTIONS(CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("bool", "number");
+
+  APPEND_CONSTANT_INSTRUCTION(value_make_number(1));
+  APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("number", "bool");
+
+  APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("nil", "bool");
+
+  APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, CHUNK_OP_CONCATENATE, CHUNK_OP_RETURN);
+  ASSERT_OPERAND_TYPE_ERROR("bool", "nil");
+
+#undef ASSERT_CHUNK_OP_CONCATENATE
+#undef ASSERT_OPERAND_TYPE_ERROR
+#undef STRING_A
+#undef STRING_B
+}
+
 int main(void) {
   // CHUNK_OP_RETURN test is missing as it's not yet properly implemented
 
@@ -746,6 +825,7 @@ int main(void) {
     cmocka_unit_test_setup_teardown(test_CHUNK_OP_LESS_EQUAL, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_CHUNK_OP_GREATER, setup_test_case_env, teardown_test_case_env),
     cmocka_unit_test_setup_teardown(test_CHUNK_OP_GREATER_EQUAL, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_CHUNK_OP_CONCATENATE, setup_test_case_env, teardown_test_case_env),
   };
 
   return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);

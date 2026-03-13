@@ -43,6 +43,7 @@ void value_list_append(ValueList *value_list, Value value);
 void value_list_destroy(ValueList *value_list);
 void value_print(Value value);
 bool value_equals(Value value_a, Value value_b);
+ObjectString *value_to_string_object(Value value);
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *
@@ -100,6 +101,12 @@ inline bool value_is_nil(Value const value) {
 /// @return true if it is, false otherwise.
 inline bool value_is_number(Value const value) {
   return value.type == VALUE_NUMBER;
+}
+
+/// Determine whether CLA `value` is of string type.
+/// @return true if it is, false otherwise.
+inline bool value_is_string(Value const value) {
+  return value.type == VALUE_OBJECT && value.as.object->type == OBJECT_STRING;
 }
 
 /// Determine whether CLA `value` is falsy.
