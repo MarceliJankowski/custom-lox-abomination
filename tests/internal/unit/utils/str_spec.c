@@ -61,6 +61,22 @@ static void str_count_lines__returns_newline_count(void **const _) {
   }
 }
 
+static void STR_ARRAY_LENGTH__computes_length_for_literals_and_arrays(void **const _) {
+#define STRING_LITERAL "literal"
+  size_t const string_literal_length = strlen(STRING_LITERAL);
+
+  char const string_array[] = "array";
+  size_t const string_array_length = strlen(string_array);
+
+  size_t const string_literal_result = STR_ARRAY_LENGTH(STRING_LITERAL);
+  size_t const string_array_result = STR_ARRAY_LENGTH(string_array);
+
+  assert_int_equal(string_literal_result, string_literal_length);
+  assert_int_equal(string_array_result, string_array_length);
+
+#undef STRING_LITERAL
+}
+
 int main(void) {
   char whitespace_str[CHARACTER_STATE_COUNT + 1] = {0};
   for (int character = CHAR_MIN, whitespace_char_count = 0; character <= CHAR_MAX; character++) {
@@ -75,6 +91,7 @@ int main(void) {
     cmocka_unit_test_prestate(str_is_all_whitespace__returns_true_for_whitespace_string, whitespace_str),
     cmocka_unit_test_prestate(str_is_all_whitespace__returns_false_for_non_whitespace_strings, whitespace_str),
     cmocka_unit_test(str_count_lines__returns_newline_count),
+    cmocka_unit_test(STR_ARRAY_LENGTH__computes_length_for_literals_and_arrays),
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);

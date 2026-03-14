@@ -15,7 +15,7 @@
 
 /// Construct dynamic array type storing data of `data_type`.
 /// @param data_type Type of data to be housed in resulting dynamic array type.
-/// @result constructed dynamic array type.
+/// @result Constructed dynamic array type.
 #define DARRAY_TYPE(data_type)                                         \
   struct {                                                             \
     data_type *data;                                                   \

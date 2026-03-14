@@ -8,6 +8,15 @@
 #include <stdlib.h>
 
 // *---------------------------------------------*
+// *              MACRO DEFINITIONS              *
+// *---------------------------------------------*
+
+/// Get length of `string` stored in a character array (array size must be known at compile-time).
+/// @param string Character array storing a string.
+/// @result Length of `string` character array.
+#define STR_ARRAY_LENGTH(string) (sizeof(string) - 1)
+
+// *---------------------------------------------*
 // *              INLINE FUNCTIONS               *
 // *---------------------------------------------*
 
