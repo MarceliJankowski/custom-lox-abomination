@@ -1,1 +1,1 @@
-print "a" > nil; #ASSERT_EXECUTION_ERROR 1 Expected greater-than operands to be numbers (got 'string' and 'nil')
+"a" > nil; #ASSERT_EXECUTION_ERROR 1 Expected greater-than operands to be numbers (got 'string' and 'nil')
