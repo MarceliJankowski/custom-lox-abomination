@@ -1,0 +1,2 @@
+print 1 .. "b"; #ASSERT_STDOUT_LINE 1b
+print "a" .. 2; #ASSERT_STDOUT_LINE a2

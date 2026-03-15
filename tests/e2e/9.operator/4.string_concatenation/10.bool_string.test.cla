@@ -1,0 +1,2 @@
+print true .. "b"; #ASSERT_STDOUT_LINE trueb
+print "a" .. false; #ASSERT_STDOUT_LINE afalse

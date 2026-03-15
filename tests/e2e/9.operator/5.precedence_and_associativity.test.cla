@@ -42,6 +42,10 @@ print false == 2 < 1; #ASSERT_STDOUT_LINE true
 print 2 <= 1 == false; #ASSERT_STDOUT_LINE true
 print false == 2 <= 1; #ASSERT_STDOUT_LINE true
 
+# concatenation precedence group > equality precedence group
+print "a" .. "b" == "ab"; #ASSERT_STDOUT_LINE true
+print "ab" == "a" .. "b"; #ASSERT_STDOUT_LINE true
+
 # unary-prefix predecence group > equality precedence group
 print !false == true; #ASSERT_STDOUT_LINE true
 

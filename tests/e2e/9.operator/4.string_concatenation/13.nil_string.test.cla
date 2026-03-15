@@ -1,0 +1,2 @@
+print nil .. "b"; #ASSERT_STDOUT_LINE nilb
+print "a" .. nil; #ASSERT_STDOUT_LINE anil
