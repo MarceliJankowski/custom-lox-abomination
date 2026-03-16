@@ -1,20 +1,60 @@
-# '+', '-' belong to term precedence group and are left-associative
-print 2 + 3 - 5; #ASSERT_STDOUT_LINE 0
-print 2 - 3 + 5; #ASSERT_STDOUT_LINE 4
+# tests are ordered after precedence group hierarchy
+
+##################################################
+#                     UNARY                      #
+##################################################
+# unary precedence group has a single operator
+# due to this left-associativity and precedence group belonging is untestable
+
+##################################################
+#                     FACTOR                     #
+##################################################
 
 # '*', '/', '%' belong to factor precedence group and are left-associative
 print 8 / 5 * 4 % 2; #ASSERT_STDOUT_LINE 0.4
 print 8 % 5 / 4 * 2; #ASSERT_STDOUT_LINE 1.5
 print 8 * 5 % 4 / 2; #ASSERT_STDOUT_LINE 0
 
+##################################################
+#                      TERM                      #
+##################################################
+
+# '+', '-' belong to term precedence group and are left-associative
+print 2 + 3 - 5; #ASSERT_STDOUT_LINE 0
+print 2 - 3 + 5; #ASSERT_STDOUT_LINE 4
+
+##################################################
+#                 CONCATENATION                  #
+##################################################
+# concatenation precedence group has a single operator
+# due to this right-associativity and precedence group belonging is untestable
+
+##################################################
+#                   COMPARISON                   #
+##################################################
+# comparison operators operate on numbers, but evaluate to booleans
+# due to this left-associativity and precedence group belonging is untestable
+
+##################################################
+#                    EQUALITY                    #
+##################################################
+
 # '==', '!=' belong to equality precedence group and are left-associative
 print 1 == 1 != false; #ASSERT_STDOUT_LINE true
 print 1 != 2 == false; #ASSERT_STDOUT_LINE false
 
-# UNTESTABLE: '<', '<=', '>', '>=' belong to comparison precedence group and are left-associative
+##################################################
+#           PRECEDENCE GROUP HIERARCHY           #
+##################################################
+
+# unary precedence group > equality precedence group
+print true == !false; #ASSERT_STDOUT_LINE true
 
 # factor precedence group > term precedence group
 print 2 + 3 * 4; #ASSERT_STDOUT_LINE 14
+
+# term precedence group > concatenation precedence group
+print "ab" .. 1 + 2; #ASSERT_STDOUT_LINE ab3
 
 # term precedence group > comparison precedence group
 print 1 + 2 > 2; #ASSERT_STDOUT_LINE true
@@ -29,6 +69,10 @@ print 1 < 1 + 2; #ASSERT_STDOUT_LINE true
 print 1 + 2 <= 2; #ASSERT_STDOUT_LINE false
 print 2 <= 1 + 2; #ASSERT_STDOUT_LINE true
 
+# concatenation precedence group > equality precedence group
+print "a" .. "b" == "ab"; #ASSERT_STDOUT_LINE true
+print "ab" == "a" .. "b"; #ASSERT_STDOUT_LINE true
+
 # comparison precedence group > equality precedence group
 print 1 > 2 == false; #ASSERT_STDOUT_LINE true
 print false == 1 > 2; #ASSERT_STDOUT_LINE true
@@ -42,12 +86,9 @@ print false == 2 < 1; #ASSERT_STDOUT_LINE true
 print 2 <= 1 == false; #ASSERT_STDOUT_LINE true
 print false == 2 <= 1; #ASSERT_STDOUT_LINE true
 
-# concatenation precedence group > equality precedence group
-print "a" .. "b" == "ab"; #ASSERT_STDOUT_LINE true
-print "ab" == "a" .. "b"; #ASSERT_STDOUT_LINE true
-
-# unary-prefix predecence group > equality precedence group
-print !false == true; #ASSERT_STDOUT_LINE true
+##################################################
+#            '()' PRECEDENCE OVERRIDE            #
+##################################################
 
 # '()' control expression evaluation order, overriding operator precedence
 print (2 * (6 - (2 + 2))); #ASSERT_STDOUT_LINE 4
