@@ -100,11 +100,11 @@ void repl_enter(void) {
 
       // read input key
       TerminalKey const key = terminal_read_key();
-      TerminalKeyType const key_type = TERMINAL_KEY_GET_TYPE(key);
+      TerminalKeyKind const key_kind = TERMINAL_KEY_GET_KIND(key);
 
       // handle key
-      static_assert(TERMINAL_KEY_TYPE_COUNT == 29, "Exhaustive TerminalKeyType handling");
-      switch (key_type) {
+      static_assert(TERMINAL_KEY_KIND_COUNT == 29, "Exhaustive TerminalKeyKind handling");
+      switch (key_kind) {
         case TERMINAL_KEY_PRINTABLE: {
           gap_buffer_insert_char(&physical_line, key.printable.character);
           is_physical_line_modified = true;
@@ -210,7 +210,7 @@ void repl_enter(void) {
         case TERMINAL_KEY_UNKNOWN: { // ignored
           break;
         }
-        default: ERROR_INTERNAL("Unknown TerminalKeyType '%d'", TERMINAL_KEY_GET_TYPE(key));
+        default: ERROR_INTERNAL("Unknown TerminalKeyKind '%d'", TERMINAL_KEY_GET_KIND(key));
       }
 
       // keep reading physical line

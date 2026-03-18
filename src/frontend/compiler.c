@@ -17,7 +17,7 @@
 
 typedef enum { PARSER_OK, PARSER_PANIC, PARSER_UNEXPECTED_EOF } ParserState;
 
-typedef enum { ERROR_LEXICAL, ERROR_SYNTAX, ERROR_SEMANTIC, ERROR_TYPE_COUNT } ErrorType;
+typedef enum { ERROR_LEXICAL, ERROR_SYNTAX, ERROR_SEMANTIC, ERROR_KIND_COUNT } ErrorKind;
 
 /// Token precedence.
 typedef enum {
@@ -35,7 +35,7 @@ typedef enum {
   PRECEDENCE_PRIMARY
 } Precedence;
 
-/// Function handling (compiling) specified TokenType.
+/// Function handling (compiling) specified token kind.
 typedef void(TokenHandlerFn)(void);
 
 typedef struct {
@@ -60,7 +60,7 @@ static TokenHandlerFn compile_invariable_literal;
 // *          INTERNAL-LINKAGE OBJECTS           *
 // *---------------------------------------------*
 
-static_assert(LEXER_TOKEN_TYPE_COUNT - LEXER_TOKEN_INDICATOR_COUNT == 42, "Exhaustive TokenType handling");
+static_assert(LEXER_TOKEN_KIND_COUNT - LEXER_TOKEN_INDICATOR_COUNT == 42, "Exhaustive LexerTokenKind handling");
 static ParseRule const parse_rules[] = {
   // literals
   [LEXER_TOKEN_NIL] = {compile_invariable_literal, NULL, PRECEDENCE_NONE},
@@ -130,20 +130,20 @@ static inline Chunk *get_current_chunk(void) {
   return current_chunk;
 }
 
-/// Handle `error_type` error at `token` with `message`.
-static void compiler_error_at(ErrorType const error_type, LexerToken const *const token, char const *const message) {
+/// Handle `error_kind` error at `token` with `message`.
+static void compiler_error_at(ErrorKind const error_kind, LexerToken const *const token, char const *const message) {
   assert(token != NULL);
   assert(message != NULL);
 
   if (parser.state != PARSER_OK) return;
 
   // record error
-  parser.state = token->type == LEXER_TOKEN_EOF ? PARSER_UNEXPECTED_EOF : PARSER_PANIC;
+  parser.state = token->kind == LEXER_TOKEN_EOF ? PARSER_UNEXPECTED_EOF : PARSER_PANIC;
   parser.had_error = true;
 
   // print error
-  static_assert(ERROR_TYPE_COUNT == 3, "Exhaustive ErrorType handling");
-  switch (error_type) {
+  static_assert(ERROR_KIND_COUNT == 3, "Exhaustive ErrorKind handling");
+  switch (error_kind) {
     case ERROR_LEXICAL: {
       io_fprintf(g_static_analysis_error_stream, "[LEXICAL_ERROR]");
       break;
@@ -156,25 +156,25 @@ static void compiler_error_at(ErrorType const error_type, LexerToken const *cons
       io_fprintf(g_static_analysis_error_stream, "[SEMANTIC_ERROR]");
       break;
     }
-    default: ERROR_INTERNAL("Unknown error_type '%d'", error_type);
+    default: ERROR_INTERNAL("Unknown error_kind '%d'", error_kind);
   }
   io_fprintf(
     g_static_analysis_error_stream, COMMON_MS COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "%s", g_source_file_path,
     token->line, token->column, message
   );
-  if (token->type == LEXER_TOKEN_ERROR || token->type == LEXER_TOKEN_EOF) {
+  if (token->kind == LEXER_TOKEN_ERROR || token->kind == LEXER_TOKEN_EOF) {
     io_fprintf(g_static_analysis_error_stream, "\n");
   } else io_fprintf(g_static_analysis_error_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);
 }
 
-/// Handle `error_type` error at parser.previous token with `message`.
-static inline void compiler_error_at_previous(ErrorType const error_type, char const *const message) {
-  compiler_error_at(error_type, &parser.previous, message);
+/// Handle `error_kind` error at parser.previous token with `message`.
+static inline void compiler_error_at_previous(ErrorKind const error_kind, char const *const message) {
+  compiler_error_at(error_kind, &parser.previous, message);
 }
 
-/// Handle `error_type` error at parser.current token with `message`.
-static inline void compiler_error_at_current(ErrorType const error_type, char const *const message) {
-  compiler_error_at(error_type, &parser.current, message);
+/// Handle `error_kind` error at parser.current token with `message`.
+static inline void compiler_error_at_current(ErrorKind const error_kind, char const *const message) {
+  compiler_error_at(error_kind, &parser.current, message);
 }
 
 /// Update parser.previous, advance parser.current, and handle any error tokens.
@@ -183,21 +183,21 @@ static void compiler_advance(void) {
 
   for (;;) {
     parser.current = lexer_scan();
-    if (parser.current.type != LEXER_TOKEN_ERROR) break;
+    if (parser.current.kind != LEXER_TOKEN_ERROR) break;
     compiler_error_at_current(ERROR_LEXICAL, parser.current.lexeme);
   }
 }
 
-/// Advance compiler if parser.current.type matches `type`, report error with `message` otherwise.
-static inline void compiler_consume(LexerTokenType const type, char const *const message) {
-  if (parser.current.type != type) compiler_error_at_current(ERROR_SYNTAX, message);
+/// Advance compiler if parser.current.kind matches `kind`, report error with `message` otherwise.
+static inline void compiler_consume(LexerTokenKind const kind, char const *const message) {
+  if (parser.current.kind != kind) compiler_error_at_current(ERROR_SYNTAX, message);
   compiler_advance();
 }
 
-/// Advance compiler if parser.current.type matches `type`.
+/// Advance compiler if parser.current.kind matches `kind`.
 /// @return true if it does, false otherwise.
-static inline bool compiler_match(LexerTokenType const type) {
-  if (parser.current.type != type) return false;
+static inline bool compiler_match(LexerTokenKind const kind) {
+  if (parser.current.kind != kind) return false;
   compiler_advance();
   return true;
 }
@@ -217,16 +217,16 @@ static void compile_precedence_expr(Precedence const precedence) {
   compiler_advance();
 
   // compile head token subexpression
-  if (parse_rules[parser.previous.type].nud == NULL) {
+  if (parse_rules[parser.previous.kind].nud == NULL) {
     compiler_error_at_previous(ERROR_SYNTAX, "Expected expression");
     return;
   }
-  parse_rules[parser.previous.type].nud();
+  parse_rules[parser.previous.kind].nud();
 
   // compile tail tokens subexpression
-  while (parse_rules[parser.current.type].precedence >= precedence) {
+  while (parse_rules[parser.current.kind].precedence >= precedence) {
     compiler_advance();
-    parse_rules[parser.previous.type].led();
+    parse_rules[parser.previous.kind].led();
   }
 }
 
@@ -237,10 +237,10 @@ static void compile_expr(void) {
 
 /// Compile left-associaive binary expression.
 static void compile_left_associative_binary_expr(void) {
-  LexerTokenType const operator_type = parser.previous.type;
-  compile_precedence_expr(parse_rules[operator_type].precedence + 1);
+  LexerTokenKind const operator_kind = parser.previous.kind;
+  compile_precedence_expr(parse_rules[operator_kind].precedence + 1);
 
-  switch (operator_type) {
+  switch (operator_kind) {
     case LEXER_TOKEN_PLUS: {
       emit_instruction(CHUNK_OP_ADD);
       break;
@@ -285,30 +285,30 @@ static void compile_left_associative_binary_expr(void) {
       emit_instruction(CHUNK_OP_GREATER_EQUAL);
       break;
     }
-    default: ERROR_INTERNAL("Unknown binary operator type '%d'", operator_type);
+    default: ERROR_INTERNAL("Unknown binary operator kind '%d'", operator_kind);
   }
 }
 
 /// Compile right-associative binary expression.
 static void compile_right_associative_binary_expr(void) {
-  LexerTokenType const operator_type = parser.previous.type;
-  compile_precedence_expr(parse_rules[operator_type].precedence);
+  LexerTokenKind const operator_kind = parser.previous.kind;
+  compile_precedence_expr(parse_rules[operator_kind].precedence);
 
-  switch (operator_type) {
+  switch (operator_kind) {
     case LEXER_TOKEN_DOT_DOT: {
       emit_instruction(CHUNK_OP_CONCATENATE);
       break;
     }
-    default: ERROR_INTERNAL("Unknown binary operator type '%d'", operator_type);
+    default: ERROR_INTERNAL("Unknown binary operator kind '%d'", operator_kind);
   }
 }
 
 /// Compile unary expression.
 static void compile_unary_expr(void) {
-  LexerTokenType const operator_type = parser.previous.type;
+  LexerTokenKind const operator_kind = parser.previous.kind;
   compile_precedence_expr(PRECEDENCE_UNARY);
 
-  switch (operator_type) {
+  switch (operator_kind) {
     case LEXER_TOKEN_MINUS: {
       emit_instruction(CHUNK_OP_NEGATE);
       break;
@@ -317,7 +317,7 @@ static void compile_unary_expr(void) {
       emit_instruction(CHUNK_OP_NOT);
       break;
     }
-    default: ERROR_INTERNAL("Unknown unary operator type '%d'", operator_type);
+    default: ERROR_INTERNAL("Unknown unary operator kind '%d'", operator_kind);
   }
 }
 
@@ -351,9 +351,9 @@ static void compile_string_literal(void) {
 
 /// Compile invariable literal (one with fixed lexeme).
 static void compile_invariable_literal(void) {
-  LexerTokenType const literal_type = parser.previous.type;
+  LexerTokenKind const literal_kind = parser.previous.kind;
 
-  switch (literal_type) {
+  switch (literal_kind) {
     case LEXER_TOKEN_NIL: {
       emit_instruction(CHUNK_OP_NIL);
       break;
@@ -366,7 +366,7 @@ static void compile_invariable_literal(void) {
       emit_instruction(CHUNK_OP_FALSE);
       break;
     }
-    default: ERROR_INTERNAL("Unknown invariable literal type '%d'", literal_type);
+    default: ERROR_INTERNAL("Unknown invariable literal kind '%d'", literal_kind);
   }
 }
 

@@ -21,7 +21,7 @@ local EXECUTION_ERROR_ASSERTION_ID = ASSERTION_ID_PREFIX .. "EXECUTION_ERROR"
 
 local ASSERTION_ARG_DELIMITER_CHAR = " " -- this constant gets used in RegExprs (it shouldn't be a metacharacter)
 
-local CLA_ERROR_TYPE_MAP = {
+local CLA_ERROR_KIND_MAP = {
   [LEXICAL_ERROR_ASSERTION_ID] = "[LEXICAL_ERROR]",
   [SYNTAX_ERROR_ASSERTION_ID] = "[SYNTAX_ERROR]",
   [SEMANTIC_ERROR_ASSERTION_ID] = "[SEMANTIC_ERROR]",
@@ -44,12 +44,12 @@ local P_S = CLA_P_S -- Position Separator
 -- forward declarations
 local e2e_testfile_path
 
--- Log error consisting of `error_type` and `message` to stderr and terminate execution.
-local function log_error_and_terminate_execution(error_type, message)
-  assert(type(error_type) == "string")
+-- Log error consisting of `error_kind` and `message` to stderr and terminate execution.
+local function log_error_and_terminate_execution(error_kind, message)
+  assert(type(error_kind) == "string")
   assert(type(message) == "string")
 
-  io.stderr:write("[" .. error_type .. "]" .. M_S .. message .. "\n")
+  io.stderr:write("[" .. error_kind .. "]" .. M_S .. message .. "\n")
   os.exit(1)
 end
 
@@ -444,7 +444,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
 
       set_expected_e2e_testfile_exit_code(CLA_COMPILATION_ERROR_CODE)
 
-      local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
+      local expected_error = CLA_ERROR_KIND_MAP[assertion_id]
         .. CLA_M_S
         .. e2e_testfile_path
         .. CLA_P_S
@@ -501,7 +501,7 @@ do -- execute e2e_testfile_path assertions against e2e_testfile_path output
 
       set_expected_e2e_testfile_exit_code(CLA_EXECUTION_ERROR_CODE)
 
-      local expected_error = CLA_ERROR_TYPE_MAP[assertion_id]
+      local expected_error = CLA_ERROR_KIND_MAP[assertion_id]
         .. CLA_M_S
         .. e2e_testfile_path
         .. CLA_P_S

@@ -25,16 +25,16 @@ readonly TOO_MANY_ARGS_ERROR_CODE=5
 readonly MAKE_FAILURE_ERROR_CODE=6
 readonly TEST_FAILURE_ERROR_CODE=7
 
-# test types must be in lowercase
-readonly UNIT_TEST_TYPE='unit'
-readonly COMPONENT_TEST_TYPE='component'
-readonly E2E_TEST_TYPE='e2e'
-readonly ALL_TEST_TYPES=("$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" "$E2E_TEST_TYPE") # order matters
+# test kinds must be in lowercase
+readonly UNIT_TEST_KIND='unit'
+readonly COMPONENT_TEST_KIND='component'
+readonly E2E_TEST_KIND='e2e'
+readonly ALL_TEST_KINDS=("$UNIT_TEST_KIND" "$COMPONENT_TEST_KIND" "$E2E_TEST_KIND") # order matters
 
-readonly MAX_ARG_COUNT=${#ALL_TEST_TYPES[@]}
+readonly MAX_ARG_COUNT=${#ALL_TEST_KINDS[@]}
 
-TEST_TYPES_TO_RUN=()
-FAILED_TEST_TYPES=() # used when KEEP_GOING_MODE is on
+TEST_KINDS_TO_RUN=()
+FAILED_TEST_KINDS=() # used when KEEP_GOING_MODE is on
 
 # options (can be set through CLI)
 FAIL_FAST_MODE=$FALSE
@@ -46,19 +46,19 @@ NAME
        $SCRIPT_NAME - run cla tests
 
 SYNOPSIS
-       $SCRIPT_NAME [-h] [-v] [-f] [-k] [test_type]...
+       $SCRIPT_NAME [-h] [-v] [-f] [-k] [test_kind]...
 
 DESCRIPTION
        Test cla release build.
 
-       Tests are divided into target categories based on their type.
-       Available test types: $(sed 's/ /, /g' <<<${ALL_TEST_TYPES[*]}).
+       Tests are divided into target categories based on their kind.
+       Available test kinds: $(sed 's/ /, /g' <<<${ALL_TEST_KINDS[*]}).
 
-       All available test types are executed by default.
-       User can override this behaviour by supplying test_type arguments (casing doesn't matter).
-       In such case, only supplied test types will be executed; execution order mimics argument order.
+       All available test kinds are executed by default.
+       User can override this behaviour by supplying test_kind arguments (casing doesn't matter).
+       In such case, only supplied test kinds will be executed; execution order mimics argument order.
 
-       Upon test file failure, execution continues until the entire test type has been executed.
+       Upon test file failure, execution continues until the entire test kind has been executed.
        At that point, execution is aborted (this behaviour can be altered with '-f' and '-k' flags).
 
 OPTIONS
@@ -74,8 +74,8 @@ OPTIONS
            This option is mutually exclusive with '-k'.
 
        -k
-           Turn on KEEP_GOING_MODE (keeps going after test type failure).
-           Failed test types will be summarized at the end.
+           Turn on KEEP_GOING_MODE (keeps going after test kind failure).
+           Failed test kinds will be summarized at the end.
 
            This option is mutually exclusive with '-f'.
 
@@ -163,30 +163,30 @@ make_tmpfile() {
     error "Failed to make '${tmpfile_basename}' tmpfile" $GENERIC_ERROR_CODE
 }
 
-# Handle `test_type` failure.
-handle_test_type_fail() {
-  [[ $# -ne 1 ]] && internal_error "handle_test_type_fail() expects 'test_type' argument"
+# Handle `test_kind` failure.
+handle_test_kind_fail() {
+  [[ $# -ne 1 ]] && internal_error "handle_test_kind_fail() expects 'test_kind' argument"
 
-  local -r test_type="$1"
+  local -r test_kind="$1"
 
   [[ $KEEP_GOING_MODE -eq $FALSE ]] && exit $TEST_FAILURE_ERROR_CODE
-  FAILED_TEST_TYPES+=("$test_type")
+  FAILED_TEST_KINDS+=("$test_kind")
 }
 
-# Run test executables corresponding to `test_type` `test_filepaths`.
+# Run test executables corresponding to `test_kind` `test_filepaths`.
 run_test_executables() {
-  [[ $# -ne 2 ]] && internal_error "run_test_executables() expects 'test_type' and 'test_filepaths' arguments"
+  [[ $# -ne 2 ]] && internal_error "run_test_executables() expects 'test_kind' and 'test_filepaths' arguments"
 
-  local -r test_type="$1"
+  local -r test_kind="$1"
   local -r test_filepaths="$2"
 
-  log_if_verbose "Running $test_type tests..."
+  log_if_verbose "Running $test_kind tests..."
 
   local test_filepath
   local test_executable_output
   local did_test_executable_failure_occur=$FALSE
   for test_filepath in $test_filepaths; do
-    local test_executable="./bin/tests/${test_type}/${test_filepath::-2}" # remove '.c' extension
+    local test_executable="./bin/tests/${test_kind}/${test_filepath::-2}" # remove '.c' extension
 
     # run test_executable; hide its output unless it failed or VERBOSE_MODE is on
     [[ $VERBOSE_MODE -eq $TRUE ]] && $test_executable || test_executable_output=$($test_executable 2>&1)
@@ -197,7 +197,7 @@ run_test_executables() {
     fi
   done
 
-  [[ $did_test_executable_failure_occur -eq $TRUE ]] && handle_test_type_fail "$test_type"
+  [[ $did_test_executable_failure_occur -eq $TRUE ]] && handle_test_kind_fail "$test_kind"
 }
 
 # Write to stdout sorted e2e_testfile_paths (requisite path segment prefix is used as the sorting key).
@@ -257,7 +257,7 @@ run_unit_tests() {
 
   local -r unit_test_filepaths=$(find "${TESTS_DIR}/internal/unit" -type f -name '*_spec.c')
 
-  run_test_executables "$UNIT_TEST_TYPE" "$unit_test_filepaths"
+  run_test_executables "$UNIT_TEST_KIND" "$unit_test_filepaths"
 }
 
 run_component_tests() {
@@ -265,7 +265,7 @@ run_component_tests() {
 
   local -r component_test_filepaths=$(find "${TESTS_DIR}/internal/component" -type f -name '*_test.c')
 
-  run_test_executables "$COMPONENT_TEST_TYPE" "$component_test_filepaths"
+  run_test_executables "$COMPONENT_TEST_KIND" "$component_test_filepaths"
 }
 
 run_e2e_tests() {
@@ -303,7 +303,7 @@ run_e2e_tests() {
 
   rm "$e2e_testfile_stdout_tmpfile" "$e2e_testfile_stderr_tmpfile" || exit $GENERIC_ERROR_CODE
 
-  [[ $did_e2e_testfile_failure_occur -eq $TRUE ]] && handle_test_type_fail "$E2E_TEST_TYPE"
+  [[ $did_e2e_testfile_failure_occur -eq $TRUE ]] && handle_test_kind_fail "$E2E_TEST_KIND"
 }
 
 ##################################################
@@ -338,28 +338,28 @@ shift $((OPTIND - 1))
   error "Too many arguments supplied (max number: ${MAX_ARG_COUNT})" $TOO_MANY_ARGS_ERROR_CODE
 
 for SCRIPT_ARG in "$@"; do
-  array_contains "${ALL_TEST_TYPES[*]}" "${SCRIPT_ARG,,}" ||
-    error "Invalid test_type argument supplied '$SCRIPT_ARG'" $INVALID_ARG_ERROR_CODE
+  array_contains "${ALL_TEST_KINDS[*]}" "${SCRIPT_ARG,,}" ||
+    error "Invalid test_kind argument supplied '$SCRIPT_ARG'" $INVALID_ARG_ERROR_CODE
 
-  TEST_TYPES_TO_RUN+=("${SCRIPT_ARG,,}")
+  TEST_KINDS_TO_RUN+=("${SCRIPT_ARG,,}")
 done
 
-[[ ${#TEST_TYPES_TO_RUN[@]} -eq 0 ]] && TEST_TYPES_TO_RUN=("${ALL_TEST_TYPES[@]}")
+[[ ${#TEST_KINDS_TO_RUN[@]} -eq 0 ]] && TEST_KINDS_TO_RUN=("${ALL_TEST_KINDS[@]}")
 
 # make builds required for testing
 log_if_verbose "Making builds required for testing..."
-array_contains "${TEST_TYPES_TO_RUN[*]}" "$E2E_TEST_TYPE" && make_target release
-array_contains "${TEST_TYPES_TO_RUN[*]}" "$UNIT_TEST_TYPE" "$COMPONENT_TEST_TYPE" && make_target tests
+array_contains "${TEST_KINDS_TO_RUN[*]}" "$E2E_TEST_KIND" && make_target release
+array_contains "${TEST_KINDS_TO_RUN[*]}" "$UNIT_TEST_KIND" "$COMPONENT_TEST_KIND" && make_target tests
 
-# run test types in specified order
-for ((i = 0; i < ${#TEST_TYPES_TO_RUN[@]}; i++)); do
-  [[ "${TEST_TYPES_TO_RUN[$i]}" = "$UNIT_TEST_TYPE" ]] && run_unit_tests
-  [[ "${TEST_TYPES_TO_RUN[$i]}" = "$COMPONENT_TEST_TYPE" ]] && run_component_tests
-  [[ "${TEST_TYPES_TO_RUN[$i]}" = "$E2E_TEST_TYPE" ]] && run_e2e_tests
+# run test kinds in specified order
+for ((i = 0; i < ${#TEST_KINDS_TO_RUN[@]}; i++)); do
+  [[ "${TEST_KINDS_TO_RUN[$i]}" = "$UNIT_TEST_KIND" ]] && run_unit_tests
+  [[ "${TEST_KINDS_TO_RUN[$i]}" = "$COMPONENT_TEST_KIND" ]] && run_component_tests
+  [[ "${TEST_KINDS_TO_RUN[$i]}" = "$E2E_TEST_KIND" ]] && run_e2e_tests
 done
 
 # exit
-[[ $KEEP_GOING_MODE -eq $TRUE && ${#FAILED_TEST_TYPES[@]} -gt 0 ]] &&
-  error "Failed test types: $(sed 's/ /, /g' <<<${FAILED_TEST_TYPES[*]})" $TEST_FAILURE_ERROR_CODE
+[[ $KEEP_GOING_MODE -eq $TRUE && ${#FAILED_TEST_KINDS[@]} -gt 0 ]] &&
+  error "Failed test kinds: $(sed 's/ /, /g' <<<${FAILED_TEST_KINDS[*]})" $TEST_FAILURE_ERROR_CODE
 
 exit 0

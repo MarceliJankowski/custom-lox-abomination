@@ -8,10 +8,10 @@
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
-/// Get `terminal_key` type.
+/// Get `terminal_key` kind.
 /// @param terminal_key TerminalKey object.
-/// @result Type of `terminal_key`.
-#define TERMINAL_KEY_GET_TYPE(terminal_key) ((terminal_key).control.type)
+/// @result Kind of `terminal_key`.
+#define TERMINAL_KEY_GET_KIND(terminal_key) ((terminal_key).control.kind)
 
 // *---------------------------------------------*
 // *              TYPE DEFINITIONS               *
@@ -47,15 +47,15 @@ typedef enum {
   TERMINAL_KEY_CTRL_ARROW_DOWN,
   TERMINAL_KEY_CTRL_ARROW_LEFT,
   TERMINAL_KEY_CTRL_ARROW_RIGHT,
-  TERMINAL_KEY_TYPE_COUNT,
-} TerminalKeyType;
+  TERMINAL_KEY_KIND_COUNT,
+} TerminalKeyKind;
 
 typedef union {
   struct {
-    TerminalKeyType type;
+    TerminalKeyKind kind;
   } control;
   struct {
-    TerminalKeyType type;
+    TerminalKeyKind kind;
     char character;
   } printable;
 } TerminalKey;

@@ -129,9 +129,9 @@ static CompilerStatus compile(char const *const source_code) {
 }
 
 static void assert_static_analysis_error(
-  char const *const error_type, int const line, int const column, char const *const expected_error_message
+  char const *const error_kind, int const line, int const column, char const *const expected_error_message
 ) {
-  assert(error_type != NULL);
+  assert(error_kind != NULL);
   assert(line >= 0);
   assert(column >= 0);
   assert(expected_error_message != NULL);
@@ -144,17 +144,19 @@ static void assert_static_analysis_error(
   char const *const separator_3 = COMMON_MS;
   char const *const ending = "\n";
 
-  size_t const expected_static_analysis_error_length = strlen(error_type) + strlen(separator_1) + line_digit_count +
+  size_t const expected_static_analysis_error_length = strlen(error_kind) + strlen(separator_1) + line_digit_count +
                                                        strlen(separator_2) + column_digit_count + strlen(separator_3) +
                                                        strlen(expected_error_message) + strlen(ending);
 
   char *const expected_static_analysis_error = malloc(expected_static_analysis_error_length);
   if (expected_static_analysis_error == NULL) ERROR_MEMORY_ERRNO();
 
-  if (sprintf(
-        expected_static_analysis_error, "%s%s%d%s%d%s%s%s", error_type, separator_1, line, separator_2, column,
-        separator_3, expected_error_message, ending
-      ) < 0)
+  if (
+    sprintf(
+      expected_static_analysis_error, "%s%s%d%s%d%s%s%s", error_kind, separator_1, line, separator_2, column,
+      separator_3, expected_error_message, ending
+    ) < 0
+  )
     ERROR_IO_ERRNO();
 
   component_test_assert_file_content(g_static_analysis_error_stream, expected_static_analysis_error);

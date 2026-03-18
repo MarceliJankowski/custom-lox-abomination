@@ -11,18 +11,18 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-/// CLA value type.
+/// CLA value kind.
 typedef enum {
   VALUE_NIL,
   VALUE_BOOL,
   VALUE_NUMBER,
   VALUE_OBJECT,
-  VALUE_TYPE_COUNT,
-} ValueType;
+  VALUE_KIND_COUNT,
+} ValueKind;
 
 /// CLA value.
 typedef struct {
-  ValueType type;
+  ValueKind kind;
   union {
     bool boolean;
     double number;
@@ -37,7 +37,7 @@ typedef DARRAY_TYPE(Value) ValueList;
 // *             FUNCTION PROTOTYPES             *
 // *---------------------------------------------*
 
-char const *value_get_type_string(Value value);
+char const *value_get_kind_string(Value value);
 void value_list_init(ValueList *value_list);
 void value_list_append(ValueList *value_list, Value value);
 void value_list_destroy(ValueList *value_list);
@@ -85,28 +85,28 @@ inline Value value_make_object(Object *const object) {
   };
 }
 
-/// Determine whether CLA `value` is of bool type.
+/// Determine whether CLA `value` is of bool kind.
 /// @return true if it is, false otherwise.
 inline bool value_is_bool(Value const value) {
-  return value.type == VALUE_BOOL;
+  return value.kind == VALUE_BOOL;
 }
 
-/// Determine whether CLA `value` is of nil type.
+/// Determine whether CLA `value` is of nil kind.
 /// @return true if it is, false otherwise.
 inline bool value_is_nil(Value const value) {
-  return value.type == VALUE_NIL;
+  return value.kind == VALUE_NIL;
 }
 
-/// Determine whether CLA `value` is of number type.
+/// Determine whether CLA `value` is of number kind.
 /// @return true if it is, false otherwise.
 inline bool value_is_number(Value const value) {
-  return value.type == VALUE_NUMBER;
+  return value.kind == VALUE_NUMBER;
 }
 
-/// Determine whether CLA `value` is of string type.
+/// Determine whether CLA `value` is of string kind.
 /// @return true if it is, false otherwise.
 inline bool value_is_string(Value const value) {
-  return value.type == VALUE_OBJECT && value.as.object->type == OBJECT_STRING;
+  return value.kind == VALUE_OBJECT && value.as.object->kind == OBJECT_STRING;
 }
 
 /// Determine whether CLA `value` is falsy.

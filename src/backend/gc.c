@@ -20,8 +20,8 @@ void *gc_deallocate(void *object, size_t old_size);
 static void gc_deallocate_cla_object(Object *const object) {
   assert(object != NULL);
 
-  static_assert(OBJECT_TYPE_COUNT == 1, "Exhaustive ObjectType handling");
-  switch (object->type) {
+  static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
+  switch (object->kind) {
     case OBJECT_STRING: {
       ObjectString const *const object_string = (ObjectString *)object;
 
@@ -30,7 +30,7 @@ static void gc_deallocate_cla_object(Object *const object) {
       break;
     }
 
-    default: ERROR_INTERNAL("Unknown ObjectType '%d'", object->type);
+    default: ERROR_INTERNAL("Unknown ObjectKind '%d'", object->kind);
   }
 }
 

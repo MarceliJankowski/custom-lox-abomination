@@ -22,12 +22,14 @@
 // *              MACRO DEFINITIONS              *
 // *---------------------------------------------*
 
-#define MAKE_CONTROL_KEY(key_type) ((TerminalKey){.control = {.type = key_type}})
-#define MAKE_PRINTABLE_KEY(key_character)          \
-  ((TerminalKey){.printable = {                    \
-                   .type = TERMINAL_KEY_PRINTABLE, \
-                   .character = key_character,     \
-                 }})
+#define MAKE_CONTROL_KEY(key_kind) ((TerminalKey){.control = {.kind = key_kind}})
+#define MAKE_PRINTABLE_KEY(key_character) \
+  ((TerminalKey){                         \
+    .printable = {                        \
+      .kind = TERMINAL_KEY_PRINTABLE,     \
+      .character = key_character,         \
+    }                                     \
+  })
 
 #ifdef _WIN32
 // *---------------------------------------------*
@@ -108,7 +110,7 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 TerminalKey terminal_read_key(void) {
-  static_assert(TERMINAL_KEY_TYPE_COUNT == 29, "Exhaustive TerminalKeyType handling");
+  static_assert(TERMINAL_KEY_KIND_COUNT == 29, "Exhaustive TerminalKeyKind handling");
 
   INPUT_RECORD input_event;
   DWORD input_event_count;
@@ -369,7 +371,7 @@ bool terminal_enable_noncannonical_mode(void) {
 }
 
 TerminalKey terminal_read_key(void) {
-  static_assert(TERMINAL_KEY_TYPE_COUNT == 29, "Exhaustive TerminalKeyType handling");
+  static_assert(TERMINAL_KEY_KIND_COUNT == 29, "Exhaustive TerminalKeyKind handling");
 
 #define MAX_CONTROL_SEQUENCE_LENGTH 6
 #define CONTROL_SEQUENCE_REJECT_QUEUE_CAPACITY MAX_CONTROL_SEQUENCE_LENGTH - 1
@@ -487,7 +489,7 @@ TerminalKey terminal_read_key(void) {
   if (char_1 >= 32 && char_1 < 127) return MAKE_PRINTABLE_KEY(char_1);
 
 handle_unknown_key:
-  // handle character(s) that do not constitute a known key type
+  // handle character(s) that do not constitute a known key kind
   return MAKE_CONTROL_KEY(TERMINAL_KEY_UNKNOWN);
 
 #undef MAX_CONTROL_SEQUENCE_LENGTH

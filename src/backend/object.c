@@ -8,11 +8,11 @@
 // *        EXTERNAL-LINKAGE FUNCTIONS           *
 // *---------------------------------------------*
 
-/// Make CLA object of `size` and `type`.
+/// Make CLA object of `size` and `kind`.
 /// @return Pointer to made Object.
-Object *object_make(size_t const size, ObjectType const type) {
+Object *object_make(size_t const size, ObjectKind const kind) {
   Object *const object = gc_allocate(size);
-  object->type = type;
+  object->kind = kind;
 
   object->next = vm.gc_objects;
   vm.gc_objects = object;
@@ -53,16 +53,16 @@ ObjectString *object_make_non_owning_string(char const *const content, int const
   return string_object;
 }
 
-/// Get string with description of `object` type.
-/// @return `object` type string.
-char const *object_get_type_string(Object const *const object) {
+/// Get string with description of `object` kind.
+/// @return `object` kind string.
+char const *object_get_kind_string(Object const *const object) {
   assert(object != NULL);
 
-  static_assert(OBJECT_TYPE_COUNT == 1, "Exhaustive ObjectType handling");
-  switch (object->type) {
+  static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
+  switch (object->kind) {
     case OBJECT_STRING: return "string";
 
-    default: ERROR_INTERNAL("Unknown ObjectType '%d'", object->type);
+    default: ERROR_INTERNAL("Unknown Objectkind '%d'", object->kind);
   }
 }
 
@@ -70,15 +70,15 @@ char const *object_get_type_string(Object const *const object) {
 void object_print(Object const *const object) {
   assert(object != NULL);
 
-  static_assert(OBJECT_TYPE_COUNT == 1, "Exhaustive ObjectType handling");
-  switch (object->type) {
+  static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
+  switch (object->kind) {
     case OBJECT_STRING: {
       ObjectString const *const string_object = (ObjectString *)object;
       io_fprintf(g_source_program_output_stream, "%.*s", (int)string_object->length, string_object->content);
       break;
     }
 
-    default: ERROR_INTERNAL("Unknown ObjectType '%d'", object->type);
+    default: ERROR_INTERNAL("Unknown ObjectKind '%d'", object->kind);
   }
 }
 
@@ -88,10 +88,10 @@ bool object_equals(Object const *const object_a, Object const *const object_b) {
   assert(object_a != NULL);
   assert(object_b != NULL);
 
-  if (object_a->type != object_b->type) return false;
+  if (object_a->kind != object_b->kind) return false;
 
-  static_assert(OBJECT_TYPE_COUNT == 1, "Exhaustive ObjectType handling");
-  switch (object_a->type) {
+  static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
+  switch (object_a->kind) {
     case OBJECT_STRING: {
       ObjectString const *const string_object_a = (ObjectString *)object_a;
       ObjectString const *const string_object_b = (ObjectString *)object_b;
@@ -100,6 +100,6 @@ bool object_equals(Object const *const object_a, Object const *const object_b) {
       return memcmp(string_object_a->content, string_object_b->content, string_object_a->length) == 0;
     }
 
-    default: ERROR_INTERNAL("Unknown ObjectType '%d'", object_a->type);
+    default: ERROR_INTERNAL("Unknown ObjectKind '%d'", object_a->kind);
   }
 }

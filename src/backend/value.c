@@ -29,17 +29,17 @@ bool value_is_falsy(Value value);
 // *        EXTERNAL-LINKAGE FUNCTIONS           *
 // *---------------------------------------------*
 
-/// Get string with description of `value` type.
-/// @return Value type string.
-char const *value_get_type_string(Value const value) {
-  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
-  switch (value.type) {
+/// Get string with description of `value` kind.
+/// @return Value kind string.
+char const *value_get_kind_string(Value const value) {
+  static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValueKind handling");
+  switch (value.kind) {
     case VALUE_NIL: return "nil";
     case VALUE_BOOL: return "bool";
     case VALUE_NUMBER: return "number";
-    case VALUE_OBJECT: return object_get_type_string(value.as.object);
+    case VALUE_OBJECT: return object_get_kind_string(value.as.object);
 
-    default: ERROR_INTERNAL("Unknown ValueType '%d'", value.type);
+    default: ERROR_INTERNAL("Unknown ValueKind '%d'", value.kind);
   }
 }
 
@@ -70,8 +70,8 @@ void value_list_append(ValueList *const value_list, Value const value) {
 void value_print(Value const value) {
 #define PRINTF(...) io_fprintf(g_source_program_output_stream, __VA_ARGS__);
 
-  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
-  switch (value.type) {
+  static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValueKind handling");
+  switch (value.kind) {
     case VALUE_BOOL: {
       PRINTF(value.as.boolean ? "true" : "false");
       break;
@@ -89,7 +89,7 @@ void value_print(Value const value) {
       break;
     }
 
-    default: ERROR_INTERNAL("Unknown ValueType '%d'", value.type);
+    default: ERROR_INTERNAL("Unknown ValueKind '%d'", value.kind);
   }
 
 #undef PRINTF
@@ -98,25 +98,25 @@ void value_print(Value const value) {
 /// Determine whether `value_a` equals `value_b`.
 /// @return true if it does, false otherwise.
 bool value_equals(Value const value_a, Value const value_b) {
-  if (value_a.type != value_b.type) return false;
+  if (value_a.kind != value_b.kind) return false;
 
-  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
-  switch (value_a.type) {
+  static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValueKind handling");
+  switch (value_a.kind) {
     case VALUE_NIL: return true;
     case VALUE_BOOL: return value_a.as.boolean == value_b.as.boolean;
     case VALUE_NUMBER: return value_a.as.number == value_b.as.number;
     case VALUE_OBJECT: return object_equals(value_a.as.object, value_b.as.object);
 
-    default: ERROR_INTERNAL("Unknown ValueType '%d'", value_a.type);
+    default: ERROR_INTERNAL("Unknown ValueKind '%d'", value_a.kind);
   }
 }
 
 /// Create string object from `value`.
-/// @note If `value` is of string type, it gets returned as is.
+/// @note If `value` is of string kind, it gets returned as is.
 /// @return Created string object.
 ObjectString *value_to_string_object(Value const value) {
-  static_assert(VALUE_TYPE_COUNT == 4, "Exhaustive ValueType handling");
-  switch (value.type) {
+  static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValueKind handling");
+  switch (value.kind) {
     case VALUE_NIL: {
       return object_make_non_owning_string("nil", 3);
     }
@@ -144,14 +144,14 @@ ObjectString *value_to_string_object(Value const value) {
       return object_make_non_owning_string(string_representation, string_representation_length);
     }
     case VALUE_OBJECT: {
-      static_assert(OBJECT_TYPE_COUNT == 1, "Exhaustive ObjectType handling");
-      switch (value.as.object->type) {
+      static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
+      switch (value.as.object->kind) {
         case OBJECT_STRING: return (ObjectString *)value.as.object;
 
-        default: ERROR_INTERNAL("Unknown ObjectType '%d'", value.as.object->type);
+        default: ERROR_INTERNAL("Unknown ObjectKind '%d'", value.as.object->kind);
       }
     }
 
-    default: ERROR_INTERNAL("Unknown ValueType '%d'", value.type);
+    default: ERROR_INTERNAL("Unknown ValueKind '%d'", value.kind);
   }
 }

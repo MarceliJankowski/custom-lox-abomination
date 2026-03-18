@@ -93,8 +93,8 @@ void debug_token(LexerToken const *const token) {
 
   io_printf(COMMON_FILE_LINE_COLUMN_FORMAT " ", g_source_file_path, token->line, token->column);
 
-  static_assert(LEXER_TOKEN_TYPE_COUNT == 44, "Exhaustive LexerTokenType handling");
-  switch (token->type) {
+  static_assert(LEXER_TOKEN_KIND_COUNT == 44, "Exhaustive LexerTokenKind handling");
+  switch (token->kind) {
     // indicators
     case LEXER_TOKEN_ERROR: PRINTF_BREAK("TOKEN_ERROR");
     case LEXER_TOKEN_EOF: PRINTF_BREAK("TOKEN_EOF");
@@ -149,7 +149,7 @@ void debug_token(LexerToken const *const token) {
     case LEXER_TOKEN_THIS: PRINTF_BREAK("TOKEN_THIS");
     case LEXER_TOKEN_PRINT: PRINTF_BREAK("TOKEN_PRINT");
 
-    default: ERROR_INTERNAL("Unknown lexer token type '%d'", token->type);
+    default: ERROR_INTERNAL("Unknown lexer token kind '%d'", token->kind);
   }
 
   io_printf(" '%.*s'\n", token->lexeme_length, token->lexeme);

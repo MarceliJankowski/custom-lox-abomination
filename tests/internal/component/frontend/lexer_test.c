@@ -16,11 +16,11 @@
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-static LexerToken scan_assert(LexerTokenType const expected_type, char const *const expected_lexeme) {
+static LexerToken scan_assert(LexerTokenKind const expected_kind, char const *const expected_lexeme) {
   LexerToken const token = lexer_scan();
   size_t const expected_lexeme_length = strlen(expected_lexeme);
 
-  assert_int_equal(token.type, expected_type);
+  assert_int_equal(token.kind, expected_kind);
   assert_int_equal(token.lexeme_length, expected_lexeme_length);
   assert_memory_equal(token.lexeme, expected_lexeme, expected_lexeme_length);
   return token;
@@ -32,17 +32,17 @@ static inline void assert_position(LexerToken const token, int const expected_li
 }
 
 static LexerToken scan_assert_all(
-  LexerTokenType const expected_type, char const *const expected_lexeme, int const expected_line,
+  LexerTokenKind const expected_kind, char const *const expected_lexeme, int const expected_line,
   int const expected_column
 ) {
-  LexerToken const token = scan_assert(expected_type, expected_lexeme);
+  LexerToken const token = scan_assert(expected_kind, expected_lexeme);
   assert_position(token, expected_line, expected_column);
   return token;
 }
 
-static inline void init_scan_assert(char const *const lexeme, LexerTokenType const expected_type) {
+static inline void init_scan_assert(char const *const lexeme, LexerTokenKind const expected_kind) {
   lexer_init(lexeme);
-  scan_assert(expected_type, lexeme);
+  scan_assert(expected_kind, lexeme);
   SCAN_ASSERT_EOF();
 }
 

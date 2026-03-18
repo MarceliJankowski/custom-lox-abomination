@@ -36,7 +36,7 @@
   } while (0)
 
 /// Boilerplate shared across error handling macros.
-/// @param error_code ErrorCode identifying error type.
+/// @param error_code ErrorCode identifying error kind.
 /// @param message_prefix String literal containing error message prefix.
 /// @param ... printf arguments constituting error message content.
 #define ERROR__BOILERPLATE(error_code, message_prefix, ...) \

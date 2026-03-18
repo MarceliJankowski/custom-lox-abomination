@@ -70,15 +70,15 @@ typedef enum {
   LEXER_TOKEN_KEYWORD_END, // assertion utility
 
   // assertion utilities
-  LEXER_TOKEN_TYPE_COUNT = LEXER_TOKEN_KEYWORD_END - 4, // -4 to account for assertion utility members
+  LEXER_TOKEN_KIND_COUNT = LEXER_TOKEN_KEYWORD_END - 4, // -4 to account for assertion utility members
   LEXER_TOKEN_INDICATOR_COUNT = LEXER_TOKEN_INDICATOR_END,
   LEXER_TOKEN_SINGLE_CHAR_COUNT = LEXER_TOKEN_SINGLE_CHAR_END - LEXER_TOKEN_LITERAL_END - 1,
   LEXER_TOKEN_MULTI_CHAR_COUNT = LEXER_TOKEN_MULTI_CHAR_END - LEXER_TOKEN_SINGLE_CHAR_END - 1,
   LEXER_TOKEN_KEYWORD_COUNT = LEXER_TOKEN_KEYWORD_END - LEXER_TOKEN_MULTI_CHAR_END - 1
-} LexerTokenType;
+} LexerTokenKind;
 
 static_assert(
-  LEXER_TOKEN_TYPE_COUNT <= UCHAR_MAX, "Too many LexerTokenTypes defined; LexerToken.type can't fit all of them"
+  LEXER_TOKEN_KIND_COUNT <= UCHAR_MAX, "Too many LexerTokenKinds defined; LexerToken.kind can't fit all of them"
 );
 
 /// Lexeme bundled up with metadata about itself; smallest meaningful language unit.
@@ -86,7 +86,7 @@ typedef struct {
   char const *lexeme;
   int32_t line;
   int column, lexeme_length;
-  uint8_t type;
+  uint8_t kind;
 } LexerToken;
 
 // *---------------------------------------------*

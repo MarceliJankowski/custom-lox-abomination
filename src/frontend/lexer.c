@@ -69,11 +69,11 @@ static inline char lexer_peek_next(void) {
   return lexer.char_cursor[1];
 }
 
-/// Make `token_type` token.
+/// Make `token_kind` token.
 /// @return Constructed token.
-static LexerToken lexer_make_token(LexerTokenType const token_type) {
+static LexerToken lexer_make_token(LexerTokenKind const token_kind) {
   LexerToken const token = {
-    .type = token_type,
+    .kind = token_kind,
     .line = lexer.line,
     .column = lexer.lexeme_start_column,
     .lexeme = lexer.lexeme,
@@ -93,7 +93,7 @@ static LexerToken lexer_make_error_token(char const *const message) {
   assert(message != NULL);
 
   LexerToken const error_token = {
-    .type = LEXER_TOKEN_ERROR,
+    .kind = LEXER_TOKEN_ERROR,
     .line = lexer.line,
     .column = lexer.lexeme_start_column,
     .lexeme = message,
@@ -111,7 +111,7 @@ static LexerToken lexer_make_error_token(char const *const message) {
 /// @return EOF token.
 static LexerToken lexer_make_eof_token(void) {
   LexerToken const eof_token = {
-    .type = LEXER_TOKEN_EOF,
+    .kind = LEXER_TOKEN_EOF,
     .line = lexer.line,
     .column = lexer.lexeme_start_column,
     .lexeme = "EOF",
@@ -155,12 +155,12 @@ static LexerToken lexer_tokenize_numeric_literal(void) {
   return lexer_make_token(LEXER_TOKEN_NUMBER);
 }
 
-/// Make either identifier or `keyword_type` (reserved identifier) token.
-/// @return `keyword_type` token if lexer.lexeme offsetted by `keyword_beginning_length` matches `keyword_rest`,
+/// Make either identifier or `keyword_kind` (reserved identifier) token.
+/// @return `keyword_kind` token if lexer.lexeme offsetted by `keyword_beginning_length` matches `keyword_rest`,
 /// identifier token otherwise.
 static LexerToken lexer_make_identifier_token(
   int const keyword_beginning_length, int const keyword_rest_length, const char *const keyword_rest,
-  LexerTokenType const keyword_type
+  LexerTokenKind const keyword_kind
 ) {
   assert(keyword_rest != NULL);
   assert(keyword_beginning_length > 0);
@@ -170,7 +170,7 @@ static LexerToken lexer_make_identifier_token(
   if (memcmp(lexer.lexeme + keyword_beginning_length, keyword_rest, keyword_rest_length)) goto handle_identifier;
 
   // keyword
-  return lexer_make_token(keyword_type);
+  return lexer_make_token(keyword_kind);
 
 handle_identifier:
   return lexer_make_token(LEXER_TOKEN_IDENTIFIER);

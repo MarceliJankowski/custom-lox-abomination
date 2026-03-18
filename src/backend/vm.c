@@ -172,7 +172,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected negation operand to be a number (got '%s')",
-            value_get_type_string(VM_STACK_TOP)
+            value_get_kind_string(VM_STACK_TOP)
           );
         }
         VM_STACK_TOP.as.number = -VM_STACK_TOP.as.number;
@@ -185,7 +185,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected addition operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP.as.number = VM_STACK_TOP.as.number + second_operand.as.number;
@@ -198,7 +198,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected subtraction operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP.as.number = VM_STACK_TOP.as.number - second_operand.as.number;
@@ -211,7 +211,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected multiplication operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP.as.number = VM_STACK_TOP.as.number * second_operand.as.number;
@@ -224,7 +224,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected division operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         if (second_operand.as.number == 0) return vm_error_at(GET_INSTRUCTION_OFFSET(1), "Illegal division by zero");
@@ -238,7 +238,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected modulo operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         if (second_operand.as.number == 0) return vm_error_at(GET_INSTRUCTION_OFFSET(1), "Illegal modulo by zero");
@@ -272,7 +272,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected less-than operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP = value_make_bool(VM_STACK_TOP.as.number < second_operand.as.number);
@@ -285,7 +285,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected less-than-or-equal operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP = value_make_bool(VM_STACK_TOP.as.number <= second_operand.as.number);
@@ -298,7 +298,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected greater-than operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP = value_make_bool(VM_STACK_TOP.as.number > second_operand.as.number);
@@ -311,7 +311,7 @@ bool vm_execute(Chunk const *const chunk) {
         if (!value_is_number(VM_STACK_TOP) || !value_is_number(second_operand)) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1), "Expected greater-than-or-equal operands to be numbers (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
         VM_STACK_TOP = value_make_bool(VM_STACK_TOP.as.number >= second_operand.as.number);
@@ -326,7 +326,7 @@ bool vm_execute(Chunk const *const chunk) {
           return vm_error_at(
             GET_INSTRUCTION_OFFSET(1),
             "Expected at least one string-concatenation operand to be a string (got '%s' and '%s')",
-            value_get_type_string(VM_STACK_TOP), value_get_type_string(second_operand)
+            value_get_kind_string(VM_STACK_TOP), value_get_kind_string(second_operand)
           );
         }
 
