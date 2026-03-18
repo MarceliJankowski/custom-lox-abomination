@@ -242,7 +242,7 @@ static void test_lexical_error_reporting(void **const _) {
   ASSERT_LEXICAL_ERROR(1, 1, "Unterminated string literal");
 
   COMPILE_ASSERT_FAILURE("@");
-  ASSERT_LEXICAL_ERROR(1, 1, "Unexpected character");
+  ASSERT_LEXICAL_ERROR(1, 1, "Unexpected character '@'");
 }
 
 static void test_line_tracking(void **const _) {

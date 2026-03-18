@@ -152,7 +152,8 @@ void debug_token(LexerToken const *const token) {
     default: ERROR_INTERNAL("Unknown lexer token kind '%d'", token->kind);
   }
 
-  io_printf(" '%.*s'\n", token->lexeme_length, token->lexeme);
+  if (token->kind == LEXER_TOKEN_ERROR) io_printf(" '%s'\n", token->as.error.message);
+  else io_printf(" '%.*s'\n", token->as.basic.lexeme_length, token->as.basic.lexeme);
 
 #undef PRINTF_BREAK
 }

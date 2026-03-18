@@ -1,2 +1,2 @@
  # STX (Start of TeXt) control character
-#ASSERT_LEXICAL_ERROR 1 1 Unexpected character
+#ASSERT_LEXICAL_ERROR 1 1 Unexpected character ''

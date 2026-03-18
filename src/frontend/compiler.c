@@ -119,6 +119,7 @@ static struct {
   LexerToken previous, current;
   ParserState state;
   bool had_error;
+  bool has_previous, has_current;
 } parser;
 
 // *---------------------------------------------*
@@ -164,7 +165,9 @@ static void compiler_error_at(ErrorKind const error_kind, LexerToken const *cons
   );
   if (token->kind == LEXER_TOKEN_ERROR || token->kind == LEXER_TOKEN_EOF) {
     io_fprintf(g_static_analysis_error_stream, "\n");
-  } else io_fprintf(g_static_analysis_error_stream, " at '%.*s'\n", token->lexeme_length, token->lexeme);
+  } else {
+    io_fprintf(g_static_analysis_error_stream, " at '%.*s'\n", token->as.basic.lexeme_length, token->as.basic.lexeme);
+  }
 }
 
 /// Handle `error_kind` error at parser.previous token with `message`.
@@ -179,12 +182,16 @@ static inline void compiler_error_at_current(ErrorKind const error_kind, char co
 
 /// Update parser.previous, advance parser.current, and handle any error tokens.
 static void compiler_advance(void) {
-  parser.previous = parser.current;
+  if (parser.has_previous) lexer_token_free(parser.previous);
+  if (parser.has_current) {
+    parser.previous = parser.current;
+    parser.has_previous = true;
+  }
 
   for (;;) {
     parser.current = lexer_scan();
     if (parser.current.kind != LEXER_TOKEN_ERROR) break;
-    compiler_error_at_current(ERROR_LEXICAL, parser.current.lexeme);
+    compiler_error_at_current(ERROR_LEXICAL, parser.current.as.basic.lexeme);
   }
 }
 
@@ -330,11 +337,12 @@ static void compile_grouping_expr(void) {
 /// Compile numeric literal.
 static void compile_numeric_literal(void) {
   errno = 0;
-  double const value = strtod(parser.previous.lexeme, NULL);
+  double const value = strtod(parser.previous.as.basic.lexeme, NULL);
   if (errno != 0) {
     ERROR_MEMORY(
       COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "Out-of-range numeric literal '%.*s'", g_source_file_path,
-      parser.previous.line, parser.previous.column, parser.previous.lexeme_length, parser.previous.lexeme
+      parser.previous.line, parser.previous.column, parser.previous.as.basic.lexeme_length,
+      parser.previous.as.basic.lexeme
     );
   }
   emit_constant_instruction(value_make_number(value));
@@ -342,8 +350,8 @@ static void compile_numeric_literal(void) {
 
 /// Compile string literal.
 static void compile_string_literal(void) {
-  char const *const content = parser.previous.lexeme + 1; // account for beginning '"'
-  int const content_length = parser.previous.lexeme_length - 2; // account for surrounding '"'
+  char const *const content = parser.previous.as.basic.lexeme + 1; // account for beginning '"'
+  int const content_length = parser.previous.as.basic.lexeme_length - 2; // account for surrounding '"'
   ObjectString *const string_object = object_make_non_owning_string(content, content_length);
 
   emit_constant_instruction(value_make_object((Object *)string_object));
@@ -390,6 +398,19 @@ static void compile_stmt(void) {
   else compile_expr_stmt();
 }
 
+/// Initialize parser with `source_code`.
+static void parser_init(char const *const source_code) {
+  lexer_init(source_code);
+
+  parser.state = PARSER_OK;
+  parser.had_error = false;
+  parser.has_current = false;
+  parser.has_previous = false;
+
+  compiler_advance();
+  parser.has_current = true;
+}
+
 // *---------------------------------------------*
 // *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
@@ -401,11 +422,8 @@ CompilerStatus compiler_compile(char const *const source_code, Chunk *const chun
   assert(chunk != NULL);
 
   // reset compiler
-  parser.state = PARSER_OK;
-  parser.had_error = false;
   current_chunk = chunk; // TEMP
-  lexer_init(source_code);
-  compiler_advance();
+  parser_init(source_code);
 
   // compile source_code
   while (!compiler_match(LEXER_TOKEN_EOF)) compile_stmt();
@@ -415,6 +433,10 @@ CompilerStatus compiler_compile(char const *const source_code, Chunk *const chun
 #ifdef DEBUG_COMPILER
   if (!parser.had_error) debug_disassemble_chunk(chunk, "DEBUG_COMPILER");
 #endif
+
+  // clean up
+  if (parser.has_current) lexer_token_free(parser.current);
+  if (parser.has_previous) lexer_token_free(parser.previous);
 
   if (!parser.had_error) return COMPILER_SUCCESS;
   if (parser.state == PARSER_UNEXPECTED_EOF) return COMPILER_UNEXPECTED_EOF;

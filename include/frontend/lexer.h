@@ -81,12 +81,23 @@ static_assert(
   LEXER_TOKEN_KIND_COUNT <= UCHAR_MAX, "Too many LexerTokenKinds defined; LexerToken.kind can't fit all of them"
 );
 
-/// Lexeme bundled up with metadata about itself; smallest meaningful language unit.
+/// Smallest meaningful language unit.
+/// In its `.as.basic` form it is a lexeme bundled up with metadata about itself.
+/// Other forms exist for specialized token kinds.
 typedef struct {
-  char const *lexeme;
-  int32_t line;
-  int column, lexeme_length;
   uint8_t kind;
+  int column;
+  int32_t line;
+  union {
+    struct {
+      int lexeme_length;
+      char const *lexeme; // character sequence
+    } basic;
+    struct {
+      int message_size;
+      char const *message; // string
+    } error;
+  } as;
 } LexerToken;
 
 // *---------------------------------------------*
@@ -95,5 +106,6 @@ typedef struct {
 
 void lexer_init(char const *source_code);
 LexerToken lexer_scan(void);
+void lexer_token_free(LexerToken const token);
 
 #endif // LEXER_H

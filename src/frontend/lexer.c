@@ -3,6 +3,7 @@
 #include "utils/character.h"
 #include "utils/debug.h"
 #include "utils/io.h"
+#include "utils/memory.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -69,15 +70,17 @@ static inline char lexer_peek_next(void) {
   return lexer.char_cursor[1];
 }
 
-/// Make `token_kind` token.
-/// @return Constructed token.
-static LexerToken lexer_make_token(LexerTokenKind const token_kind) {
+/// Make basic `token_kind` token.
+/// @return Made basic token.
+static LexerToken lexer_make_basic_token(LexerTokenKind const token_kind) {
   LexerToken const token = {
     .kind = token_kind,
     .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
-    .lexeme = lexer.lexeme,
-    .lexeme_length = lexer.char_cursor - lexer.lexeme,
+    .as.basic = {
+      .lexeme = lexer.lexeme,
+      .lexeme_length = lexer.char_cursor - lexer.lexeme,
+    }
   };
 
 #ifdef DEBUG_LEXER
@@ -87,17 +90,22 @@ static LexerToken lexer_make_token(LexerTokenKind const token_kind) {
   return token;
 }
 
-/// Make error token with `message` lexeme.
-/// @return Constructed error token.
-static LexerToken lexer_make_error_token(char const *const message) {
+/// Make error token from `message` of `message_size`.
+/// @param message Dynamically allocated string containing error message.
+/// @param message_size Size of `message` buffer (must be positive).
+/// @return Made error token.
+static LexerToken lexer_make_error_token(char const *const message, int const message_size) {
   assert(message != NULL);
+  assert(message_size > 0);
 
   LexerToken const error_token = {
     .kind = LEXER_TOKEN_ERROR,
     .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
-    .lexeme = message,
-    .lexeme_length = strlen(message),
+    .as.error = {
+      .message = message,
+      .message_size = message_size,
+    }
   };
 
 #ifdef DEBUG_LEXER
@@ -114,8 +122,10 @@ static LexerToken lexer_make_eof_token(void) {
     .kind = LEXER_TOKEN_EOF,
     .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
-    .lexeme = "EOF",
-    .lexeme_length = 3,
+    .as.basic = {
+      .lexeme = "EOF",
+      .lexeme_length = 3,
+    }
   };
 
 #ifdef DEBUG_LEXER
@@ -130,13 +140,21 @@ static LexerToken lexer_make_eof_token(void) {
 static LexerToken lexer_tokenize_string_literal(void) {
   // advance until closing quote
   while (lexer_peek() != '"') {
-    if (lexer_reached_end()) return lexer_make_error_token("Unterminated string literal");
+    if (lexer_reached_end()) {
+      auto char const message[] = "Unterminated string literal";
+      size_t const message_size = sizeof(message);
+
+      char *const dynamic_message = memory_allocate(memory_manage, message_size);
+      memcpy(dynamic_message, message, message_size);
+
+      return lexer_make_error_token(dynamic_message, message_size);
+    }
     if (lexer_advance() == '\n') lexer.line++;
   }
 
   lexer_advance(); // advance past closing quote
 
-  return lexer_make_token(LEXER_TOKEN_STRING);
+  return lexer_make_basic_token(LEXER_TOKEN_STRING);
 }
 
 /// Tokenize numeric literal.
@@ -152,7 +170,7 @@ static LexerToken lexer_tokenize_numeric_literal(void) {
     while (character_is_digit(lexer_peek())) lexer_advance();
   }
 
-  return lexer_make_token(LEXER_TOKEN_NUMBER);
+  return lexer_make_basic_token(LEXER_TOKEN_NUMBER);
 }
 
 /// Make either identifier or `keyword_kind` (reserved identifier) token.
@@ -170,10 +188,10 @@ static LexerToken lexer_make_identifier_token(
   if (memcmp(lexer.lexeme + keyword_beginning_length, keyword_rest, keyword_rest_length)) goto handle_identifier;
 
   // keyword
-  return lexer_make_token(keyword_kind);
+  return lexer_make_basic_token(keyword_kind);
 
 handle_identifier:
-  return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
+  return lexer_make_basic_token(LEXER_TOKEN_IDENTIFIER);
 }
 
 /// Tokenize identifier literal; handles both regular and reserved identifiers (keywords).
@@ -216,7 +234,7 @@ static LexerToken lexer_tokenize_identifier_literal(void) {
   }
 
   // regular identifier
-  return lexer_make_token(LEXER_TOKEN_IDENTIFIER);
+  return lexer_make_basic_token(LEXER_TOKEN_IDENTIFIER);
 }
 
 /// Advance past all whitespace characters.
@@ -288,27 +306,47 @@ LexerToken lexer_scan(void) {
   static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 5, "Exhaustive multi-character token handling");
   switch (previous_char) {
     // single-character tokens
-    case '+': return lexer_make_token(LEXER_TOKEN_PLUS);
-    case '-': return lexer_make_token(LEXER_TOKEN_MINUS);
-    case '*': return lexer_make_token(LEXER_TOKEN_STAR);
-    case '/': return lexer_make_token(LEXER_TOKEN_SLASH);
-    case '%': return lexer_make_token(LEXER_TOKEN_PERCENT);
-    case '(': return lexer_make_token(LEXER_TOKEN_OPEN_PAREN);
-    case ')': return lexer_make_token(LEXER_TOKEN_CLOSE_PAREN);
-    case '{': return lexer_make_token(LEXER_TOKEN_OPEN_CURLY_BRACE);
-    case '}': return lexer_make_token(LEXER_TOKEN_CLOSE_CURLY_BRACE);
-    case ',': return lexer_make_token(LEXER_TOKEN_COMMA);
-    case '?': return lexer_make_token(LEXER_TOKEN_QUESTION);
-    case ':': return lexer_make_token(LEXER_TOKEN_COLON);
-    case ';': return lexer_make_token(LEXER_TOKEN_SEMICOLON);
+    case '+': return lexer_make_basic_token(LEXER_TOKEN_PLUS);
+    case '-': return lexer_make_basic_token(LEXER_TOKEN_MINUS);
+    case '*': return lexer_make_basic_token(LEXER_TOKEN_STAR);
+    case '/': return lexer_make_basic_token(LEXER_TOKEN_SLASH);
+    case '%': return lexer_make_basic_token(LEXER_TOKEN_PERCENT);
+    case '(': return lexer_make_basic_token(LEXER_TOKEN_OPEN_PAREN);
+    case ')': return lexer_make_basic_token(LEXER_TOKEN_CLOSE_PAREN);
+    case '{': return lexer_make_basic_token(LEXER_TOKEN_OPEN_CURLY_BRACE);
+    case '}': return lexer_make_basic_token(LEXER_TOKEN_CLOSE_CURLY_BRACE);
+    case ',': return lexer_make_basic_token(LEXER_TOKEN_COMMA);
+    case '?': return lexer_make_basic_token(LEXER_TOKEN_QUESTION);
+    case ':': return lexer_make_basic_token(LEXER_TOKEN_COLON);
+    case ';': return lexer_make_basic_token(LEXER_TOKEN_SEMICOLON);
 
     // single-character or possibly multi-character tokens
-    case '.': return lexer_make_token(lexer_match('.') ? LEXER_TOKEN_DOT_DOT : LEXER_TOKEN_DOT);
-    case '=': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_EQUAL_EQUAL : LEXER_TOKEN_EQUAL);
-    case '!': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_BANG_EQUAL : LEXER_TOKEN_BANG);
-    case '>': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_GREATER_EQUAL : LEXER_TOKEN_GREATER);
-    case '<': return lexer_make_token(lexer_match('=') ? LEXER_TOKEN_LESS_EQUAL : LEXER_TOKEN_LESS);
+    case '.': return lexer_make_basic_token(lexer_match('.') ? LEXER_TOKEN_DOT_DOT : LEXER_TOKEN_DOT);
+    case '=': return lexer_make_basic_token(lexer_match('=') ? LEXER_TOKEN_EQUAL_EQUAL : LEXER_TOKEN_EQUAL);
+    case '!': return lexer_make_basic_token(lexer_match('=') ? LEXER_TOKEN_BANG_EQUAL : LEXER_TOKEN_BANG);
+    case '>': return lexer_make_basic_token(lexer_match('=') ? LEXER_TOKEN_GREATER_EQUAL : LEXER_TOKEN_GREATER);
+    case '<': return lexer_make_basic_token(lexer_match('=') ? LEXER_TOKEN_LESS_EQUAL : LEXER_TOKEN_LESS);
 
-    default: return lexer_make_error_token("Unexpected character");
+    default: {
+      auto char message[] = "Unexpected character 'C'";
+      message[22] = previous_char;
+      size_t const message_size = sizeof(message);
+
+      char *const dynamic_message = memory_allocate(memory_manage, message_size);
+      memcpy(dynamic_message, message, message_size);
+
+      return lexer_make_error_token(dynamic_message, message_size);
+    }
+  }
+}
+
+/// Release `token` resources.
+void lexer_token_free(LexerToken const token) {
+  switch (token.kind) {
+    case LEXER_TOKEN_ERROR: {
+      memory_deallocate(memory_manage, (void *)token.as.error.message, token.as.error.message_size);
+      break;
+    }
+    default: break;
   }
 }
