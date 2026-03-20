@@ -16,7 +16,7 @@ static struct {
   char const *char_cursor;
   char const *lexeme;
   int32_t line;
-  int column, lexeme_start_column;
+  int column, lexeme_start_line, lexeme_start_column;
 } lexer;
 
 // *---------------------------------------------*
@@ -74,7 +74,7 @@ static inline char lexer_peek_next(void) {
 static LexerToken lexer_make_token(LexerTokenKind const token_kind) {
   LexerToken const token = {
     .kind = token_kind,
-    .line = lexer.line,
+    .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
     .lexeme = lexer.lexeme,
     .lexeme_length = lexer.char_cursor - lexer.lexeme,
@@ -94,7 +94,7 @@ static LexerToken lexer_make_error_token(char const *const message) {
 
   LexerToken const error_token = {
     .kind = LEXER_TOKEN_ERROR,
-    .line = lexer.line,
+    .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
     .lexeme = message,
     .lexeme_length = strlen(message),
@@ -112,7 +112,7 @@ static LexerToken lexer_make_error_token(char const *const message) {
 static LexerToken lexer_make_eof_token(void) {
   LexerToken const eof_token = {
     .kind = LEXER_TOKEN_EOF,
-    .line = lexer.line,
+    .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
     .lexeme = "EOF",
     .lexeme_length = 3,
@@ -259,8 +259,8 @@ void lexer_init(char const *const source_code) {
   io_puts("== DEBUG_LEXER ==");
 #endif
 
-  lexer.lexeme = source_code;
   lexer.char_cursor = source_code;
+  lexer.lexeme = source_code;
   lexer.line = 1;
   lexer.column = 1;
 }
@@ -272,6 +272,7 @@ LexerToken lexer_scan(void) {
 
   // reset lexeme
   lexer.lexeme = lexer.char_cursor;
+  lexer.lexeme_start_line = lexer.line;
   lexer.lexeme_start_column = lexer.column;
 
   if (lexer_reached_end()) return lexer_make_eof_token();
