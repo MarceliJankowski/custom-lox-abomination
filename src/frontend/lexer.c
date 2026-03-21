@@ -5,6 +5,7 @@
 #include "utils/io.h"
 #include "utils/memory.h"
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,13 +91,32 @@ static LexerToken lexer_make_basic_token(LexerTokenKind const token_kind) {
   return token;
 }
 
-/// Make error token from `message` of `message_size`.
-/// @param message Dynamically allocated string containing error message.
-/// @param message_size Size of `message` buffer (must be positive).
+/// Make error token with message created from `format` and `...`.
+/// @param format String containing error message format.
+/// @param ... Variadic arguments for `format`.
 /// @return Made error token.
-static LexerToken lexer_make_error_token(char const *const message, int const message_size) {
-  assert(message != NULL);
-  assert(message_size > 0);
+static LexerToken lexer_make_error_token(char const *const format, ...) {
+  assert(format != NULL);
+
+  size_t message_size;
+  char *message;
+  {
+    va_list format_args, format_args_copy;
+    va_start(format_args, format);
+    va_copy(format_args_copy, format_args);
+
+    char dummy_buffer[1]; // required by snprintf spec
+    int const message_length = vsnprintf(dummy_buffer, 0, format, format_args);
+    if (message_length < 0) ERROR_IO_ERRNO();
+
+    message_size = message_length + 1; // account for NUL terminator
+    message = memory_allocate(memory_manage, message_size);
+    int const bytes_printed = vsnprintf(message, message_size, format, format_args_copy);
+    if (bytes_printed < 0 || bytes_printed != message_length) ERROR_IO_ERRNO();
+
+    va_end(format_args);
+    va_end(format_args_copy);
+  }
 
   LexerToken const error_token = {
     .kind = LEXER_TOKEN_ERROR,
@@ -141,13 +161,7 @@ static LexerToken lexer_tokenize_string_literal(void) {
   // advance until closing quote
   while (lexer_peek() != '"') {
     if (lexer_reached_end()) {
-      auto char const message[] = "Unterminated string literal";
-      size_t const message_size = sizeof(message);
-
-      char *const dynamic_message = memory_allocate(memory_manage, message_size);
-      memcpy(dynamic_message, message, message_size);
-
-      return lexer_make_error_token(dynamic_message, message_size);
+      return lexer_make_error_token("Unterminated string literal");
     }
     if (lexer_advance() == '\n') lexer.line++;
   }
@@ -327,16 +341,7 @@ LexerToken lexer_scan(void) {
     case '>': return lexer_make_basic_token(lexer_match('=') ? LEXER_TOKEN_GREATER_EQUAL : LEXER_TOKEN_GREATER);
     case '<': return lexer_make_basic_token(lexer_match('=') ? LEXER_TOKEN_LESS_EQUAL : LEXER_TOKEN_LESS);
 
-    default: {
-      auto char message[] = "Unexpected character 'C'";
-      message[22] = previous_char;
-      size_t const message_size = sizeof(message);
-
-      char *const dynamic_message = memory_allocate(memory_manage, message_size);
-      memcpy(dynamic_message, message, message_size);
-
-      return lexer_make_error_token(dynamic_message, message_size);
-    }
+    default: return lexer_make_error_token("Unexpected character '%c'", previous_char);
   }
 }
 
