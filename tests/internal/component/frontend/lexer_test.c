@@ -49,10 +49,7 @@ static void scan_assert_error(
   assert_int_equal(token.kind, LEXER_TOKEN_ERROR);
   assert_int_equal(token.line, expected_line);
   assert_int_equal(token.column, expected_column);
-
-  size_t const expected_message_size = strlen(expected_message) + 1; // account for NUL terminator
-  assert_memory_equal(token.as.error.message, expected_message, expected_message_size);
-  assert_int_equal(token.as.error.message_size, expected_message_size);
+  assert_string_equal(token.as.error.message, expected_message);
 
   lexer_token_free(token);
 }

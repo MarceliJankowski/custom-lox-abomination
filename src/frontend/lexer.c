@@ -3,11 +3,11 @@
 #include "utils/character.h"
 #include "utils/debug.h"
 #include "utils/io.h"
-#include "utils/memory.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // *---------------------------------------------*
@@ -98,7 +98,6 @@ static LexerToken lexer_make_basic_token(LexerTokenKind const token_kind) {
 static LexerToken lexer_make_error_token(char const *const format, ...) {
   assert(format != NULL);
 
-  size_t message_size;
   char *message;
   {
     va_list format_args, format_args_copy;
@@ -109,8 +108,9 @@ static LexerToken lexer_make_error_token(char const *const format, ...) {
     int const message_length = vsnprintf(dummy_buffer, 0, format, format_args);
     if (message_length < 0) ERROR_IO_ERRNO();
 
-    message_size = message_length + 1; // account for NUL terminator
-    message = memory_allocate(memory_manage, message_size);
+    size_t const message_size = message_length + 1; // account for NUL terminator
+    message = malloc(message_size);
+    if (message == NULL) ERROR_MEMORY_ERRNO();
     int const bytes_printed = vsnprintf(message, message_size, format, format_args_copy);
     if (bytes_printed < 0 || bytes_printed != message_length) ERROR_IO_ERRNO();
 
@@ -122,10 +122,7 @@ static LexerToken lexer_make_error_token(char const *const format, ...) {
     .kind = LEXER_TOKEN_ERROR,
     .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
-    .as.error = {
-      .message = message,
-      .message_size = message_size,
-    }
+    .as.error.message = message,
   };
 
 #ifdef DEBUG_LEXER
@@ -349,7 +346,7 @@ LexerToken lexer_scan(void) {
 void lexer_token_free(LexerToken const token) {
   switch (token.kind) {
     case LEXER_TOKEN_ERROR: {
-      memory_deallocate(memory_manage, (void *)token.as.error.message, token.as.error.message_size);
+      free(token.as.error.message);
       break;
     }
     default: break;

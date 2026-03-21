@@ -94,8 +94,7 @@ typedef struct {
       char const *lexeme; // character sequence
     } basic;
     struct {
-      int message_size;
-      char const *message; // string
+      char *message; // string
     } error;
   } as;
 } LexerToken;
