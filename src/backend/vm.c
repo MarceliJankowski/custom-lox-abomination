@@ -117,7 +117,7 @@ bool vm_execute(Chunk const *const chunk) {
 #ifdef DEBUG_VM
     io_printf("[ ");
     for (size_t i = 0; i < vm.stack.count;) {
-      value_print(vm.stack.data[i]);
+      io_printf("'"), value_print(vm.stack.data[i]), io_printf("'");
       if (++i < vm.stack.count) io_printf(", ");
     }
     io_puts(" ]");
