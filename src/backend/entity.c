@@ -8,15 +8,15 @@
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/// Make CLA string entity from `content` of `content_length`;
-/// `content` ownership is determined by `is_content_owner`.
-/// @note `content` does not need to be NUL terminated.
+/// Make CLA string entity.
+/// @param is_content_owner Boolean determining `content` ownership.
+/// @param content Pointer to character sequence, or NULL.
+/// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
 static inline EntityString *entity_make_string(
   bool const is_content_owner, char const *const content, int const content_length
 ) {
-  assert(content != NULL);
-  assert(content_length >= 0);
+  assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
   EntityString *const string_entity = ENTITY_MAKE(EntityString, ENTITY_STRING);
   string_entity->is_content_owner = is_content_owner;
@@ -44,22 +44,22 @@ Entity *entity_make(size_t const size, EntityKind const kind) {
 
 /// Make CLA string entity from GC `content` of `content_length`.
 /// Resultant string entity is a `content` owner.
-/// @note `content` does not need to be NUL terminated.
+/// @param content Pointer to GC character sequence, or NULL.
+/// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
 EntityString *entity_make_owning_string(char const *const content, int const content_length) {
-  assert(content != NULL);
-  assert(content_length >= 0);
+  assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
   return entity_make_string(true, content, content_length);
 }
 
 /// Make CLA string entity from `content` of `content_length`.
 /// Resultant string entity is NOT a `content` owner.
-/// @note `content` does not need to be NUL terminated.
+/// @param content Pointer to character sequence, or NULL.
+/// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
 EntityString *entity_make_non_owning_string(char const *const content, int const content_length) {
-  assert(content != NULL);
-  assert(content_length >= 0);
+  assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
   return entity_make_string(false, content, content_length);
 }

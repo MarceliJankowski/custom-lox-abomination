@@ -1,2 +1,13 @@
 print ""; #ASSERT_STDOUT \n
 print "hello world"; #ASSERT_STDOUT_LINE hello world
+
+# escape sequences
+print "\""; #ASSERT_STDOUT_LINE "
+print "\\"; #ASSERT_STDOUT_LINE \\
+print "\a"; #ASSERT_STDOUT_LINE \a
+print "\b"; #ASSERT_STDOUT_LINE \b
+print "\f"; #ASSERT_STDOUT_LINE \f
+print "\n"; #ASSERT_STDOUT_LINE \n
+print "\r"; #ASSERT_STDOUT_LINE \r
+print "\t"; #ASSERT_STDOUT_LINE \t
+print "\v"; #ASSERT_STDOUT_LINE \v

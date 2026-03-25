@@ -1,0 +1,1 @@
+"\i" #ASSERT_LEXICAL_ERROR 1 1 Invalid escape sequence '\i'

@@ -72,7 +72,15 @@ end
 local function decode_assertion_message_arg_escape_sequences(assertion_message_arg)
   assert(type(assertion_message_arg) == "string")
 
-  return assertion_message_arg:gsub("\\\\", "\\"):gsub("\\n", "\n"):gsub("\\t", "\t")
+  return assertion_message_arg
+    :gsub("\\\\", "\\")
+    :gsub("\\a", "\a")
+    :gsub("\\b", "\b")
+    :gsub("\\f", "\f")
+    :gsub("\\n", "\n")
+    :gsub("\\r", "\r")
+    :gsub("\\t", "\t")
+    :gsub("\\v", "\v")
 end
 
 -- Read file at `filepath`.

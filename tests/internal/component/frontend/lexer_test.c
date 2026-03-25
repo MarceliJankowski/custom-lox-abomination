@@ -1,5 +1,6 @@
 #include "frontend/lexer.h"
 
+#include "backend/vm.h"
 #include "component/component_test.h"
 
 #include <string.h>
@@ -15,6 +16,11 @@
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
+
+static void reset_lexer(char const *const source_code) {
+  vm_reset();
+  lexer_init(source_code);
+}
 
 static void scan_assert_kind(LexerTokenKind const expected_kind) {
   LexerToken const token = lexer_scan();
@@ -54,21 +60,37 @@ static void scan_assert_error(
   lexer_token_free(token);
 }
 
-static inline void init_scan_assert_basic(
+static inline void reset_scan_assert_basic(
   char const *const source_code, int32_t const expected_line, int const expected_column,
   LexerTokenKind const expected_kind
 ) {
-  lexer_init(source_code);
+  reset_lexer(source_code);
   scan_assert_basic(expected_kind, expected_line, expected_column, source_code);
   SCAN_ASSERT_EOF_KIND();
 }
 
-static inline void init_scan_assert_error(
+static inline void reset_scan_assert_error(
   char const *const source_code, int32_t const expected_line, int const expected_column,
   char const *const expected_message
 ) {
-  lexer_init(source_code);
+  reset_lexer(source_code);
   scan_assert_error(expected_line, expected_column, expected_message);
+}
+
+// *---------------------------------------------*
+// *                  FIXTURES                   *
+// *---------------------------------------------*
+
+static int setup_test_group_env(void **const _) {
+  vm_init();
+
+  return 0;
+}
+
+static int teardown_test_group_env(void **const _) {
+  vm_destroy();
+
+  return 0;
 }
 
 // *---------------------------------------------*
@@ -76,7 +98,7 @@ static inline void init_scan_assert_error(
 // *---------------------------------------------*
 
 static void test_eof_token(void **const _) {
-  lexer_init("");
+  reset_lexer("");
 
   // continually returns EOF token upon reaching NUL byte
   for (int i = 0; i < 3; i++) SCAN_ASSERT_EOF_KIND();
@@ -84,144 +106,164 @@ static void test_eof_token(void **const _) {
 
 static void test_whitespace(void **const _) {
   // skips whitespace
-  lexer_init(" "), SCAN_ASSERT_EOF_KIND();
-  lexer_init("\t"), SCAN_ASSERT_EOF_KIND();
-  lexer_init("\r"), SCAN_ASSERT_EOF_KIND();
-  lexer_init("\n"), SCAN_ASSERT_EOF_KIND();
-  lexer_init(" \t \r \n "), SCAN_ASSERT_EOF_KIND();
+  reset_lexer(" "), SCAN_ASSERT_EOF_KIND();
+  reset_lexer("\t"), SCAN_ASSERT_EOF_KIND();
+  reset_lexer("\r"), SCAN_ASSERT_EOF_KIND();
+  reset_lexer("\n"), SCAN_ASSERT_EOF_KIND();
+  reset_lexer(" \t \r \n "), SCAN_ASSERT_EOF_KIND();
 }
 
 static void test_token_position_tracking(void **const _) {
-  lexer_init(""), SCAN_ASSERT_EOF(1, 1);
-  lexer_init(" "), SCAN_ASSERT_EOF(1, 2);
-  lexer_init("\n"), SCAN_ASSERT_EOF(2, 1);
-  lexer_init("\t"), SCAN_ASSERT_EOF(1, 2);
-  lexer_init("\r"), SCAN_ASSERT_EOF(1, 2);
-  lexer_init("\r\n"), SCAN_ASSERT_EOF(2, 1);
-  lexer_init("\n "), SCAN_ASSERT_EOF(2, 2);
-  lexer_init("\n\n"), SCAN_ASSERT_EOF(3, 1);
-  lexer_init("   \n"), SCAN_ASSERT_EOF(2, 1);
-  lexer_init("    \n    "), SCAN_ASSERT_EOF(2, 5);
+  reset_lexer(""), SCAN_ASSERT_EOF(1, 1);
+  reset_lexer(" "), SCAN_ASSERT_EOF(1, 2);
+  reset_lexer("\n"), SCAN_ASSERT_EOF(2, 1);
+  reset_lexer("\t"), SCAN_ASSERT_EOF(1, 2);
+  reset_lexer("\r"), SCAN_ASSERT_EOF(1, 2);
+  reset_lexer("\r\n"), SCAN_ASSERT_EOF(2, 1);
+  reset_lexer("\n "), SCAN_ASSERT_EOF(2, 2);
+  reset_lexer("\n\n"), SCAN_ASSERT_EOF(3, 1);
+  reset_lexer("   \n"), SCAN_ASSERT_EOF(2, 1);
+  reset_lexer("    \n    "), SCAN_ASSERT_EOF(2, 5);
 }
 
 static void test_unexpected_char(void **const _) {
-  init_scan_assert_error("`", 1, 1, "Unexpected character '`'");
-  init_scan_assert_error("~", 1, 1, "Unexpected character '~'");
-  init_scan_assert_error("@", 1, 1, "Unexpected character '@'");
-  init_scan_assert_error("$", 1, 1, "Unexpected character '$'");
-  init_scan_assert_error("^", 1, 1, "Unexpected character '^'");
-  init_scan_assert_error("&", 1, 1, "Unexpected character '&'");
-  init_scan_assert_error("[", 1, 1, "Unexpected character '['");
-  init_scan_assert_error("]", 1, 1, "Unexpected character ']'");
-  init_scan_assert_error("|", 1, 1, "Unexpected character '|'");
-  init_scan_assert_error("\\", 1, 1, "Unexpected character '\\'");
-  init_scan_assert_error("'", 1, 1, "Unexpected character '''");
+  reset_scan_assert_error("`", 1, 1, "Unexpected character '`'");
+  reset_scan_assert_error("~", 1, 1, "Unexpected character '~'");
+  reset_scan_assert_error("@", 1, 1, "Unexpected character '@'");
+  reset_scan_assert_error("$", 1, 1, "Unexpected character '$'");
+  reset_scan_assert_error("^", 1, 1, "Unexpected character '^'");
+  reset_scan_assert_error("&", 1, 1, "Unexpected character '&'");
+  reset_scan_assert_error("[", 1, 1, "Unexpected character '['");
+  reset_scan_assert_error("]", 1, 1, "Unexpected character ']'");
+  reset_scan_assert_error("|", 1, 1, "Unexpected character '|'");
+  reset_scan_assert_error("\\", 1, 1, "Unexpected character '\\'");
+  reset_scan_assert_error("'", 1, 1, "Unexpected character '''");
 }
 
 static void test_string_literal(void **const _) {
-  init_scan_assert_basic("\"\"", 1, 1, LEXER_TOKEN_STRING);
-  init_scan_assert_basic("\"abc\"", 1, 1, LEXER_TOKEN_STRING);
+  { // valid
+    reset_scan_assert_basic("\"\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"abc\"", 1, 1, LEXER_TOKEN_STRING);
 
-  // unterminated
-  init_scan_assert_error("\"abc", 1, 1, "Unterminated string literal");
-  init_scan_assert_error("\"abc\ndef", 1, 1, "Unterminated string literal");
-  init_scan_assert_error("\"abc\ndef\"", 1, 1, "Unterminated string literal");
+    // escape sequences
+    reset_scan_assert_basic("\"\\\\\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\\"\\\"\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\a\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\b\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\f\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\n\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\r\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\t\"", 1, 1, LEXER_TOKEN_STRING);
+    reset_scan_assert_basic("\"\\v\"", 1, 1, LEXER_TOKEN_STRING);
+  }
+
+  { // invalid
+    reset_scan_assert_error("\"\\i\"", 1, 1, "Invalid escape sequence '\\i'");
+
+    // unterminated
+    reset_scan_assert_error("\"\\\"", 1, 1, "Unterminated string literal at '\"\\\"'");
+    reset_scan_assert_error("\"abc", 1, 1, "Unterminated string literal at '\"abc'");
+
+    // multiline
+    reset_scan_assert_error("\"abc\ndef", 1, 1, "Unterminated string literal at '\"abc'");
+    reset_scan_assert_error("\"abc\ndef\"", 1, 1, "Unterminated string literal at '\"abc'");
+  }
 }
 
 static void test_numeric_literal(void **const _) {
-  init_scan_assert_basic("55", 1, 1, LEXER_TOKEN_NUMBER);
-  init_scan_assert_basic("10.25", 1, 1, LEXER_TOKEN_NUMBER);
+  reset_scan_assert_basic("55", 1, 1, LEXER_TOKEN_NUMBER);
+  reset_scan_assert_basic("10.25", 1, 1, LEXER_TOKEN_NUMBER);
 
-  lexer_init("-55");
+  reset_lexer("-55");
   scan_assert_basic(LEXER_TOKEN_MINUS, 1, 1, "-");
   scan_assert_basic(LEXER_TOKEN_NUMBER, 1, 2, "55");
   SCAN_ASSERT_EOF(1, 4);
 
-  lexer_init("-10.25");
+  reset_lexer("-10.25");
   scan_assert_basic(LEXER_TOKEN_MINUS, 1, 1, "-");
   scan_assert_basic(LEXER_TOKEN_NUMBER, 1, 2, "10.25");
   SCAN_ASSERT_EOF(1, 7);
 
-  lexer_init("4.");
+  reset_lexer("4.");
   scan_assert_basic(LEXER_TOKEN_NUMBER, 1, 1, "4");
   scan_assert_basic(LEXER_TOKEN_DOT, 1, 2, ".");
   SCAN_ASSERT_EOF(1, 3);
 
-  lexer_init(".5");
+  reset_lexer(".5");
   scan_assert_basic(LEXER_TOKEN_DOT, 1, 1, ".");
   scan_assert_basic(LEXER_TOKEN_NUMBER, 1, 2, "5");
   SCAN_ASSERT_EOF(1, 3);
 }
 
 static void test_identifier_literal(void **const _) {
-  init_scan_assert_basic("_", 1, 1, LEXER_TOKEN_IDENTIFIER);
-  init_scan_assert_basic("_name", 1, 1, LEXER_TOKEN_IDENTIFIER);
-  init_scan_assert_basic("name_123", 1, 1, LEXER_TOKEN_IDENTIFIER);
-  init_scan_assert_basic("name123", 1, 1, LEXER_TOKEN_IDENTIFIER);
-  init_scan_assert_basic(
+  reset_scan_assert_basic("_", 1, 1, LEXER_TOKEN_IDENTIFIER);
+  reset_scan_assert_basic("_name", 1, 1, LEXER_TOKEN_IDENTIFIER);
+  reset_scan_assert_basic("name_123", 1, 1, LEXER_TOKEN_IDENTIFIER);
+  reset_scan_assert_basic("name123", 1, 1, LEXER_TOKEN_IDENTIFIER);
+  reset_scan_assert_basic(
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_", 1, 1, LEXER_TOKEN_IDENTIFIER
   );
 }
 
 static void test_single_char_tokens(void **const _) {
   static_assert(LEXER_TOKEN_SINGLE_CHAR_COUNT == 18, "Exhaustive single-character token handling");
-  init_scan_assert_basic("+", 1, 1, LEXER_TOKEN_PLUS);
-  init_scan_assert_basic("-", 1, 1, LEXER_TOKEN_MINUS);
-  init_scan_assert_basic("*", 1, 1, LEXER_TOKEN_STAR);
-  init_scan_assert_basic("/", 1, 1, LEXER_TOKEN_SLASH);
-  init_scan_assert_basic("%", 1, 1, LEXER_TOKEN_PERCENT);
-  init_scan_assert_basic("!", 1, 1, LEXER_TOKEN_BANG);
-  init_scan_assert_basic("<", 1, 1, LEXER_TOKEN_LESS);
-  init_scan_assert_basic("=", 1, 1, LEXER_TOKEN_EQUAL);
-  init_scan_assert_basic(">", 1, 1, LEXER_TOKEN_GREATER);
-  init_scan_assert_basic(".", 1, 1, LEXER_TOKEN_DOT);
-  init_scan_assert_basic(",", 1, 1, LEXER_TOKEN_COMMA);
-  init_scan_assert_basic(":", 1, 1, LEXER_TOKEN_COLON);
-  init_scan_assert_basic(";", 1, 1, LEXER_TOKEN_SEMICOLON);
-  init_scan_assert_basic("?", 1, 1, LEXER_TOKEN_QUESTION);
-  init_scan_assert_basic("(", 1, 1, LEXER_TOKEN_OPEN_PAREN);
-  init_scan_assert_basic(")", 1, 1, LEXER_TOKEN_CLOSE_PAREN);
-  init_scan_assert_basic("{", 1, 1, LEXER_TOKEN_OPEN_CURLY_BRACE);
-  init_scan_assert_basic("}", 1, 1, LEXER_TOKEN_CLOSE_CURLY_BRACE);
+  reset_scan_assert_basic("+", 1, 1, LEXER_TOKEN_PLUS);
+  reset_scan_assert_basic("-", 1, 1, LEXER_TOKEN_MINUS);
+  reset_scan_assert_basic("*", 1, 1, LEXER_TOKEN_STAR);
+  reset_scan_assert_basic("/", 1, 1, LEXER_TOKEN_SLASH);
+  reset_scan_assert_basic("%", 1, 1, LEXER_TOKEN_PERCENT);
+  reset_scan_assert_basic("!", 1, 1, LEXER_TOKEN_BANG);
+  reset_scan_assert_basic("<", 1, 1, LEXER_TOKEN_LESS);
+  reset_scan_assert_basic("=", 1, 1, LEXER_TOKEN_EQUAL);
+  reset_scan_assert_basic(">", 1, 1, LEXER_TOKEN_GREATER);
+  reset_scan_assert_basic(".", 1, 1, LEXER_TOKEN_DOT);
+  reset_scan_assert_basic(",", 1, 1, LEXER_TOKEN_COMMA);
+  reset_scan_assert_basic(":", 1, 1, LEXER_TOKEN_COLON);
+  reset_scan_assert_basic(";", 1, 1, LEXER_TOKEN_SEMICOLON);
+  reset_scan_assert_basic("?", 1, 1, LEXER_TOKEN_QUESTION);
+  reset_scan_assert_basic("(", 1, 1, LEXER_TOKEN_OPEN_PAREN);
+  reset_scan_assert_basic(")", 1, 1, LEXER_TOKEN_CLOSE_PAREN);
+  reset_scan_assert_basic("{", 1, 1, LEXER_TOKEN_OPEN_CURLY_BRACE);
+  reset_scan_assert_basic("}", 1, 1, LEXER_TOKEN_CLOSE_CURLY_BRACE);
 }
 
 static void test_multi_char_tokens(void **const _) {
   static_assert(LEXER_TOKEN_MULTI_CHAR_COUNT == 5, "Exhaustive multi-character token handling");
-  init_scan_assert_basic("!=", 1, 1, LEXER_TOKEN_BANG_EQUAL);
-  init_scan_assert_basic("<=", 1, 1, LEXER_TOKEN_LESS_EQUAL);
-  init_scan_assert_basic("==", 1, 1, LEXER_TOKEN_EQUAL_EQUAL);
-  init_scan_assert_basic(">=", 1, 1, LEXER_TOKEN_GREATER_EQUAL);
-  init_scan_assert_basic("..", 1, 1, LEXER_TOKEN_DOT_DOT);
+  reset_scan_assert_basic("!=", 1, 1, LEXER_TOKEN_BANG_EQUAL);
+  reset_scan_assert_basic("<=", 1, 1, LEXER_TOKEN_LESS_EQUAL);
+  reset_scan_assert_basic("==", 1, 1, LEXER_TOKEN_EQUAL_EQUAL);
+  reset_scan_assert_basic(">=", 1, 1, LEXER_TOKEN_GREATER_EQUAL);
+  reset_scan_assert_basic("..", 1, 1, LEXER_TOKEN_DOT_DOT);
 }
 
 static void test_keyword_tokens(void **const _) {
   static_assert(LEXER_TOKEN_KEYWORD_COUNT == 16, "Exhaustive keyword token handling");
-  init_scan_assert_basic("true", 1, 1, LEXER_TOKEN_TRUE);
-  init_scan_assert_basic("false", 1, 1, LEXER_TOKEN_FALSE);
-  init_scan_assert_basic("var", 1, 1, LEXER_TOKEN_VAR);
-  init_scan_assert_basic("nil", 1, 1, LEXER_TOKEN_NIL);
-  init_scan_assert_basic("and", 1, 1, LEXER_TOKEN_AND);
-  init_scan_assert_basic("or", 1, 1, LEXER_TOKEN_OR);
-  init_scan_assert_basic("fun", 1, 1, LEXER_TOKEN_FUN);
-  init_scan_assert_basic("return", 1, 1, LEXER_TOKEN_RETURN);
-  init_scan_assert_basic("if", 1, 1, LEXER_TOKEN_IF);
-  init_scan_assert_basic("else", 1, 1, LEXER_TOKEN_ELSE);
-  init_scan_assert_basic("while", 1, 1, LEXER_TOKEN_WHILE);
-  init_scan_assert_basic("for", 1, 1, LEXER_TOKEN_FOR);
-  init_scan_assert_basic("class", 1, 1, LEXER_TOKEN_CLASS);
-  init_scan_assert_basic("super", 1, 1, LEXER_TOKEN_SUPER);
-  init_scan_assert_basic("this", 1, 1, LEXER_TOKEN_THIS);
-  init_scan_assert_basic("print", 1, 1, LEXER_TOKEN_PRINT);
+  reset_scan_assert_basic("true", 1, 1, LEXER_TOKEN_TRUE);
+  reset_scan_assert_basic("false", 1, 1, LEXER_TOKEN_FALSE);
+  reset_scan_assert_basic("var", 1, 1, LEXER_TOKEN_VAR);
+  reset_scan_assert_basic("nil", 1, 1, LEXER_TOKEN_NIL);
+  reset_scan_assert_basic("and", 1, 1, LEXER_TOKEN_AND);
+  reset_scan_assert_basic("or", 1, 1, LEXER_TOKEN_OR);
+  reset_scan_assert_basic("fun", 1, 1, LEXER_TOKEN_FUN);
+  reset_scan_assert_basic("return", 1, 1, LEXER_TOKEN_RETURN);
+  reset_scan_assert_basic("if", 1, 1, LEXER_TOKEN_IF);
+  reset_scan_assert_basic("else", 1, 1, LEXER_TOKEN_ELSE);
+  reset_scan_assert_basic("while", 1, 1, LEXER_TOKEN_WHILE);
+  reset_scan_assert_basic("for", 1, 1, LEXER_TOKEN_FOR);
+  reset_scan_assert_basic("class", 1, 1, LEXER_TOKEN_CLASS);
+  reset_scan_assert_basic("super", 1, 1, LEXER_TOKEN_SUPER);
+  reset_scan_assert_basic("this", 1, 1, LEXER_TOKEN_THIS);
+  reset_scan_assert_basic("print", 1, 1, LEXER_TOKEN_PRINT);
 }
 
 static void test_comment(void **const _) {
-  lexer_init("# comment"), SCAN_ASSERT_EOF(1, 10);
-  lexer_init("# comment... # continues..."), SCAN_ASSERT_EOF(1, 28);
-  lexer_init("# comment spans single line\n +"), scan_assert_basic(LEXER_TOKEN_PLUS, 2, 2, "+");
+  reset_lexer("# comment"), SCAN_ASSERT_EOF(1, 10);
+  reset_lexer("# comment... # continues..."), SCAN_ASSERT_EOF(1, 28);
+  reset_lexer("# comment spans single line\n +"), scan_assert_basic(LEXER_TOKEN_PLUS, 2, 2, "+");
 }
 
 static void test_input_source_code_1(void **const _) {
-  lexer_init("(-1 + 2) * 3 - -4");
+  reset_lexer("(-1 + 2) * 3 - -4");
 
   scan_assert_basic(LEXER_TOKEN_OPEN_PAREN, 1, 1, "(");
   scan_assert_basic(LEXER_TOKEN_MINUS, 1, 2, "-");
@@ -238,7 +280,7 @@ static void test_input_source_code_1(void **const _) {
 }
 
 static void test_input_source_code_2(void **const _) {
-  lexer_init(
+  reset_lexer(
     "var x = 5;\n"
     "var y = 10;\n"
     "print x + y;"
@@ -263,7 +305,7 @@ static void test_input_source_code_2(void **const _) {
 }
 
 static void test_input_source_code_3(void **const _) {
-  lexer_init(
+  reset_lexer(
     "fun add(a, b) {\n"
     "  return a + b;\n"
     "}\n"
@@ -313,5 +355,5 @@ int main(void) {
     cmocka_unit_test(test_input_source_code_3),
   };
 
-  return cmocka_run_group_tests(tests, NULL, NULL);
+  return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);
 }

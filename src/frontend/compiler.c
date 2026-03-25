@@ -353,9 +353,9 @@ static void compile_numeric_literal(void) {
 
 /// Compile string literal.
 static void compile_string_literal(void) {
-  char const *const content = parser.previous.as.basic.lexeme + 1; // account for beginning '"'
-  int const content_length = parser.previous.as.basic.lexeme_length - 2; // account for surrounding '"'
-  EntityString *const string_entity = entity_make_non_owning_string(content, content_length);
+  int const content_length = parser.previous.as.string.content_length;
+  char const *const content = parser.previous.as.string.content;
+  EntityString *const string_entity = entity_make_owning_string(content, content_length);
 
   emit_constant_instruction(value_make_entity((Entity *)string_entity));
 }
@@ -419,6 +419,7 @@ static void parser_init(char const *const source_code) {
 // *---------------------------------------------*
 
 /// Compile `source_code` into bytecode instructions and append them to `chunk`.
+/// @pre VM is initialized (this requirement originates in lexer).
 /// @return Compiler status indicating compilation result.
 CompilerStatus compiler_compile(char const *const source_code, Chunk *const chunk) {
   assert(source_code != NULL);

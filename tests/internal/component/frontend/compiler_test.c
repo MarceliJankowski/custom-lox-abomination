@@ -3,12 +3,14 @@
 #include "backend/chunk.h"
 #include "backend/entity.h"
 #include "backend/value.h"
+#include "backend/vm.h"
 #include "common.h"
 #include "component/component_test.h"
 #include "global.h"
 #include "utils/error.h"
 #include "utils/io.h"
 #include "utils/memory.h"
+#include "utils/str.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -120,6 +122,7 @@ static int count_non_negative_int_digits(int const non_negative_int) {
 static CompilerStatus compile(char const *const source_code) {
   assert(source_code != NULL);
 
+  vm_reset();
   chunk_reset(&chunk);
   chunk_code_offset = 0;
   chunk_constant_instruction_index = 0;
@@ -219,6 +222,7 @@ static int setup_test_group_env(void **const _) {
   g_static_analysis_error_stream = tmpfile();
   if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
 
+  vm_init();
   chunk_init(&chunk);
 
   return 0;
@@ -227,6 +231,7 @@ static int setup_test_group_env(void **const _) {
 static int teardown_test_group_env(void **const _) {
   if (fclose(g_static_analysis_error_stream)) ERROR_IO_ERRNO();
 
+  vm_destroy();
   chunk_destroy(&chunk);
 
   return 0;
@@ -238,9 +243,6 @@ static int teardown_test_group_env(void **const _) {
 static_assert(CHUNK_OP_OPCODE_COUNT == 22, "Exhaustive OpCode handling");
 
 static void test_lexical_error_reporting(void **const _) {
-  COMPILE_ASSERT_FAILURE("\"abc");
-  ASSERT_LEXICAL_ERROR(1, 1, "Unterminated string literal");
-
   COMPILE_ASSERT_FAILURE("@");
   ASSERT_LEXICAL_ERROR(1, 1, "Unexpected character '@'");
 }
@@ -293,15 +295,19 @@ static void test_numeric_literal(void **const _) {
 }
 
 static void test_string_literal(void **const _) {
-  char const *const input_source = "\"Hello, World\";";
-  char const *const input_string_content = input_source + 1; // account for beginning '"'
-  size_t const input_string_content_length = strlen(input_source) - 3; // account for surrounding '"' and ';'
-  Value const expected_value =
-    value_make_entity((Entity *)entity_make_non_owning_string(input_string_content, input_string_content_length));
+#define INPUT_STRING_CONTENT "Hello, World"
+#define INPUT_STRING "\"" INPUT_STRING_CONTENT "\";"
 
-  COMPILE_ASSERT_SUCCESS(input_source);
+  Value const expected_value = value_make_entity(
+    (Entity *)entity_make_non_owning_string(INPUT_STRING_CONTENT, STR_ARRAY_LENGTH(INPUT_STRING_CONTENT))
+  );
+
+  COMPILE_ASSERT_SUCCESS(INPUT_STRING);
   assert_constant_instruction(expected_value);
   ASSERT_OPCODES(CHUNK_OP_POP, CHUNK_OP_RETURN);
+
+#undef INPUT_STRING
+#undef INPUT_STRING_CONTENT
 }
 
 static void test_OP_CONSTANT_2B_being_generated(void **const _) {

@@ -103,9 +103,15 @@ void debug_token(LexerToken const *const token) {
     }
 
     // literals
-    case LEXER_TOKEN_STRING: LOG_BASIC_TOKEN("STRING");
     case LEXER_TOKEN_IDENTIFIER: LOG_BASIC_TOKEN("IDENTIFIER");
     case LEXER_TOKEN_NUMBER: LOG_BASIC_TOKEN("NUMBER");
+    case LEXER_TOKEN_STRING: {
+      io_printf(
+        "TOKEN_STRING %.*s '%.*s'\n", token->as.string.lexeme_length, token->as.string.lexeme,
+        token->as.string.content_length, token->as.string.content
+      );
+      break;
+    }
 
     // single-character tokens
     case LEXER_TOKEN_PLUS: LOG_BASIC_TOKEN("PLUS");

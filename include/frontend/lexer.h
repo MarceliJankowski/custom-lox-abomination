@@ -85,17 +85,22 @@ static_assert(
 /// In its `.as.basic` form it is a lexeme bundled up with metadata about itself.
 /// Other forms exist for specialized token kinds.
 typedef struct {
-  uint8_t kind;
+  uint8_t kind; // LexerTokenKind (stored as u8 to save memory)
   int column;
   int32_t line;
   union {
     struct {
       int lexeme_length;
-      char const *lexeme; // character sequence
+      char const *lexeme; // character sequence (points at source code)
     } basic;
     struct {
-      char *message; // string
+      char *message; // string (lexer owned)
     } error;
+    struct {
+      int lexeme_length, content_length;
+      char const *lexeme; // character sequence (points at source code)
+      char *content; // character sequence (GC owned)
+    } string;
   } as;
 } LexerToken;
 

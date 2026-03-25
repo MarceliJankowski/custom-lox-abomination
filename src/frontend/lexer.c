@@ -1,6 +1,8 @@
 #include "frontend/lexer.h"
 
+#include "backend/gc.h"
 #include "utils/character.h"
+#include "utils/darray.h"
 #include "utils/debug.h"
 #include "utils/io.h"
 
@@ -80,7 +82,7 @@ static inline char lexer_peek_next(void) {
 /// Make basic `token_kind` token.
 /// @return Made basic token.
 static LexerToken lexer_make_basic_token(LexerTokenKind const token_kind) {
-  LexerToken const token = {
+  LexerToken const basic_token = {
     .kind = token_kind,
     .line = lexer.lexeme_start_line,
     .column = lexer.lexeme_start_column,
@@ -91,10 +93,36 @@ static LexerToken lexer_make_basic_token(LexerTokenKind const token_kind) {
   };
 
 #ifdef DEBUG_LEXER
-  debug_token(&token);
+  debug_token(&basic_token);
 #endif
 
-  return token;
+  return basic_token;
+}
+
+/// Make string token from `content` of `content_length`.
+/// @param content Pointer to GC character sequence containing decoded lexeme, or NULL.
+/// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
+/// @return Made string token.
+static LexerToken lexer_make_string_token(char const *const content, int const content_length) {
+  assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
+
+  LexerToken const string_token = {
+    .kind = LEXER_TOKEN_STRING,
+    .line = lexer.lexeme_start_line,
+    .column = lexer.lexeme_start_column,
+    .as.string = {
+      .lexeme = lexer.lexeme,
+      .lexeme_length = lexer_get_lexeme_length(),
+      .content = (char *)content,
+      .content_length = content_length,
+    }
+  };
+
+#ifdef DEBUG_LEXER
+  debug_token(&string_token);
+#endif
+
+  return string_token;
 }
 
 /// Make error token with message created from `format` and `...`.
@@ -139,7 +167,7 @@ static LexerToken lexer_make_error_token(char const *const format, ...) {
 }
 
 /// Make EOF token.
-/// @return EOF token.
+/// @return Made EOF token.
 static LexerToken lexer_make_eof_token(void) {
   LexerToken const eof_token = {
     .kind = LEXER_TOKEN_EOF,
@@ -161,14 +189,64 @@ static LexerToken lexer_make_eof_token(void) {
 /// Tokenize string literal.
 /// @return String literal token.
 static LexerToken lexer_tokenize_string_literal(void) {
-  // advance until closing quote
+#define UNTERMINATED_LITERAL_ERROR() \
+  lexer_make_error_token("Unterminated string literal at '%.*s'", lexer_get_lexeme_length(), lexer.lexeme)
+
+#define MULTILINE_LITERAL_ERROR() \
+  lexer_make_error_token("Unterminated string literal at '%.*s'", lexer_get_lexeme_length() - 1, lexer.lexeme)
+
+#define ESCAPE_SEQUENCE(escape_sequence_char, result_char) \
+  case escape_sequence_char: {                             \
+    DARRAY_PUSH(&content, result_char);                    \
+    continue;                                              \
+  }
+
+  DARRAY_DEFINE(char, content, gc_memory_manage);
+
+  // scan until closing quote
   while (lexer_peek() != '"') {
-    if (lexer_reached_end() || lexer_advance() == '\n') return lexer_make_error_token("Unterminated string literal");
-  };
+    if (lexer_reached_end()) return UNTERMINATED_LITERAL_ERROR();
+    char const previous_char = lexer_advance();
 
-  lexer_advance(); // advance past closing quote
+    if (previous_char == '\\') { // escape sequence
+      if (lexer_reached_end()) return UNTERMINATED_LITERAL_ERROR();
+      char const escape_sequence_char = lexer_advance();
 
-  return lexer_make_basic_token(LEXER_TOKEN_STRING);
+      switch (escape_sequence_char) {
+        ESCAPE_SEQUENCE('\\', '\\')
+        ESCAPE_SEQUENCE('"', '"')
+        ESCAPE_SEQUENCE('a', '\a')
+        ESCAPE_SEQUENCE('b', '\b')
+        ESCAPE_SEQUENCE('f', '\f')
+        ESCAPE_SEQUENCE('n', '\n')
+        ESCAPE_SEQUENCE('r', '\r')
+        ESCAPE_SEQUENCE('t', '\t')
+        ESCAPE_SEQUENCE('v', '\v')
+
+        default: return lexer_make_error_token("Invalid escape sequence '\\%c'", escape_sequence_char);
+      }
+    } else if (previous_char == '\n') return MULTILINE_LITERAL_ERROR();
+
+    DARRAY_PUSH(&content, previous_char);
+  }
+
+  // advance past closing quote
+  lexer_advance();
+
+  // determine content buffer
+  size_t const content_length = content.count;
+  char const *content_buffer;
+  if (content_length == 0) content_buffer = NULL;
+  else {
+    if (content.capacity == content_length) content_buffer = content.data;
+    else content_buffer = gc_reallocate(content.data, content.capacity, content_length);
+  }
+
+  return lexer_make_string_token(content_buffer, content_length);
+
+#undef ESCAPE_SEQUENCE
+#undef MULTILINE_LITERAL_ERROR
+#undef UNTERMINATED_LITERAL_ERROR
 }
 
 /// Tokenize numeric literal.
@@ -284,6 +362,7 @@ static void lexer_skip_whitespace(void) {
 // *---------------------------------------------*
 
 /// Initialize lexer with `source_code`.
+/// @pre VM is initialized (this requirement stems from lexer performing GC allocations).
 void lexer_init(char const *const source_code) {
   assert(source_code != NULL);
 
