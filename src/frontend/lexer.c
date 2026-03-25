@@ -43,6 +43,12 @@ static inline bool lexer_reached_end(void) {
   return *lexer.char_cursor == '\0';
 }
 
+/// Get current lexeme length, up to (excluding) lexer.char_cursor character.
+/// @return Current lexeme length.
+static inline ptrdiff_t lexer_get_lexeme_length(void) {
+  return lexer.char_cursor - lexer.lexeme;
+}
+
 /// Advance lexer.char_cursor to next source code character.
 /// @return Previous (advanced past) character.
 static inline char lexer_advance(void) {
@@ -80,7 +86,7 @@ static LexerToken lexer_make_basic_token(LexerTokenKind const token_kind) {
     .column = lexer.lexeme_start_column,
     .as.basic = {
       .lexeme = lexer.lexeme,
-      .lexeme_length = lexer.char_cursor - lexer.lexeme,
+      .lexeme_length = lexer_get_lexeme_length(),
     }
   };
 
@@ -195,7 +201,7 @@ static LexerToken lexer_make_identifier_token(
   assert(keyword_beginning_length > 0);
   assert(keyword_rest_length > 0);
 
-  if (lexer.char_cursor - lexer.lexeme != keyword_beginning_length + keyword_rest_length) goto handle_identifier;
+  if (lexer_get_lexeme_length() != keyword_beginning_length + keyword_rest_length) goto handle_identifier;
   if (memcmp(lexer.lexeme + keyword_beginning_length, keyword_rest, keyword_rest_length)) goto handle_identifier;
 
   // keyword
@@ -218,7 +224,7 @@ static LexerToken lexer_tokenize_identifier_literal(void) {
     case 'c': return lexer_make_identifier_token(1, 4, "lass", LEXER_TOKEN_CLASS);
     case 'e': return lexer_make_identifier_token(1, 3, "lse", LEXER_TOKEN_ELSE);
     case 'f': {
-      if (lexer.char_cursor - lexer.lexeme <= 1) break;
+      if (lexer_get_lexeme_length() <= 1) break;
       switch (lexer.lexeme[1]) {
         case 'a': return lexer_make_identifier_token(2, 3, "lse", LEXER_TOKEN_FALSE);
         case 'o': return lexer_make_identifier_token(2, 1, "r", LEXER_TOKEN_FOR);
@@ -233,7 +239,7 @@ static LexerToken lexer_tokenize_identifier_literal(void) {
     case 'r': return lexer_make_identifier_token(1, 5, "eturn", LEXER_TOKEN_RETURN);
     case 's': return lexer_make_identifier_token(1, 4, "uper", LEXER_TOKEN_SUPER);
     case 't': {
-      if (lexer.char_cursor - lexer.lexeme <= 1) break;
+      if (lexer_get_lexeme_length() <= 1) break;
       switch (lexer.lexeme[1]) {
         case 'h': return lexer_make_identifier_token(2, 2, "is", LEXER_TOKEN_THIS);
         case 'r': return lexer_make_identifier_token(2, 2, "ue", LEXER_TOKEN_TRUE);
