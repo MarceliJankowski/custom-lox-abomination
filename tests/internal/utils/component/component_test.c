@@ -55,9 +55,9 @@ void component_test_assert_value_equality(Value const value_a, Value const value
           ObjectString const *const string_object_a = (ObjectString *)value_a.as.object;
           ObjectString const *const string_object_b = (ObjectString *)value_b.as.object;
 
-          assert_int_equal(string_object_a->length, string_object_b->length);
+          assert_int_equal(string_object_a->content_length, string_object_b->content_length);
           assert_int_equal(string_object_a->is_content_owner, string_object_b->is_content_owner);
-          assert_memory_equal(string_object_a->content, string_object_b->content, string_object_a->length);
+          assert_memory_equal(string_object_a->content, string_object_b->content, string_object_a->content_length);
           break;
         }
         default: ERROR_INTERNAL("Unknown ObjectKind '%d'", value_a.kind);

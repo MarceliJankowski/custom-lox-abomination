@@ -333,10 +333,12 @@ bool vm_execute(Chunk const *const chunk) {
         ObjectString const *const first_string = value_to_string_object(VM_STACK_TOP);
         ObjectString const *const second_string = value_to_string_object(second_operand);
 
-        size_t const new_string_length = first_string->length + second_string->length;
+        size_t const new_string_length = first_string->content_length + second_string->content_length;
         char *const new_string_content = gc_allocate(new_string_length);
-        memcpy(new_string_content, first_string->content, first_string->length);
-        memcpy(new_string_content + first_string->length, second_string->content, second_string->length);
+        memcpy(new_string_content, first_string->content, first_string->content_length);
+        memcpy(
+          new_string_content + first_string->content_length, second_string->content, second_string->content_length
+        );
         Value const new_string =
           value_make_object((Object *)object_make_non_owning_string(new_string_content, new_string_length));
 

@@ -29,7 +29,7 @@ ObjectString *object_make_owning_string(char const *const content, int const con
   assert(content_length >= 0);
 
   ObjectString *const string_object = OBJECT_MAKE(ObjectString, OBJECT_STRING);
-  string_object->length = content_length;
+  string_object->content_length = content_length;
   string_object->is_content_owner = true;
   string_object->content = gc_allocate(content_length);
   memcpy(string_object->content, content, content_length);
@@ -46,7 +46,7 @@ ObjectString *object_make_non_owning_string(char const *const content, int const
   assert(content_length >= 0);
 
   ObjectString *const string_object = OBJECT_MAKE(ObjectString, OBJECT_STRING);
-  string_object->length = content_length;
+  string_object->content_length = content_length;
   string_object->is_content_owner = false;
   string_object->content = (char *)content;
 
@@ -74,7 +74,7 @@ void object_print(Object const *const object) {
   switch (object->kind) {
     case OBJECT_STRING: {
       ObjectString const *const string_object = (ObjectString *)object;
-      io_fprintf(g_source_program_output_stream, "%.*s", (int)string_object->length, string_object->content);
+      io_fprintf(g_source_program_output_stream, "%.*s", (int)string_object->content_length, string_object->content);
       break;
     }
 
@@ -96,8 +96,8 @@ bool object_equals(Object const *const object_a, Object const *const object_b) {
       ObjectString const *const string_object_a = (ObjectString *)object_a;
       ObjectString const *const string_object_b = (ObjectString *)object_b;
 
-      if (string_object_a->length != string_object_b->length) return false;
-      return memcmp(string_object_a->content, string_object_b->content, string_object_a->length) == 0;
+      if (string_object_a->content_length != string_object_b->content_length) return false;
+      return memcmp(string_object_a->content, string_object_b->content, string_object_a->content_length) == 0;
     }
 
     default: ERROR_INTERNAL("Unknown ObjectKind '%d'", object_a->kind);

@@ -37,7 +37,7 @@ struct Object {
 /// CLA string object.
 typedef struct {
   Object object;
-  int length;
+  int content_length;
   bool is_content_owner;
   char *content;
 } ObjectString;

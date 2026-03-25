@@ -25,7 +25,7 @@ static void gc_deallocate_cla_object(Object *const object) {
     case OBJECT_STRING: {
       ObjectString const *const object_string = (ObjectString *)object;
 
-      if (object_string->is_content_owner) gc_deallocate(object_string->content, object_string->length);
+      if (object_string->is_content_owner) gc_deallocate(object_string->content, object_string->content_length);
       gc_deallocate(object, sizeof(*object_string));
       break;
     }
