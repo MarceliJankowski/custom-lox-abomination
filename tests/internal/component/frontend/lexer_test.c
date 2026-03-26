@@ -69,7 +69,6 @@ static inline void init_scan_assert_error(
 ) {
   lexer_init(source_code);
   scan_assert_error(expected_line, expected_column, expected_message);
-  SCAN_ASSERT_EOF_KIND();
 }
 
 // *---------------------------------------------*
@@ -120,12 +119,13 @@ static void test_unexpected_char(void **const _) {
 }
 
 static void test_string_literal(void **const _) {
+  init_scan_assert_basic("\"\"", 1, 1, LEXER_TOKEN_STRING);
   init_scan_assert_basic("\"abc\"", 1, 1, LEXER_TOKEN_STRING);
-  init_scan_assert_error("\"abc", 1, 1, "Unterminated string literal");
 
-  // string literal spanning multiple lines
-  init_scan_assert_basic("\"abc\ndef\"", 1, 1, LEXER_TOKEN_STRING);
+  // unterminated
+  init_scan_assert_error("\"abc", 1, 1, "Unterminated string literal");
   init_scan_assert_error("\"abc\ndef", 1, 1, "Unterminated string literal");
+  init_scan_assert_error("\"abc\ndef\"", 1, 1, "Unterminated string literal");
 }
 
 static void test_numeric_literal(void **const _) {

@@ -163,11 +163,8 @@ static LexerToken lexer_make_eof_token(void) {
 static LexerToken lexer_tokenize_string_literal(void) {
   // advance until closing quote
   while (lexer_peek() != '"') {
-    if (lexer_reached_end()) {
-      return lexer_make_error_token("Unterminated string literal");
-    }
-    if (lexer_advance() == '\n') lexer.line++;
-  }
+    if (lexer_reached_end() || lexer_advance() == '\n') return lexer_make_error_token("Unterminated string literal");
+  };
 
   lexer_advance(); // advance past closing quote
 

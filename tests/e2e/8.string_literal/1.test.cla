@@ -1,1 +1,2 @@
+print ""; #ASSERT_STDOUT \n
 print "hello world"; #ASSERT_STDOUT_LINE hello world

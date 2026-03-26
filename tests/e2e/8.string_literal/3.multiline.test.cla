@@ -1,0 +1,5 @@
+# multi-line string literals are disallowed
+
+"1
+2
+3"; #ASSERT_LEXICAL_ERROR 3 1 Unterminated string literal
