@@ -191,7 +191,10 @@ static void compiler_advance(void) {
   for (;;) {
     parser.current = lexer_scan();
     if (parser.current.kind != LEXER_TOKEN_ERROR) break;
+
+    // handle and discard error token; TokenHandlerFn never sees error tokens
     compiler_error_at_current(ERROR_LEXICAL, parser.current.as.error.message);
+    lexer_token_free(parser.current);
   }
 }
 
