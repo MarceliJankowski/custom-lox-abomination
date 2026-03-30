@@ -47,6 +47,7 @@ void gap_buffer_move_cursor_to_end(GapBuffer *gap_buffer);
 // *---------------------------------------------*
 
 /// Get `gap_buffer` cursor index.
+/// @pre `gap_buffer` is initialized.
 /// @return Cursor index.
 inline size_t gap_buffer_get_cursor_index(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);

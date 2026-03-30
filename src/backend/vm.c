@@ -49,6 +49,7 @@ VM vm;
 // *---------------------------------------------*
 
 /// Handle bytecode execution error at `instruction_offset` with `format` message and `format_args`.
+/// @pre VM is initialized.
 /// @return false (meant to be forwarded as an execution failure indication).
 static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const format, ...) {
   assert(instruction_offset >= 0);
@@ -81,6 +82,7 @@ void vm_init(void) {
 }
 
 /// Release virtual machine resources and set it to uninitialized state.
+/// @pre VM is initialized.
 void vm_destroy(void) {
   gc_deallocate_vm_gc_objects();
 
@@ -89,18 +91,21 @@ void vm_destroy(void) {
   vm = (VM){0};
 }
 
-/// Push `value` on top of virtual machine stack.
+/// Push `value` on top of VM stack.
+/// @pre VM is initialized.
 void vm_stack_push(Value const value) {
   STACK_PUSH(&vm.stack, value);
 }
 
-/// Pop value from virtual machine stack.
+/// Pop value from VM stack.
+/// @pre VM is initialized.
 /// @return Popped value.
 Value vm_stack_pop(void) {
   return STACK_POP(&vm.stack);
 }
 
 /// Execute bytecode `chunk`; virtual machine state persists across `chunk` executions.
+/// @pre VM is initialized.
 /// @return true if execution succeeded, false otherwise.
 bool vm_execute(Chunk const *const chunk) {
   assert(chunk != NULL);

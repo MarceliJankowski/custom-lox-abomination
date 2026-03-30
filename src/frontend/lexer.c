@@ -298,6 +298,7 @@ void lexer_init(char const *const source_code) {
 }
 
 /// Scan lexer source code for next lexeme, bundle it up with metadata, and produce new token.
+/// @pre Lexer is initialized.
 /// @return Produced token.
 LexerToken lexer_scan(void) {
   lexer_skip_whitespace();

@@ -45,7 +45,7 @@ static HANDLE stdin_handle = INVALID_HANDLE_VALUE;
 // *---------------------------------------------*
 
 /// Restore console mode to its original state.
-/// @note Requires noncannonical mode to be enabled.
+/// @pre Terminal noncannonical mode is enabled.
 static void restore_console_mode(void) {
   assert(stdin_handle != INVALID_HANDLE_VALUE);
   assert(is_noncannonical_mode_enabled == true);
@@ -255,7 +255,7 @@ static bool is_noncannonical_mode_enabled;
 // *---------------------------------------------*
 
 /// Restore terminal parameters to their original state.
-/// @pre Terminal noncannonical mode must be enabled.
+/// @pre Terminal noncannonical mode is enabled.
 static void restore_terminal_parameters(void) {
   assert(is_noncannonical_mode_enabled == true);
 

@@ -24,6 +24,7 @@ size_t gap_buffer_get_cursor_index(GapBuffer const *gap_buffer);
 // *---------------------------------------------*
 
 /// Resize `gap_buffer` to `new_capacity`.
+/// @pre `gap_buffer` is initialized.
 static void gap_buffer_resize(GapBuffer *const gap_buffer, size_t const new_capacity) {
   assert(gap_buffer != NULL);
 
@@ -41,6 +42,7 @@ static void gap_buffer_resize(GapBuffer *const gap_buffer, size_t const new_capa
 }
 
 /// Grow `gap_buffer` to its next capacity.
+/// @pre `gap_buffer` is initialized.
 static void gap_buffer_grow(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -50,6 +52,7 @@ static void gap_buffer_grow(GapBuffer *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor to `new_index`; `new_index` cannot exceed content length.
+/// @pre `gap_buffer` is initialized.
 static void gap_buffer_move_cursor_to_index(GapBuffer *const gap_buffer, size_t const new_index) {
   assert(gap_buffer != NULL);
   assert(new_index <= gap_buffer_get_content_length(gap_buffer));
@@ -108,6 +111,7 @@ void gap_buffer_init(GapBuffer *const gap_buffer, size_t const initial_capacity)
 }
 
 /// Release `gap_buffer` resources and set it to uninitialized state.
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_destroy(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -116,6 +120,7 @@ void gap_buffer_destroy(GapBuffer *const gap_buffer) {
 }
 
 /// Insert into `gap_buffer` a `character` at cursor index.
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_insert_char(GapBuffer *const gap_buffer, char const character) {
   assert(gap_buffer != NULL);
 
@@ -129,6 +134,7 @@ void gap_buffer_insert_char(GapBuffer *const gap_buffer, char const character) {
 }
 
 /// Delete character from `gap_buffer` left to cursor (if such character exists).
+/// @pre `gap_buffer` is initialized.
 /// @return true if character was deleted, false otherwise.
 bool gap_buffer_delete_char_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -140,6 +146,7 @@ bool gap_buffer_delete_char_left(GapBuffer *const gap_buffer) {
 }
 
 /// Delete character from `gap_buffer` right to cursor (if such character exists).
+/// @pre `gap_buffer` is initialized.
 /// @return true if character was deleted, false otherwise.
 bool gap_buffer_delete_char_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -151,6 +158,7 @@ bool gap_buffer_delete_char_right(GapBuffer *const gap_buffer) {
 }
 
 /// Delete word from `gap_buffer` left to cursor (if such word exists).
+/// @pre `gap_buffer` is initialized.
 /// @return true if word was deleted, false otherwise.
 bool gap_buffer_delete_word_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -171,6 +179,7 @@ bool gap_buffer_delete_word_left(GapBuffer *const gap_buffer) {
 }
 
 /// Delete word from `gap_buffer` right to cursor (if such word exists).
+/// @pre `gap_buffer` is initialized.
 /// @return true if word was deleted, false otherwise.
 bool gap_buffer_delete_word_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -191,6 +200,7 @@ bool gap_buffer_delete_word_right(GapBuffer *const gap_buffer) {
 }
 
 /// Delete content from `gap_buffer` left to cursor (if such content exists).
+/// @pre `gap_buffer` is initialized.
 /// @return true if content was deleted, false otherwise.
 bool gap_buffer_delete_content_left(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -203,6 +213,7 @@ bool gap_buffer_delete_content_left(GapBuffer *const gap_buffer) {
 }
 
 /// Delete content from `gap_buffer` right to cursor (if such content exists).
+/// @pre `gap_buffer` is initialized.
 /// @return true if content was deleted, false otherwise.
 bool gap_buffer_delete_content_right(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -215,6 +226,7 @@ bool gap_buffer_delete_content_right(GapBuffer *const gap_buffer) {
 }
 
 /// Clear `gap_buffer` content while preserving its internal buffer.
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_clear_content(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -223,6 +235,7 @@ void gap_buffer_clear_content(GapBuffer *const gap_buffer) {
 }
 
 /// Get `gap_buffer` content length.
+/// @pre `gap_buffer` is initialized.
 /// @return Content length in bytes; NUL terminator isn't accounted for.
 size_t gap_buffer_get_content_length(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -235,6 +248,7 @@ size_t gap_buffer_get_content_length(GapBuffer const *const gap_buffer) {
 }
 
 /// Get `gap_buffer` content.
+/// @pre `gap_buffer` is initialized.
 /// @return Pointer to dynamically allocated string with `gap_buffer` content.
 char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
@@ -255,6 +269,7 @@ char *gap_buffer_get_content(GapBuffer const *const gap_buffer) {
 }
 
 /// Replace `gap_buffer` content with `new_content`; effectively loading it in.
+/// @pre `gap_buffer` is initialized.
 /// @pre Memory area of `new_content` musn't overlap with that of `gap_buffer`.
 /// @note `gap_buffer` cursor gets positioned at the end of `new_content`.
 void gap_buffer_load_content(GapBuffer *restrict const gap_buffer, char const *restrict const new_content) {
@@ -275,6 +290,7 @@ void gap_buffer_load_content(GapBuffer *restrict const gap_buffer, char const *r
 }
 
 /// Print `gap_buffer` content.
+/// @pre `gap_buffer` is initialized.
 inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -284,6 +300,7 @@ inline void gap_buffer_print_content(GapBuffer const *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor one character to the left (if possible).
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_move_cursor_left_by_char(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -295,6 +312,7 @@ void gap_buffer_move_cursor_left_by_char(GapBuffer *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor one word to the left (if possible).
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_move_cursor_left_by_word(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -310,6 +328,7 @@ void gap_buffer_move_cursor_left_by_word(GapBuffer *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor one character to the right (if possible).
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_move_cursor_right_by_char(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -321,6 +340,7 @@ void gap_buffer_move_cursor_right_by_char(GapBuffer *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor one word to the right (if possible).
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_move_cursor_right_by_word(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -337,6 +357,7 @@ void gap_buffer_move_cursor_right_by_word(GapBuffer *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor to the start of content (if possible).
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_move_cursor_to_start(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 
@@ -344,6 +365,7 @@ void gap_buffer_move_cursor_to_start(GapBuffer *const gap_buffer) {
 }
 
 /// Move `gap_buffer` cursor to the end of content (if possible).
+/// @pre `gap_buffer` is initialized.
 void gap_buffer_move_cursor_to_end(GapBuffer *const gap_buffer) {
   assert(gap_buffer != NULL);
 

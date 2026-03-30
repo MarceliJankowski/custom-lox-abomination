@@ -17,6 +17,7 @@ void *gc_deallocate(void *object, size_t old_size);
 // *---------------------------------------------*
 
 /// Deallocate garbage-collected CLA `object`.
+/// @pre VM is initialized.
 static void gc_deallocate_cla_object(Object *const object) {
   assert(object != NULL);
 
@@ -40,6 +41,7 @@ static void gc_deallocate_cla_object(Object *const object) {
 
 /// Garbage collecting MemoryManagerFn implementation.
 /// @note Memory of objects tracked by garbage collector must be managed exclusively by this function (from the get-go).
+/// @pre VM is initialized.
 /// @see MemoryManagerFn for further documentation.
 void *gc_memory_manage(void *const object, size_t const old_size, size_t const new_size) {
   // TODO: implement garbage collecting
@@ -48,6 +50,7 @@ void *gc_memory_manage(void *const object, size_t const old_size, size_t const n
 }
 
 /// Deallocate garbage-collected CLA Objects belonging to VM.
+/// @pre VM is initialized.
 void gc_deallocate_vm_gc_objects(void) {
   for (Object *current_object = vm.gc_objects; current_object != NULL;) {
     Object *const next_object = current_object->next;

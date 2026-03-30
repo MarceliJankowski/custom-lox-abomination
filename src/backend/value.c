@@ -51,6 +51,7 @@ void value_list_init(ValueList *const value_list) {
 }
 
 /// Release `value_list` resources and set it to uninitialized state.
+/// @pre `value_list` is initialized.
 void value_list_destroy(ValueList *const value_list) {
   assert(value_list != NULL);
 
@@ -60,6 +61,7 @@ void value_list_destroy(ValueList *const value_list) {
 }
 
 /// Append `value` to `value_list`.
+/// @pre `value_list` is initialized.
 void value_list_append(ValueList *const value_list, Value const value) {
   assert(value_list != NULL);
 

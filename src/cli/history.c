@@ -174,6 +174,7 @@ static void history_file_append(char const *const entry) {
 }
 
 /// Determine whether oldest history entry is being browsed.
+/// @pre History is initialized.
 /// @return true if it is, false otherwise.
 static inline bool history_is_oldest_entry_browsed(void) {
   return history.browsed_entry_index == history.oldest_entry_index;
@@ -197,6 +198,7 @@ void history_init(void) {
 }
 
 /// Release history resources and set it to uninitialized state.
+/// @pre History is initialized.
 void history_destroy(void) {
   assert(history_file_path != NULL);
   assert(history_file_append_stream != NULL);
@@ -210,6 +212,7 @@ void history_destroy(void) {
 
 /// Append `entry` (string) of `entry_length` to history;
 /// unless `entry` consists solely of whitespace characters or is a duplicate of newest history entry.
+/// @pre History is initialized.
 /// @note This function will stop history browsing.
 void history_append_entry(char const *const entry, size_t const entry_length) {
   assert(entry != NULL);
@@ -243,6 +246,7 @@ void history_append_entry(char const *const entry, size_t const entry_length) {
 
 /// Browse older history entry.
 /// @note If history isn't already being browsed, this function will begin browsing it at the newest entry.
+/// @pre History is initialized.
 /// @return Pointer to older history entry (string), or NULL if such entry does not exist.
 char const *history_browse_older_entry(void) {
   if (history.entry_count == 0) return NULL;
@@ -258,6 +262,7 @@ char const *history_browse_older_entry(void) {
 }
 
 /// Browse newer history entry.
+/// @pre History is initialized.
 /// @return Pointer to newer history entry (string), or NULL if such entry does not exist.
 char const *history_browse_newer_entry(void) {
   if (!history_is_browsed()) return NULL;
@@ -268,17 +273,20 @@ char const *history_browse_newer_entry(void) {
 }
 
 /// Stop browsing history.
+/// @pre History is initialized.
 void history_stop_browsing(void) {
   history.browsed_entry_index = -1;
 }
 
 /// Determine whether history is being browsed.
+/// @pre History is initialized.
 /// @return true if it is, false otherwise.
 bool history_is_browsed(void) {
   return history.browsed_entry_index != -1;
 }
 
 /// Determine whether newest history entry is being browsed.
+/// @pre History is initialized.
 /// @return true if it is, false otherwise.
 bool history_is_newest_entry_browsed(void) {
   return history.browsed_entry_index == history.newest_entry_index;

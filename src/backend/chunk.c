@@ -20,6 +20,7 @@ void chunk_reset(Chunk *chunk);
 // *---------------------------------------------*
 
 /// Create new ChunkLineCount from `line` and append it to `chunk`.
+/// @pre `chunk` is initialized.
 static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_t const line) {
   assert(chunk != NULL);
   assert(line >= 1 && "Expected lines to begin at 1");
@@ -29,6 +30,7 @@ static inline void chunk_create_and_append_line_count(Chunk *const chunk, int32_
 }
 
 /// Append `value` to `chunk` constant pool.
+/// @pre `chunk` is initialized.
 /// @return Index of appended constant.
 static inline int32_t chunk_append_constant(Chunk *const chunk, Value const value) {
   assert(chunk != NULL);
@@ -51,6 +53,7 @@ void chunk_init(Chunk *const chunk) {
 }
 
 /// Release `chunk` resources and set it to uninitialized state.
+/// @pre `chunk` is initialized.
 void chunk_destroy(Chunk *const chunk) {
   assert(chunk != NULL);
 
@@ -62,6 +65,7 @@ void chunk_destroy(Chunk *const chunk) {
 }
 
 /// Append instruction `opcode` and corresponding `line` to `chunk`.
+/// @pre `chunk` is initialized.
 void chunk_append_instruction(Chunk *const chunk, uint8_t const opcode, int32_t const line) {
   assert(chunk != NULL);
 
@@ -85,6 +89,7 @@ void chunk_append_operand(Chunk *const chunk, uint8_t const operand) {
 }
 
 /// Append instruction operand consisting of `byte_count` uint8_t `bytes` to `chunk.code`.
+/// @pre `chunk` is initialized.
 void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
   assert(chunk != NULL);
   assert(byte_count >= 2 && "Expected multibyte operand");
@@ -106,6 +111,7 @@ void chunk_append_multibyte_operand(Chunk *const chunk, int byte_count, ...) {
 }
 
 /// Append `value` constant and corresponding instruction along with its `line` to `chunk`.
+/// @pre `chunk` is initialized.
 void chunk_append_constant_instruction(Chunk *const chunk, Value const value, int32_t const line) {
   assert(chunk != NULL);
 
@@ -125,6 +131,7 @@ void chunk_append_constant_instruction(Chunk *const chunk, Value const value, in
 }
 
 /// Get line corresponding to `chunk` instruction located at byte `offset`.
+/// @pre `chunk` is initialized.
 /// @return Line corresponding to `offset` instruction.
 int32_t chunk_get_instruction_line(Chunk const *const chunk, int32_t const offset) {
   assert(chunk != NULL);
