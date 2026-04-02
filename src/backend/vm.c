@@ -1,7 +1,7 @@
 #include "backend/vm.h"
 
+#include "backend/entity.h"
 #include "backend/gc.h"
-#include "backend/object.h"
 #include "backend/value.h"
 #include "global.h"
 #include "utils/debug.h"
@@ -78,13 +78,13 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
 /// Initialize virtual machine.
 void vm_init(void) {
   STACK_INIT_EXPLICIT(&vm.stack, sizeof(Value), gc_memory_manage, VM_STACK_INITIAL_CAPACITY, VM_STACK_GROWTH_FACTOR);
-  vm.gc_objects = NULL;
+  vm.entities = NULL;
 }
 
 /// Release virtual machine resources and set it to uninitialized state.
 /// @pre VM is initialized.
 void vm_destroy(void) {
-  gc_deallocate_vm_gc_objects();
+  gc_deallocate_vm_entitites();
 
   STACK_DESTROY(&vm.stack);
 
@@ -335,8 +335,8 @@ bool vm_execute(Chunk const *const chunk) {
           );
         }
 
-        ObjectString const *const first_string = value_to_string_object(VM_STACK_TOP);
-        ObjectString const *const second_string = value_to_string_object(second_operand);
+        EntityString const *const first_string = value_to_string_entity(VM_STACK_TOP);
+        EntityString const *const second_string = value_to_string_entity(second_operand);
 
         size_t const new_string_length = first_string->content_length + second_string->content_length;
         char *const new_string_content = gc_allocate(new_string_length);
@@ -345,7 +345,7 @@ bool vm_execute(Chunk const *const chunk) {
           new_string_content + first_string->content_length, second_string->content, second_string->content_length
         );
         Value const new_string =
-          value_make_object((Object *)object_make_owning_string(new_string_content, new_string_length));
+          value_make_entity((Entity *)entity_make_owning_string(new_string_content, new_string_length));
 
         VM_STACK_TOP = new_string;
         break;

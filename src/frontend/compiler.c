@@ -1,6 +1,6 @@
 #include "frontend/compiler.h"
 
-#include "backend/object.h"
+#include "backend/entity.h"
 #include "frontend/lexer.h"
 #include "global.h"
 #include "utils/debug.h"
@@ -355,9 +355,9 @@ static void compile_numeric_literal(void) {
 static void compile_string_literal(void) {
   char const *const content = parser.previous.as.basic.lexeme + 1; // account for beginning '"'
   int const content_length = parser.previous.as.basic.lexeme_length - 2; // account for surrounding '"'
-  ObjectString *const string_object = object_make_non_owning_string(content, content_length);
+  EntityString *const string_entity = entity_make_non_owning_string(content, content_length);
 
-  emit_constant_instruction(value_make_object((Object *)string_object));
+  emit_constant_instruction(value_make_entity((Entity *)string_entity));
 }
 
 /// Compile invariable literal (one with fixed lexeme).

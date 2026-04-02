@@ -14,7 +14,7 @@
 
 /// Virtual Machine.
 typedef struct {
-  Object *gc_objects;
+  Entity *entities;
   Chunk const *chunk;
   uint8_t const *ip;
   STACK_TYPE(Value) stack;

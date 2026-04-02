@@ -1,6 +1,5 @@
 #include "component_test.h"
 
-#include "backend/object.h"
 #include "backend/value.h"
 #include "utils/error.h"
 #include "utils/io.h"

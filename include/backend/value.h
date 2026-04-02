@@ -1,7 +1,7 @@
 #ifndef VALUE_H
 #define VALUE_H
 
-#include "backend/object.h"
+#include "backend/entity.h"
 #include "utils/darray.h"
 
 #include <stdbool.h>
@@ -16,7 +16,7 @@ typedef enum {
   VALUE_NIL,
   VALUE_BOOL,
   VALUE_NUMBER,
-  VALUE_OBJECT,
+  VALUE_ENTITY,
   VALUE_KIND_COUNT,
 } ValueKind;
 
@@ -26,7 +26,7 @@ typedef struct {
   union {
     bool boolean;
     double number;
-    Object *object;
+    Entity *entity;
   } as;
 } Value;
 
@@ -43,7 +43,7 @@ void value_list_append(ValueList *value_list, Value value);
 void value_list_destroy(ValueList *value_list);
 void value_print(Value value);
 bool value_equals(Value value_a, Value value_b);
-ObjectString *value_to_string_object(Value value);
+EntityString *value_to_string_entity(Value value);
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *
@@ -76,12 +76,12 @@ inline Value value_make_number(double const number) {
   };
 }
 
-/// Make CLA object value from `object`.
-/// @return Made CLA object value.
-inline Value value_make_object(Object *const object) {
+/// Make CLA entity value from `entity`.
+/// @return Made CLA entity value.
+inline Value value_make_entity(Entity *const entity) {
   return (Value){
-    VALUE_OBJECT,
-    {.object = object},
+    VALUE_ENTITY,
+    {.entity = entity},
   };
 }
 
@@ -106,7 +106,7 @@ inline bool value_is_number(Value const value) {
 /// Determine whether CLA `value` is of string kind.
 /// @return true if it is, false otherwise.
 inline bool value_is_string(Value const value) {
-  return value.kind == VALUE_OBJECT && value.as.object->kind == OBJECT_STRING;
+  return value.kind == VALUE_ENTITY && value.as.entity->kind == ENTITY_STRING;
 }
 
 /// Determine whether CLA `value` is falsy.

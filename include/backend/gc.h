@@ -8,7 +8,7 @@
 // *---------------------------------------------*
 
 MemoryManagerFn gc_memory_manage;
-void gc_deallocate_vm_gc_objects(void);
+void gc_deallocate_vm_entitites(void);
 
 // *---------------------------------------------*
 // *              INLINE FUNCTIONS               *

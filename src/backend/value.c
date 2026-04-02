@@ -1,7 +1,7 @@
 #include "backend/value.h"
 
+#include "backend/entity.h"
 #include "backend/gc.h"
-#include "backend/object.h"
 #include "utils/error.h"
 #include "utils/io.h"
 #include "utils/number.h"
@@ -16,7 +16,7 @@
 Value value_make_nil(void);
 Value value_make_bool(bool value);
 Value value_make_number(double value);
-Value value_make_object(Object *object);
+Value value_make_entity(Entity *entity);
 
 bool value_is_bool(Value value);
 bool value_is_nil(Value value);
@@ -37,7 +37,7 @@ char const *value_get_kind_string(Value const value) {
     case VALUE_NIL: return "nil";
     case VALUE_BOOL: return "bool";
     case VALUE_NUMBER: return "number";
-    case VALUE_OBJECT: return object_get_kind_string(value.as.object);
+    case VALUE_ENTITY: return entity_get_kind_string(value.as.entity);
 
     default: ERROR_INTERNAL("Unknown ValueKind '%d'", value.kind);
   }
@@ -86,8 +86,8 @@ void value_print(Value const value) {
       PRINTF("%g", value.as.number);
       break;
     }
-    case VALUE_OBJECT: {
-      object_print(value.as.object);
+    case VALUE_ENTITY: {
+      entity_print(value.as.entity);
       break;
     }
 
@@ -107,24 +107,24 @@ bool value_equals(Value const value_a, Value const value_b) {
     case VALUE_NIL: return true;
     case VALUE_BOOL: return value_a.as.boolean == value_b.as.boolean;
     case VALUE_NUMBER: return value_a.as.number == value_b.as.number;
-    case VALUE_OBJECT: return object_equals(value_a.as.object, value_b.as.object);
+    case VALUE_ENTITY: return entity_equals(value_a.as.entity, value_b.as.entity);
 
     default: ERROR_INTERNAL("Unknown ValueKind '%d'", value_a.kind);
   }
 }
 
-/// Create string object from `value`.
+/// Create string entity from `value`.
 /// @note If `value` is of string kind, it gets returned as is.
-/// @return Created string object.
-ObjectString *value_to_string_object(Value const value) {
+/// @return Created string entity.
+EntityString *value_to_string_entity(Value const value) {
   static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValueKind handling");
   switch (value.kind) {
     case VALUE_NIL: {
-      return object_make_non_owning_string("nil", 3);
+      return entity_make_non_owning_string("nil", 3);
     }
     case VALUE_BOOL: {
-      if (value.as.boolean == true) return object_make_non_owning_string("true", 4);
-      return object_make_non_owning_string("false", 5);
+      if (value.as.boolean == true) return entity_make_non_owning_string("true", 4);
+      return entity_make_non_owning_string("false", 5);
     }
     case VALUE_NUMBER: {
       char const *const format_specifier = "%g";
@@ -143,14 +143,14 @@ ObjectString *value_to_string_object(Value const value) {
       string_representation =
         gc_reallocate(string_representation, string_representation_size, string_representation_length);
 
-      return object_make_owning_string(string_representation, string_representation_length);
+      return entity_make_owning_string(string_representation, string_representation_length);
     }
-    case VALUE_OBJECT: {
-      static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
-      switch (value.as.object->kind) {
-        case OBJECT_STRING: return (ObjectString *)value.as.object;
+    case VALUE_ENTITY: {
+      static_assert(ENTITY_KIND_COUNT == 1, "Exhaustive EntityKind handling");
+      switch (value.as.entity->kind) {
+        case ENTITY_STRING: return (EntityString *)value.as.entity;
 
-        default: ERROR_INTERNAL("Unknown ObjectKind '%d'", value.as.object->kind);
+        default: ERROR_INTERNAL("Unknown EntityKind '%d'", value.as.entity->kind);
       }
     }
 

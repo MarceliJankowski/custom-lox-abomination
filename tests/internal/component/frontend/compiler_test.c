@@ -1,7 +1,7 @@
 #include "frontend/compiler.h"
 
 #include "backend/chunk.h"
-#include "backend/object.h"
+#include "backend/entity.h"
 #include "backend/value.h"
 #include "common.h"
 #include "component/component_test.h"
@@ -297,7 +297,7 @@ static void test_string_literal(void **const _) {
   char const *const input_string_content = input_source + 1; // account for beginning '"'
   size_t const input_string_content_length = strlen(input_source) - 3; // account for surrounding '"' and ';'
   Value const expected_value =
-    value_make_object((Object *)object_make_non_owning_string(input_string_content, input_string_content_length));
+    value_make_entity((Entity *)entity_make_non_owning_string(input_string_content, input_string_content_length));
 
   COMPILE_ASSERT_SUCCESS(input_source);
   assert_constant_instruction(expected_value);

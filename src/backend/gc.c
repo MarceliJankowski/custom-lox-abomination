@@ -1,6 +1,6 @@
 #include "backend/gc.h"
 
-#include "backend/object.h"
+#include "backend/entity.h"
 #include "backend/vm.h"
 #include "utils/memory.h"
 
@@ -16,22 +16,22 @@ void *gc_deallocate(void *object, size_t old_size);
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
-/// Deallocate garbage-collected CLA `object`.
+/// Deallocate garbage-collected CLA `entity`.
 /// @pre VM is initialized.
-static void gc_deallocate_cla_object(Object *const object) {
-  assert(object != NULL);
+static void gc_deallocate_cla_entity(Entity *const entity) {
+  assert(entity != NULL);
 
-  static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
-  switch (object->kind) {
-    case OBJECT_STRING: {
-      ObjectString const *const object_string = (ObjectString *)object;
+  static_assert(ENTITY_KIND_COUNT == 1, "Exhaustive EntityKind handling");
+  switch (entity->kind) {
+    case ENTITY_STRING: {
+      EntityString const *const entity_string = (EntityString *)entity;
 
-      if (object_string->is_content_owner) gc_deallocate(object_string->content, object_string->content_length);
-      gc_deallocate(object, sizeof(*object_string));
+      if (entity_string->is_content_owner) gc_deallocate(entity_string->content, entity_string->content_length);
+      gc_deallocate(entity, sizeof(*entity_string));
       break;
     }
 
-    default: ERROR_INTERNAL("Unknown ObjectKind '%d'", object->kind);
+    default: ERROR_INTERNAL("Unknown EntityKind '%d'", entity->kind);
   }
 }
 
@@ -49,14 +49,14 @@ void *gc_memory_manage(void *const object, size_t const old_size, size_t const n
   return memory_manage(object, old_size, new_size);
 }
 
-/// Deallocate garbage-collected CLA Objects belonging to VM.
+/// Deallocate garbage-collected CLA entitites belonging to VM.
 /// @pre VM is initialized.
-void gc_deallocate_vm_gc_objects(void) {
-  for (Object *current_object = vm.gc_objects; current_object != NULL;) {
-    Object *const next_object = current_object->next;
+void gc_deallocate_vm_entitites(void) {
+  for (Entity *current_entity = vm.entities; current_entity != NULL;) {
+    Entity *const next_entity = current_entity->next;
 
-    gc_deallocate_cla_object(current_object);
+    gc_deallocate_cla_entity(current_entity);
 
-    current_object = next_object;
+    current_entity = next_entity;
   }
 }

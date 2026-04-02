@@ -1,7 +1,7 @@
 #include "backend/vm.h"
 
 #include "backend/chunk.h"
-#include "backend/object.h"
+#include "backend/entity.h"
 #include "backend/value.h"
 #include "component/component_test.h"
 #include "global.h"
@@ -82,8 +82,8 @@
     /* string */                                                                                                   \
     reset_test_case_env();                                                                                         \
     APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_object((Object *)object_make_non_owning_string("a", 1)),                                          \
-      value_make_object((Object *)object_make_non_owning_string("b", 1))                                           \
+      value_make_entity((Entity *)entity_make_non_owning_string("a", 1)),                                          \
+      value_make_entity((Entity *)entity_make_non_owning_string("b", 1))                                           \
     );                                                                                                             \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
@@ -91,7 +91,7 @@
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_object((Object *)object_make_non_owning_string("a", 1)), value_make_number(2),                    \
+      value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), value_make_number(2),                    \
     );                                                                                                             \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
@@ -99,7 +99,7 @@
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_number(1), value_make_object((Object *)object_make_non_owning_string("b", 1)),                    \
+      value_make_number(1), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)),                    \
     );                                                                                                             \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
@@ -118,26 +118,26 @@
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                              \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("b", 1)));               \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("b", 1)));               \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'string')");    \
                                                                                                                    \
     reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("a", 1)));               \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)));               \
     APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                      \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'nil')");    \
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                             \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("b", 1)));               \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("b", 1)));               \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'string')");   \
                                                                                                                    \
     reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("a", 1)));               \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)));               \
     APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'bool')");   \
@@ -322,7 +322,7 @@ static void test_CHUNK_OP_NEGATE(void **const _) {
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
   reset_test_case_env();
-  APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("a", 1)));
+  APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)));
   APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
   EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'string')");
@@ -535,7 +535,7 @@ static void test_CHUNK_OP_NOT(void **const _) {
   ASSERT_CHUNK_OP_NOT(value_make_number(-1), false);
   ASSERT_CHUNK_OP_NOT(value_make_number(0), false);
   ASSERT_CHUNK_OP_NOT(value_make_bool(true), false);
-  ASSERT_CHUNK_OP_NOT(value_make_object((Object *)object_make_non_owning_string("a", 1)), false);
+  ASSERT_CHUNK_OP_NOT(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), false);
 
   // falsy values
   ASSERT_CHUNK_OP_NOT(value_make_bool(false), true);
@@ -568,8 +568,8 @@ static void test_CHUNK_OP_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(true), true);
   ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_nil(), true);
   ASSERT_CHUNK_OP_EQUAL(
-    value_make_object((Object *)object_make_non_owning_string("a", 1)),
-    value_make_object((Object *)object_make_non_owning_string("a", 1)), true
+    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)),
+    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), true
   );
 
   // unequal values
@@ -577,14 +577,14 @@ static void test_CHUNK_OP_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_bool(true), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_nil(), false);
   ASSERT_CHUNK_OP_EQUAL(
-    value_make_number(0), value_make_object((Object *)object_make_non_owning_string("b", 1)), false
+    value_make_number(0), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), false
   );
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(false), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_nil(), false);
   ASSERT_CHUNK_OP_EQUAL(
-    value_make_bool(true), value_make_object((Object *)object_make_non_owning_string("b", 1)), false
+    value_make_bool(true), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), false
   );
-  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_object((Object *)object_make_non_owning_string("b", 1)), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), false);
 
 #undef ASSERT_CHUNK_OP_EQUAL
 }
@@ -600,8 +600,8 @@ static void test_CHUNK_OP_NOT_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(true), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_nil(), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_object((Object *)object_make_non_owning_string("a", 1)),
-    value_make_object((Object *)object_make_non_owning_string("a", 1)), false
+    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)),
+    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), false
   );
 
   // unequal values
@@ -609,14 +609,14 @@ static void test_CHUNK_OP_NOT_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_bool(true), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_nil(), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_number(0), value_make_object((Object *)object_make_non_owning_string("b", 1)), true
+    value_make_number(0), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), true
   );
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(false), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_nil(), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_bool(true), value_make_object((Object *)object_make_non_owning_string("b", 1)), true
+    value_make_bool(true), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), true
   );
-  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_object((Object *)object_make_non_owning_string("b", 1)), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), true);
 
 #undef ASSERT_CHUNK_OP_NOT_EQUAL
 }
@@ -732,8 +732,8 @@ static void test_CHUNK_OP_GREATER_EQUAL(void **const _) {
 static void test_CHUNK_OP_CONCATENATE(void **const _) {
 #define ASSERT_CHUNK_OP_CONCATENATE(value_a, value_b, expected_string_c)                              \
   ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                    \
-    value_make_object(                                                                                \
-      (Object *)object_make_non_owning_string(expected_string_c, STR_ARRAY_LENGTH(expected_string_c)) \
+    value_make_entity(                                                                                \
+      (Entity *)entity_make_non_owning_string(expected_string_c, STR_ARRAY_LENGTH(expected_string_c)) \
     ),                                                                                                \
     CHUNK_OP_CONCATENATE, value_a, value_b                                                            \
   )
@@ -748,8 +748,8 @@ static void test_CHUNK_OP_CONCATENATE(void **const _) {
     reset_test_case_env();                                                                      \
   } while (0)
 
-#define STRING_A value_make_object((Object *)object_make_non_owning_string("a", 1))
-#define STRING_B value_make_object((Object *)object_make_non_owning_string("b", 1))
+#define STRING_A value_make_entity((Entity *)entity_make_non_owning_string("a", 1))
+#define STRING_B value_make_entity((Entity *)entity_make_non_owning_string("b", 1))
 
   // valid operand types
   ASSERT_CHUNK_OP_CONCATENATE(STRING_A, STRING_B, "ab");
