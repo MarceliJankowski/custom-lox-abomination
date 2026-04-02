@@ -5,7 +5,29 @@
 #include "utils/io.h"
 
 // *---------------------------------------------*
-// *        EXTERNAL-LINKAGE FUNCTIONS           *
+// *         INTERNAL-LINKAGE FUNCTIONS          *
+// *---------------------------------------------*
+
+/// Make CLA string object from `content` of `content_length`;
+/// `content` ownership is determined by `is_content_owner`.
+/// @note `content` does not need to be NUL terminated.
+/// @return Pointer to made string object.
+static inline ObjectString *object_make_string(
+  bool const is_content_owner, char const *const content, int const content_length
+) {
+  assert(content != NULL);
+  assert(content_length >= 0);
+
+  ObjectString *const string_object = OBJECT_MAKE(ObjectString, OBJECT_STRING);
+  string_object->is_content_owner = is_content_owner;
+  string_object->content = (char *)content;
+  string_object->content_length = content_length;
+
+  return string_object;
+}
+
+// *---------------------------------------------*
+// *         EXTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
 /// Make CLA object of `size` and `kind`.
@@ -28,12 +50,7 @@ ObjectString *object_make_owning_string(char const *const content, int const con
   assert(content != NULL);
   assert(content_length >= 0);
 
-  ObjectString *const string_object = OBJECT_MAKE(ObjectString, OBJECT_STRING);
-  string_object->content_length = content_length;
-  string_object->is_content_owner = true;
-  string_object->content = (char *)content;
-
-  return string_object;
+  return object_make_string(true, content, content_length);
 }
 
 /// Make CLA string object from `content` of `content_length`.
@@ -44,12 +61,7 @@ ObjectString *object_make_non_owning_string(char const *const content, int const
   assert(content != NULL);
   assert(content_length >= 0);
 
-  ObjectString *const string_object = OBJECT_MAKE(ObjectString, OBJECT_STRING);
-  string_object->content_length = content_length;
-  string_object->is_content_owner = false;
-  string_object->content = (char *)content;
-
-  return string_object;
+  return object_make_string(false, content, content_length);
 }
 
 /// Get string with description of `object` kind.
