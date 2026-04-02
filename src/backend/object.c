@@ -20,7 +20,7 @@ Object *object_make(size_t const size, ObjectKind const kind) {
   return object;
 }
 
-/// Make CLA string object from `content` of `content_length`.
+/// Make CLA string object from GC `content` of `content_length`.
 /// Resultant string object is a `content` owner.
 /// @note `content` does not need to be NUL terminated.
 /// @return Pointer to made string object.
@@ -31,14 +31,13 @@ ObjectString *object_make_owning_string(char const *const content, int const con
   ObjectString *const string_object = OBJECT_MAKE(ObjectString, OBJECT_STRING);
   string_object->content_length = content_length;
   string_object->is_content_owner = true;
-  string_object->content = gc_allocate(content_length);
-  memcpy(string_object->content, content, content_length);
+  string_object->content = (char *)content;
 
   return string_object;
 }
 
 /// Make CLA string object from `content` of `content_length`.
-/// Resultant string object is not a `content` owner.
+/// Resultant string object is NOT a `content` owner.
 /// @note `content` does not need to be NUL terminated.
 /// @return Pointer to made string object.
 ObjectString *object_make_non_owning_string(char const *const content, int const content_length) {

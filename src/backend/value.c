@@ -143,7 +143,7 @@ ObjectString *value_to_string_object(Value const value) {
       string_representation =
         gc_reallocate(string_representation, string_representation_size, string_representation_length);
 
-      return object_make_non_owning_string(string_representation, string_representation_length);
+      return object_make_owning_string(string_representation, string_representation_length);
     }
     case VALUE_OBJECT: {
       static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");

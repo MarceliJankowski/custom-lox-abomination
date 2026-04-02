@@ -82,8 +82,8 @@
     /* string */                                                                                                   \
     reset_test_case_env();                                                                                         \
     APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_object((Object *)object_make_owning_string("a", 1)),                                              \
-      value_make_object((Object *)object_make_owning_string("b", 1))                                               \
+      value_make_object((Object *)object_make_non_owning_string("a", 1)),                                          \
+      value_make_object((Object *)object_make_non_owning_string("b", 1))                                           \
     );                                                                                                             \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
@@ -91,7 +91,7 @@
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_object((Object *)object_make_owning_string("a", 1)), value_make_number(2),                        \
+      value_make_object((Object *)object_make_non_owning_string("a", 1)), value_make_number(2),                    \
     );                                                                                                             \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
@@ -99,7 +99,7 @@
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_number(1), value_make_object((Object *)object_make_owning_string("b", 1)),                        \
+      value_make_number(1), value_make_object((Object *)object_make_non_owning_string("b", 1)),                    \
     );                                                                                                             \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
@@ -118,26 +118,26 @@
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                              \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("b", 1)));                   \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("b", 1)));               \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'string')");    \
                                                                                                                    \
     reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("a", 1)));                   \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("a", 1)));               \
     APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                      \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'nil')");    \
                                                                                                                    \
     reset_test_case_env();                                                                                         \
     APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                             \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("b", 1)));                   \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("b", 1)));               \
     APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'string')");   \
                                                                                                                    \
     reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("a", 1)));                   \
+    APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("a", 1)));               \
     APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                    \
     EXECUTE_ASSERT_FAILURE();                                                                                      \
     ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'bool')");   \
@@ -322,7 +322,7 @@ static void test_CHUNK_OP_NEGATE(void **const _) {
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
   reset_test_case_env();
-  APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_owning_string("a", 1)));
+  APPEND_CONSTANT_INSTRUCTION(value_make_object((Object *)object_make_non_owning_string("a", 1)));
   APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
   EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'string')");
@@ -535,7 +535,7 @@ static void test_CHUNK_OP_NOT(void **const _) {
   ASSERT_CHUNK_OP_NOT(value_make_number(-1), false);
   ASSERT_CHUNK_OP_NOT(value_make_number(0), false);
   ASSERT_CHUNK_OP_NOT(value_make_bool(true), false);
-  ASSERT_CHUNK_OP_NOT(value_make_object((Object *)object_make_owning_string("a", 1)), false);
+  ASSERT_CHUNK_OP_NOT(value_make_object((Object *)object_make_non_owning_string("a", 1)), false);
 
   // falsy values
   ASSERT_CHUNK_OP_NOT(value_make_bool(false), true);
@@ -568,19 +568,23 @@ static void test_CHUNK_OP_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(true), true);
   ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_nil(), true);
   ASSERT_CHUNK_OP_EQUAL(
-    value_make_object((Object *)object_make_owning_string("a", 1)),
-    value_make_object((Object *)object_make_owning_string("a", 1)), true
+    value_make_object((Object *)object_make_non_owning_string("a", 1)),
+    value_make_object((Object *)object_make_non_owning_string("a", 1)), true
   );
 
   // unequal values
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_number(1), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_bool(true), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_nil(), false);
-  ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_object((Object *)object_make_owning_string("b", 1)), false);
+  ASSERT_CHUNK_OP_EQUAL(
+    value_make_number(0), value_make_object((Object *)object_make_non_owning_string("b", 1)), false
+  );
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(false), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_nil(), false);
-  ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_object((Object *)object_make_owning_string("b", 1)), false);
-  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_object((Object *)object_make_owning_string("b", 1)), false);
+  ASSERT_CHUNK_OP_EQUAL(
+    value_make_bool(true), value_make_object((Object *)object_make_non_owning_string("b", 1)), false
+  );
+  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_object((Object *)object_make_non_owning_string("b", 1)), false);
 
 #undef ASSERT_CHUNK_OP_EQUAL
 }
@@ -596,21 +600,23 @@ static void test_CHUNK_OP_NOT_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(true), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_nil(), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_object((Object *)object_make_owning_string("a", 1)),
-    value_make_object((Object *)object_make_owning_string("a", 1)), false
+    value_make_object((Object *)object_make_non_owning_string("a", 1)),
+    value_make_object((Object *)object_make_non_owning_string("a", 1)), false
   );
 
   // unequal values
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_number(1), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_bool(true), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_nil(), true);
-  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_object((Object *)object_make_owning_string("b", 1)), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(
+    value_make_number(0), value_make_object((Object *)object_make_non_owning_string("b", 1)), true
+  );
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(false), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_nil(), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_bool(true), value_make_object((Object *)object_make_owning_string("b", 1)), true
+    value_make_bool(true), value_make_object((Object *)object_make_non_owning_string("b", 1)), true
   );
-  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_object((Object *)object_make_owning_string("b", 1)), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_object((Object *)object_make_non_owning_string("b", 1)), true);
 
 #undef ASSERT_CHUNK_OP_NOT_EQUAL
 }
