@@ -1,6 +1,7 @@
 #include "component_test.h"
 
 #include "backend/object.h"
+#include "backend/value.h"
 #include "utils/error.h"
 #include "utils/io.h"
 #include "utils/number.h"
@@ -29,18 +30,9 @@ void component_test_assert_file_content(FILE *const file_bin_stream, char const 
 
 /// Assert `value_a` and `value_b` equality.
 void component_test_assert_value_equality(Value const value_a, Value const value_b) {
-  assert_int_equal(value_a.kind, value_b.kind);
-
-  static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValuedKind handling");
   switch (value_a.kind) {
-    case VALUE_NIL: {
-      break;
-    }
-    case VALUE_BOOL: {
-      assert_true(value_a.as.boolean == value_b.as.boolean);
-      break;
-    }
-    case VALUE_NUMBER: {
+    case VALUE_NUMBER: { // special case due to floating point math
+      assert_int_equal(value_a.kind, value_b.kind);
       if (number_is_integer(value_a.as.number) && number_is_integer(value_b.as.number)) {
         assert_double_equal(value_a.as.number, value_b.as.number, 0);
       } else {
@@ -48,22 +40,8 @@ void component_test_assert_value_equality(Value const value_a, Value const value
       }
       break;
     }
-    case VALUE_OBJECT: {
-      static_assert(OBJECT_KIND_COUNT == 1, "Exhaustive ObjectKind handling");
-      switch (value_a.as.object->kind) {
-        case OBJECT_STRING: {
-          ObjectString const *const string_object_a = (ObjectString *)value_a.as.object;
-          ObjectString const *const string_object_b = (ObjectString *)value_b.as.object;
-
-          assert_int_equal(string_object_a->content_length, string_object_b->content_length);
-          assert_int_equal(string_object_a->is_content_owner, string_object_b->is_content_owner);
-          assert_memory_equal(string_object_a->content, string_object_b->content, string_object_a->content_length);
-          break;
-        }
-        default: ERROR_INTERNAL("Unknown ObjectKind '%d'", value_a.kind);
-      }
-      break;
+    default: {
+      assert_true(value_equals(value_a, value_b));
     }
-    default: ERROR_INTERNAL("Unexpected ValueKind '%d'", value_a.kind);
   }
 }
