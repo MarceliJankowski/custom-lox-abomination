@@ -146,7 +146,7 @@ bool vm_execute(Chunk const *const chunk) {
         break;
       }
       case CHUNK_OP_CONSTANT: {
-        Value constant = vm.chunk->constants.data[READ_INSTRUCTION_BYTE()];
+        Value const constant = vm.chunk->constants.data[READ_INSTRUCTION_BYTE()];
         vm_stack_push(constant);
         break;
       }
