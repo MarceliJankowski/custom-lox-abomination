@@ -1,0 +1,7 @@
+# Example of a hello world program in CLA.
+#
+# CLA program is a series of statements.
+# One such statement is 'print' (used for printing values to stdout).
+# Every statement must be terminated with a ';'.
+
+print "Hello, World!";
