@@ -4,6 +4,8 @@
 #include "backend/vm.h"
 #include "utils/io.h"
 
+#include <string.h>
+
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
@@ -26,17 +28,13 @@ static inline uint32_t hash_string_entity_content(char const *const content, int
 }
 
 /// Make CLA string entity.
-/// @param is_content_owner Boolean determining `content` ownership.
-/// @param content Pointer to character sequence, or NULL.
+/// @param content Pointer to GC character sequence, or NULL.
 /// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
-static inline EntityString *entity_make_string(
-  bool const is_content_owner, char const *const content, int const content_length
-) {
+static inline EntityString *entity_make_string(char const *const content, int const content_length) {
   assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
   EntityString *const string_entity = ENTITY_MAKE(EntityString, ENTITY_STRING);
-  string_entity->is_content_owner = is_content_owner;
   string_entity->content = (char *)content;
   string_entity->content_length = content_length;
   string_entity->hash = hash_string_entity_content(content, content_length);
@@ -60,26 +58,27 @@ Entity *entity_make(size_t const size, EntityKind const kind) {
   return entity;
 }
 
-/// Make CLA string entity from GC `content` of `content_length`.
-/// Resultant string entity is a `content` owner.
+/// Make CLA string entity by adopting GC `content` of `content_length`.
 /// @param content Pointer to GC character sequence, or NULL.
 /// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
-EntityString *entity_make_owning_string(char const *const content, int const content_length) {
+EntityString *entity_string_adopt(char const *const content, int const content_length) {
   assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
-  return entity_make_string(true, content, content_length);
+  return entity_make_string(content, content_length);
 }
 
-/// Make CLA string entity from `content` of `content_length`.
-/// Resultant string entity is NOT a `content` owner.
+/// Make CLA string entity by copying `content` of `content_length`.
 /// @param content Pointer to character sequence, or NULL.
 /// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
-EntityString *entity_make_non_owning_string(char const *const content, int const content_length) {
+EntityString *entity_string_copy(char const *const content, int const content_length) {
   assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
-  return entity_make_string(false, content, content_length);
+  char *const gc_content = gc_allocate(content_length);
+  memcpy(gc_content, content, content_length);
+
+  return entity_make_string(gc_content, content_length);
 }
 
 /// Get string with description of `entity` kind.

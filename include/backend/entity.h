@@ -40,7 +40,6 @@ typedef struct {
   char *content;
   uint32_t hash;
   int content_length;
-  bool is_content_owner;
 } EntityString;
 
 // *---------------------------------------------*
@@ -49,8 +48,8 @@ typedef struct {
 // Entities are passed by pointers to prevent object slicing
 
 Entity *entity_make(size_t size, EntityKind kind);
-EntityString *entity_make_owning_string(char const *content, int content_length);
-EntityString *entity_make_non_owning_string(char const *content, int content_length);
+EntityString *entity_string_adopt(char const *content, int content_length);
+EntityString *entity_string_copy(char const *content, int content_length);
 char const *entity_get_kind_string(Entity const *entity);
 void entity_print(Entity const *entity);
 bool entity_equals(Entity const *entity_a, Entity const *entity_b);

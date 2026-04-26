@@ -120,11 +120,11 @@ EntityString *value_to_string_entity(Value const value) {
   static_assert(VALUE_KIND_COUNT == 4, "Exhaustive ValueKind handling");
   switch (value.kind) {
     case VALUE_NIL: {
-      return entity_make_non_owning_string("nil", 3);
+      return entity_string_copy("nil", 3);
     }
     case VALUE_BOOL: {
-      if (value.as.boolean == true) return entity_make_non_owning_string("true", 4);
-      return entity_make_non_owning_string("false", 5);
+      if (value.as.boolean == true) return entity_string_copy("true", 4);
+      return entity_string_copy("false", 5);
     }
     case VALUE_NUMBER: {
       char const *const format_specifier = "%g";
@@ -143,7 +143,7 @@ EntityString *value_to_string_entity(Value const value) {
       string_representation =
         gc_reallocate(string_representation, string_representation_size, string_representation_length);
 
-      return entity_make_owning_string(string_representation, string_representation_length);
+      return entity_string_adopt(string_representation, string_representation_length);
     }
     case VALUE_ENTITY: {
       static_assert(ENTITY_KIND_COUNT == 1, "Exhaustive EntityKind handling");

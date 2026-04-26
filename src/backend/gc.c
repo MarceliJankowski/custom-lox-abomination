@@ -26,7 +26,7 @@ static void gc_deallocate_cla_entity(Entity *const entity) {
     case ENTITY_STRING: {
       EntityString const *const entity_string = (EntityString *)entity;
 
-      if (entity_string->is_content_owner) gc_deallocate(entity_string->content, entity_string->content_length);
+      gc_deallocate(entity_string->content, entity_string->content_length);
       gc_deallocate(entity, sizeof(*entity_string));
       break;
     }

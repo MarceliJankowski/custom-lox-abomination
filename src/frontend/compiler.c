@@ -355,7 +355,7 @@ static void compile_numeric_literal(void) {
 static void compile_string_literal(void) {
   int const content_length = parser.previous.as.string.content_length;
   char const *const content = parser.previous.as.string.content;
-  EntityString *const string_entity = entity_make_owning_string(content, content_length);
+  EntityString *const string_entity = entity_string_adopt(content, content_length);
 
   emit_constant_instruction(value_make_entity((Entity *)string_entity));
 }

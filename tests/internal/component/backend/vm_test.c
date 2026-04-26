@@ -39,108 +39,103 @@
 #define ASSERT_SOURCE_PROGRAM_OUTPUT(expected_output) \
   component_test_assert_file_content(g_source_program_output_stream, expected_output "\n")
 
-#define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)            \
-  do {                                                                                                             \
-    /* nil */                                                                                                      \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                        \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");       \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                              \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(2));                                                             \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");    \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                             \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                      \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");    \
-                                                                                                                   \
-    /* bool */                                                                                                     \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                     \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");     \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                             \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(2));                                                             \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')");   \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                             \
-    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')");   \
-                                                                                                                   \
-    /* string */                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_entity((Entity *)entity_make_non_owning_string("a", 1)),                                          \
-      value_make_entity((Entity *)entity_make_non_owning_string("b", 1))                                           \
-    );                                                                                                             \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'string')"); \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), value_make_number(2),                    \
-    );                                                                                                             \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'number')"); \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTIONS(                                                                                  \
-      value_make_number(1), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)),                    \
-    );                                                                                                             \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'string')"); \
-                                                                                                                   \
-    /* mixed */                                                                                                    \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                       \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");      \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                      \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");      \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                              \
-    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("b", 1)));               \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'string')");    \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)));               \
-    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                      \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'nil')");    \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                             \
-    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("b", 1)));               \
-    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'string')");   \
-                                                                                                                   \
-    reset_test_case_env();                                                                                         \
-    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)));               \
-    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                    \
-    EXECUTE_ASSERT_FAILURE();                                                                                      \
-    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'bool')");   \
+#define ASSERT_INVALID_BINARY_NUMERIC_OPERATOR_OPERAND_TYPES(operator_instruction, operator_descriptor)                \
+  do {                                                                                                                 \
+    /* nil */                                                                                                          \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                            \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'nil')");           \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                                  \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(2));                                                                 \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'number')");        \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                                 \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                          \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'nil')");        \
+                                                                                                                       \
+    /* bool */                                                                                                         \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTIONS(CHUNK_OP_TRUE, CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                         \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'bool')");         \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                                 \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(2));                                                                 \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'number')");       \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTION(value_make_number(1));                                                                 \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'bool')");       \
+                                                                                                                       \
+    /* string */                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTIONS(                                                                                      \
+      value_make_entity((Entity *)entity_string_copy("a", 1)), value_make_entity((Entity *)entity_string_copy("b", 1)) \
+    );                                                                                                                 \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'string')");     \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTIONS(value_make_entity((Entity *)entity_string_copy("a", 1)), value_make_number(2), );     \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'number')");     \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTIONS(value_make_number(1), value_make_entity((Entity *)entity_string_copy("b", 1)), );     \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'number' and 'string')");     \
+                                                                                                                       \
+    /* mixed */                                                                                                        \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, CHUNK_OP_TRUE, operator_instruction, CHUNK_OP_RETURN);                           \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'bool')");          \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                          \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'nil')");          \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTION(CHUNK_OP_NIL);                                                                                  \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_string_copy("b", 1)));                              \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'nil' and 'string')");        \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_string_copy("a", 1)));                              \
+    APPEND_INSTRUCTIONS(CHUNK_OP_NIL, operator_instruction, CHUNK_OP_RETURN);                                          \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'nil')");        \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_INSTRUCTION(CHUNK_OP_TRUE);                                                                                 \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_string_copy("b", 1)));                              \
+    APPEND_INSTRUCTIONS(operator_instruction, CHUNK_OP_RETURN);                                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'bool' and 'string')");       \
+                                                                                                                       \
+    reset_test_case_env();                                                                                             \
+    APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_string_copy("a", 1)));                              \
+    APPEND_INSTRUCTIONS(CHUNK_OP_FALSE, operator_instruction, CHUNK_OP_RETURN);                                        \
+    EXECUTE_ASSERT_FAILURE();                                                                                          \
+    ASSERT_EXECUTION_ERROR("Expected " operator_descriptor " operands to be numbers (got 'string' and 'bool')");       \
   } while (0)
 
 #define ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(expected_value, instruction, ...) \
@@ -322,7 +317,7 @@ static void test_CHUNK_OP_NEGATE(void **const _) {
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'bool')");
 
   reset_test_case_env();
-  APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)));
+  APPEND_CONSTANT_INSTRUCTION(value_make_entity((Entity *)entity_string_copy("a", 1)));
   APPEND_INSTRUCTIONS(CHUNK_OP_NEGATE, CHUNK_OP_RETURN);
   EXECUTE_ASSERT_FAILURE();
   ASSERT_EXECUTION_ERROR("Expected negation operand to be a number (got 'string')");
@@ -535,7 +530,7 @@ static void test_CHUNK_OP_NOT(void **const _) {
   ASSERT_CHUNK_OP_NOT(value_make_number(-1), false);
   ASSERT_CHUNK_OP_NOT(value_make_number(0), false);
   ASSERT_CHUNK_OP_NOT(value_make_bool(true), false);
-  ASSERT_CHUNK_OP_NOT(value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), false);
+  ASSERT_CHUNK_OP_NOT(value_make_entity((Entity *)entity_string_copy("a", 1)), false);
 
   // falsy values
   ASSERT_CHUNK_OP_NOT(value_make_bool(false), true);
@@ -568,23 +563,19 @@ static void test_CHUNK_OP_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(true), true);
   ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_nil(), true);
   ASSERT_CHUNK_OP_EQUAL(
-    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)),
-    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), true
+    value_make_entity((Entity *)entity_string_copy("a", 1)), value_make_entity((Entity *)entity_string_copy("a", 1)),
+    true
   );
 
   // unequal values
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_number(1), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_bool(true), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_nil(), false);
-  ASSERT_CHUNK_OP_EQUAL(
-    value_make_number(0), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), false
-  );
+  ASSERT_CHUNK_OP_EQUAL(value_make_number(0), value_make_entity((Entity *)entity_string_copy("b", 1)), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_bool(false), false);
   ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_nil(), false);
-  ASSERT_CHUNK_OP_EQUAL(
-    value_make_bool(true), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), false
-  );
-  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_bool(true), value_make_entity((Entity *)entity_string_copy("b", 1)), false);
+  ASSERT_CHUNK_OP_EQUAL(value_make_nil(), value_make_entity((Entity *)entity_string_copy("b", 1)), false);
 
 #undef ASSERT_CHUNK_OP_EQUAL
 }
@@ -600,23 +591,19 @@ static void test_CHUNK_OP_NOT_EQUAL(void **const _) {
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(true), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_nil(), false);
   ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)),
-    value_make_entity((Entity *)entity_make_non_owning_string("a", 1)), false
+    value_make_entity((Entity *)entity_string_copy("a", 1)), value_make_entity((Entity *)entity_string_copy("a", 1)),
+    false
   );
 
   // unequal values
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_number(1), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_bool(true), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_nil(), true);
-  ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_number(0), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), true
-  );
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_number(0), value_make_entity((Entity *)entity_string_copy("b", 1)), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_bool(false), true);
   ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_nil(), true);
-  ASSERT_CHUNK_OP_NOT_EQUAL(
-    value_make_bool(true), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), true
-  );
-  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_entity((Entity *)entity_make_non_owning_string("b", 1)), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_bool(true), value_make_entity((Entity *)entity_string_copy("b", 1)), true);
+  ASSERT_CHUNK_OP_NOT_EQUAL(value_make_nil(), value_make_entity((Entity *)entity_string_copy("b", 1)), true);
 
 #undef ASSERT_CHUNK_OP_NOT_EQUAL
 }
@@ -730,12 +717,10 @@ static void test_CHUNK_OP_GREATER_EQUAL(void **const _) {
 }
 
 static void test_CHUNK_OP_CONCATENATE(void **const _) {
-#define ASSERT_CHUNK_OP_CONCATENATE(value_a, value_b, expected_string_c)                              \
-  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                    \
-    value_make_entity(                                                                                \
-      (Entity *)entity_make_non_owning_string(expected_string_c, STR_ARRAY_LENGTH(expected_string_c)) \
-    ),                                                                                                \
-    CHUNK_OP_CONCATENATE, value_a, value_b                                                            \
+#define ASSERT_CHUNK_OP_CONCATENATE(value_a, value_b, expected_string_c)                                     \
+  ASSERT_VALUE_IS_RESULT_OF_INSTRUCTION_ON_VALUES(                                                           \
+    value_make_entity((Entity *)entity_string_copy(expected_string_c, STR_ARRAY_LENGTH(expected_string_c))), \
+    CHUNK_OP_CONCATENATE, value_a, value_b                                                                   \
   )
 
 #define ASSERT_OPERAND_TYPE_ERROR(operand_a_type, operand_b_type)                               \
@@ -748,8 +733,8 @@ static void test_CHUNK_OP_CONCATENATE(void **const _) {
     reset_test_case_env();                                                                      \
   } while (0)
 
-#define STRING_A value_make_entity((Entity *)entity_make_non_owning_string("a", 1))
-#define STRING_B value_make_entity((Entity *)entity_make_non_owning_string("b", 1))
+#define STRING_A value_make_entity((Entity *)entity_string_copy("a", 1))
+#define STRING_B value_make_entity((Entity *)entity_string_copy("b", 1))
 
   // valid operand types
   ASSERT_CHUNK_OP_CONCATENATE(STRING_A, STRING_B, "ab");

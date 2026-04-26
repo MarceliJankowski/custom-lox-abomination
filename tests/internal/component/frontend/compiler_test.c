@@ -298,9 +298,8 @@ static void test_string_literal(void **const _) {
 #define INPUT_STRING_CONTENT "Hello, World"
 #define INPUT_STRING "\"" INPUT_STRING_CONTENT "\";"
 
-  Value const expected_value = value_make_entity(
-    (Entity *)entity_make_non_owning_string(INPUT_STRING_CONTENT, STR_ARRAY_LENGTH(INPUT_STRING_CONTENT))
-  );
+  Value const expected_value =
+    value_make_entity((Entity *)entity_string_copy(INPUT_STRING_CONTENT, STR_ARRAY_LENGTH(INPUT_STRING_CONTENT)));
 
   COMPILE_ASSERT_SUCCESS(INPUT_STRING);
   assert_constant_instruction(expected_value);

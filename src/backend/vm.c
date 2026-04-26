@@ -345,7 +345,7 @@ bool vm_execute(Chunk const *const chunk) {
           new_string_content + first_string->content_length, second_string->content, second_string->content_length
         );
         Value const new_string =
-          value_make_entity((Entity *)entity_make_owning_string(new_string_content, new_string_length));
+          value_make_entity((Entity *)entity_string_adopt(new_string_content, new_string_length));
 
         VM_STACK_TOP = new_string;
         break;
