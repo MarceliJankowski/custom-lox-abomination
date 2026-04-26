@@ -2,6 +2,7 @@
 
 #include "backend/entity.h"
 #include "backend/gc.h"
+#include "backend/table.h"
 #include "backend/value.h"
 #include "global.h"
 #include "utils/debug.h"
@@ -77,16 +78,17 @@ static bool vm_error_at(ptrdiff_t const instruction_offset, char const *const fo
 
 /// Initialize virtual machine.
 void vm_init(void) {
-  STACK_INIT_EXPLICIT(&vm.stack, sizeof(Value), gc_memory_manage, VM_STACK_INITIAL_CAPACITY, VM_STACK_GROWTH_FACTOR);
   vm.entities = NULL;
+  table_init(&vm.strings);
+  STACK_INIT_EXPLICIT(&vm.stack, sizeof(Value), gc_memory_manage, VM_STACK_INITIAL_CAPACITY, VM_STACK_GROWTH_FACTOR);
 }
 
 /// Release virtual machine resources and set it to uninitialized state.
 /// @pre VM is initialized.
 void vm_destroy(void) {
-  gc_deallocate_vm_entitites();
-
   STACK_DESTROY(&vm.stack);
+  table_destroy(&vm.strings);
+  gc_deallocate_vm_entitites();
 
   vm = (VM){0};
 }

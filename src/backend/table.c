@@ -4,6 +4,7 @@
 #include "backend/value.h"
 
 #include <assert.h>
+#include <string.h>
 
 // *---------------------------------------------*
 // *              MACRO DEFINITIONS              *
@@ -163,4 +164,34 @@ bool table_delete(Table *const table, EntityString const *const key) {
 
   entry_kill(entry);
   return true;
+}
+
+/// Probe `table` in search of key with matching `content`, `content_length` and `hash`.
+/// @pre `table` is initialized.
+/// @return Pointer to matched key, or NULL if no match exists.
+EntityString *table_probe_key(
+  Table const *const table, char const *content, int const content_length, uint32_t const hash
+) {
+  assert(table != NULL);
+  assert(content_length >= 0);
+
+  if (table->count == 0) return NULL;
+
+  for (uint32_t index = hash % table->capacity;; index = (index + 1) % table->capacity) { // linear probing
+    TableEntry const *const entry = &table->entries[index];
+
+    if (entry->key == NULL) {
+      if (value_is_bool(entry->value)) continue; // tombstone entry
+      return NULL; // vacant entry
+    }
+
+    if (
+      entry->key->hash == hash && entry->key->content_length == content_length &&
+      memcmp(entry->key->content, content, content_length) == 0
+    ) {
+      return entry->key; // matching key
+    }
+
+    // non-matching key
+  }
 }

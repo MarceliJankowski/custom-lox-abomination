@@ -48,8 +48,8 @@ typedef struct {
 // Entities are passed by pointers to prevent object slicing
 
 Entity *entity_make(size_t size, EntityKind kind);
-EntityString *entity_string_adopt(char const *content, int content_length);
-EntityString *entity_string_copy(char const *content, int content_length);
+EntityString *entity_string_adopt(char *content, int content_length);
+EntityString *entity_string_copy(char *content, int content_length);
 char const *entity_get_kind_string(Entity const *entity);
 void entity_print(Entity const *entity);
 bool entity_equals(Entity const *entity_a, Entity const *entity_b);

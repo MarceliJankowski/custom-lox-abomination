@@ -2,6 +2,7 @@
 #define VM_H
 
 #include "backend/chunk.h"
+#include "backend/table.h"
 #include "backend/value.h"
 #include "utils/stack.h"
 
@@ -14,6 +15,9 @@
 
 /// Virtual Machine.
 typedef struct {
+  /// Table acting as set for interned string entitites.
+  Table strings;
+
   Entity *entities;
   Chunk const *chunk;
   uint8_t const *ip;

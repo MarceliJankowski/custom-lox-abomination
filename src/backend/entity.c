@@ -1,6 +1,7 @@
 #include "backend/entity.h"
 
 #include "backend/gc.h"
+#include "backend/table.h"
 #include "backend/vm.h"
 #include "utils/io.h"
 
@@ -30,14 +31,19 @@ static inline uint32_t hash_string_entity_content(char const *const content, int
 /// Make CLA string entity.
 /// @param content Pointer to GC character sequence, or NULL.
 /// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
+/// @param content_hash `content` hash.
 /// @return Pointer to made string entity.
-static inline EntityString *entity_make_string(char const *const content, int const content_length) {
+static inline EntityString *entity_make_string(
+  char *const content, int const content_length, uint32_t const content_hash
+) {
   assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
   EntityString *const string_entity = ENTITY_MAKE(EntityString, ENTITY_STRING);
-  string_entity->content = (char *)content;
+  string_entity->content = content;
   string_entity->content_length = content_length;
-  string_entity->hash = hash_string_entity_content(content, content_length);
+  string_entity->hash = content_hash;
+
+  table_set(&vm.strings, string_entity, value_make_nil());
 
   return string_entity;
 }
@@ -62,23 +68,36 @@ Entity *entity_make(size_t const size, EntityKind const kind) {
 /// @param content Pointer to GC character sequence, or NULL.
 /// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
-EntityString *entity_string_adopt(char const *const content, int const content_length) {
+EntityString *entity_string_adopt(char *const content, int const content_length) {
   assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
 
-  return entity_make_string(content, content_length);
+  uint32_t const content_hash = hash_string_entity_content(content, content_length);
+
+  EntityString *const interned_string = table_probe_key(&vm.strings, content, content_length, content_hash);
+  if (interned_string != NULL) {
+    gc_deallocate(content, content_length);
+    return interned_string;
+  }
+
+  return entity_make_string(content, content_length, content_hash);
 }
 
 /// Make CLA string entity by copying `content` of `content_length`.
 /// @param content Pointer to character sequence, or NULL.
 /// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
 /// @return Pointer to made string entity.
-EntityString *entity_string_copy(char const *const content, int const content_length) {
+EntityString *entity_string_copy(char *const content, int const content_length) {
   assert((content != NULL && content_length > 0) || (content == NULL && content_length == 0));
+
+  uint32_t const content_hash = hash_string_entity_content(content, content_length);
+
+  EntityString *const interned_string = table_probe_key(&vm.strings, content, content_length, content_hash);
+  if (interned_string != NULL) return interned_string;
 
   char *const gc_content = gc_allocate(content_length);
   memcpy(gc_content, content, content_length);
 
-  return entity_make_string(gc_content, content_length);
+  return entity_make_string(gc_content, content_length, content_hash);
 }
 
 /// Get string with description of `entity` kind.
@@ -121,11 +140,7 @@ bool entity_equals(Entity const *const entity_a, Entity const *const entity_b) {
   static_assert(ENTITY_KIND_COUNT == 1, "Exhaustive EntityKind handling");
   switch (entity_a->kind) {
     case ENTITY_STRING: {
-      EntityString const *const string_entity_a = (EntityString *)entity_a;
-      EntityString const *const string_entity_b = (EntityString *)entity_b;
-
-      if (string_entity_a->content_length != string_entity_b->content_length) return false;
-      return memcmp(string_entity_a->content, string_entity_b->content, string_entity_a->content_length) == 0;
+      return entity_a == entity_b; // direct address comparison thanks to string interning
     }
 
     default: ERROR_INTERNAL("Unknown EntityKind '%d'", entity_a->kind);
