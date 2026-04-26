@@ -222,15 +222,23 @@ static int setup_test_group_env(void **const _) {
   g_static_analysis_error_stream = tmpfile();
   if (g_static_analysis_error_stream == NULL) ERROR_IO_ERRNO();
 
-  vm_init();
-  chunk_init(&chunk);
-
   return 0;
 }
 
 static int teardown_test_group_env(void **const _) {
   if (fclose(g_static_analysis_error_stream)) ERROR_IO_ERRNO();
 
+  return 0;
+}
+
+static int setup_test_case_env(void **const _) {
+  vm_init();
+  chunk_init(&chunk);
+
+  return 0;
+}
+
+static int teardown_test_case_env(void **const _) {
   vm_destroy();
   chunk_destroy(&chunk);
 
@@ -450,24 +458,30 @@ static void test_print_stmt(void **const _) {
 
 int main(void) {
   struct CMUnitTest const tests[] = {
-    cmocka_unit_test(test_lexical_error_reporting),
-    cmocka_unit_test(test_line_tracking),
-    cmocka_unit_test(test_expr_stmt_lacking_semicolon_terminator),
-    cmocka_unit_test(test_nil_literal),
-    cmocka_unit_test(test_bool_literal),
-    cmocka_unit_test(test_numeric_literal),
-    cmocka_unit_test(test_string_literal),
-    cmocka_unit_test(test_OP_CONSTANT_2B_being_generated),
-    cmocka_unit_test(test_arithmetic_operators),
-    cmocka_unit_test(test_arithmetic_operator_associativity),
-    cmocka_unit_test(test_arithmetic_operator_precedence),
-    cmocka_unit_test(test_grouping_expr),
-    cmocka_unit_test(test_logical_operators),
-    cmocka_unit_test(test_relational_operators),
-    cmocka_unit_test(test_relational_operator_associativity),
-    cmocka_unit_test(test_relational_operator_precedence),
-    cmocka_unit_test(test_string_concatenation_operator),
-    cmocka_unit_test(test_print_stmt),
+    cmocka_unit_test_setup_teardown(test_lexical_error_reporting, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_line_tracking, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(
+      test_expr_stmt_lacking_semicolon_terminator, setup_test_case_env, teardown_test_case_env
+    ),
+    cmocka_unit_test_setup_teardown(test_nil_literal, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_bool_literal, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_numeric_literal, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_string_literal, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_OP_CONSTANT_2B_being_generated, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_arithmetic_operators, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(
+      test_arithmetic_operator_associativity, setup_test_case_env, teardown_test_case_env
+    ),
+    cmocka_unit_test_setup_teardown(test_arithmetic_operator_precedence, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_grouping_expr, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_logical_operators, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_relational_operators, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(
+      test_relational_operator_associativity, setup_test_case_env, teardown_test_case_env
+    ),
+    cmocka_unit_test_setup_teardown(test_relational_operator_precedence, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_string_concatenation_operator, setup_test_case_env, teardown_test_case_env),
+    cmocka_unit_test_setup_teardown(test_print_stmt, setup_test_case_env, teardown_test_case_env),
   };
 
   return cmocka_run_group_tests(tests, setup_test_group_env, teardown_test_group_env);
