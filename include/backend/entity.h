@@ -37,9 +37,10 @@ struct Entity {
 /// CLA string entity.
 typedef struct {
   Entity entity;
+  char *content;
+  uint32_t hash;
   int content_length;
   bool is_content_owner;
-  char *content;
 } EntityString;
 
 // *---------------------------------------------*

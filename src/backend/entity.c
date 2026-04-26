@@ -8,6 +8,23 @@
 // *         INTERNAL-LINKAGE FUNCTIONS          *
 // *---------------------------------------------*
 
+/// Hash `content` of `content_length`.
+/// @param content Pointer to character sequence, or NULL.
+/// @param content_length Length of `content` (0 when `content` is NULL, otherwise positive).
+/// @return Computed hash.
+static inline uint32_t hash_string_entity_content(char const *const content, int const content_length) {
+  assert(content_length >= 0);
+
+  // TODO: look into replacing this hashing algorithm with a more suitable one
+  uint32_t hash = 2166136261u;
+  for (int i = 0; i < content_length; i++) {
+    hash ^= (uint8_t)content[i];
+    hash *= 16777619;
+  }
+
+  return hash;
+}
+
 /// Make CLA string entity.
 /// @param is_content_owner Boolean determining `content` ownership.
 /// @param content Pointer to character sequence, or NULL.
@@ -22,6 +39,7 @@ static inline EntityString *entity_make_string(
   string_entity->is_content_owner = is_content_owner;
   string_entity->content = (char *)content;
   string_entity->content_length = content_length;
+  string_entity->hash = hash_string_entity_content(content, content_length);
 
   return string_entity;
 }
