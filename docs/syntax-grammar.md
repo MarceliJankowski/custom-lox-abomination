@@ -55,3 +55,34 @@ Terminal symbols in production bodies refer to token kinds defined in [lexical-g
                  | FALSE
                  | OPEN_PAREN <expr> CLOSE_PAREN
 ```
+
+## Example Deriviation
+
+```
+Input:
+print 2 + 3 * 4;
+
+Leftmost deriviation:
+<program> => <stmt-list>
+          => <stmt>
+          => <print-stmt>
+          => PRINT <expr> SEMICOLON
+          => PRINT <equality-expr> SEMICOLON
+          => PRINT <comparison-expr> SEMICOLON
+          => PRINT <term-expr> SEMICOLON
+          => PRINT <term-expr> PLUS <factor-expr> SEMICOLON
+          => PRINT <factor-expr> PLUS <factor-expr> SEMICOLON
+          => PRINT <unary-expr> PLUS <factor-expr> SEMICOLON
+          => PRINT <concatenation-expr> PLUS <factor-expr> SEMICOLON
+          => PRINT <primary-expr> PLUS <factor-expr> SEMICOLON
+          => PRINT NUMBER PLUS <factor-expr> SEMICOLON
+          => PRINT NUMBER PLUS <factor-expr> STAR <unary-expr> SEMICOLON
+          => PRINT NUMBER PLUS <unary-expr> STAR <unary-expr> SEMICOLON
+          => PRINT NUMBER PLUS <concatenation-expr> STAR <unary-expr> SEMICOLON
+          => PRINT NUMBER PLUS <primary-expr> STAR <unary-expr> SEMICOLON
+          => PRINT NUMBER PLUS NUMBER STAR <unary-expr> SEMICOLON
+          => PRINT NUMBER PLUS NUMBER STAR <concatenation-expr> SEMICOLON
+          => PRINT NUMBER PLUS NUMBER STAR <primary-expr> SEMICOLON
+          => PRINT NUMBER PLUS NUMBER STAR NUMBER SEMICOLON
+          => print 2 + 3 * 4;
+```
