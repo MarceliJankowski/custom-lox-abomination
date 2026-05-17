@@ -218,6 +218,30 @@ static inline bool compiler_match(LexerTokenKind const kind) {
   return true;
 }
 
+/// Recover from compiler's panic state by discarding tokens until a likely statement boundary is reached.
+/// @pre Compiler is in a PARSE_PANIC state.
+static void compiler_panic_recover(void) {
+  assert(compiler.state == PARSE_PANIC);
+
+  compiler.state = PARSE_OK;
+
+  while (compiler.current.kind != LEXER_TOKEN_EOF) {
+    if (compiler.previous.kind == LEXER_TOKEN_SEMICOLON) return;
+    switch (compiler.current.kind) {
+      case LEXER_TOKEN_CLASS:
+      case LEXER_TOKEN_FUN:
+      case LEXER_TOKEN_VAR:
+      case LEXER_TOKEN_FOR:
+      case LEXER_TOKEN_IF:
+      case LEXER_TOKEN_WHILE:
+      case LEXER_TOKEN_PRINT:
+      case LEXER_TOKEN_RETURN: return;
+    }
+
+    compiler_advance();
+  }
+}
+
 /// Generate `opcode` bytecode instruction and append it to current_chunk.
 static inline void emit_instruction(ChunkOpCode const opcode) {
   chunk_append_instruction(get_current_chunk(), opcode, compiler.previous.line);
@@ -405,6 +429,8 @@ static void compile_print_stmt(void) {
 static void compile_stmt(void) {
   if (compiler_match(LEXER_TOKEN_PRINT)) compile_print_stmt();
   else compile_expr_stmt();
+
+  if (compiler.state == PARSE_PANIC) compiler_panic_recover();
 }
 
 /// Initialize compiler with `source_code`.
