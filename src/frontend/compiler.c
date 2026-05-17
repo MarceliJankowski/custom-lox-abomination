@@ -15,9 +15,15 @@
 // *              TYPE DEFINITIONS               *
 // *---------------------------------------------*
 
-typedef enum { PARSER_OK, PARSER_PANIC, PARSER_UNEXPECTED_EOF } ParserState;
+typedef enum {
+  ERROR_LEXICAL,
+  ERROR_SYNTAX,
+  ERROR_SEMANTIC,
+  ERROR_KIND_COUNT,
+} ErrorKind;
 
-typedef enum { ERROR_LEXICAL, ERROR_SYNTAX, ERROR_SEMANTIC, ERROR_KIND_COUNT } ErrorKind;
+/// State of compiler's parsing.
+typedef enum { PARSE_OK, PARSE_PANIC, PARSE_UNEXPECTED_EOF } ParseState;
 
 /// Token precedence.
 typedef enum {
@@ -117,10 +123,10 @@ static Chunk *current_chunk; // TEMP
 
 static struct {
   LexerToken previous, current;
-  ParserState state;
+  ParseState state;
   bool had_error;
   bool has_previous, has_current;
-} parser;
+} compiler;
 
 // *---------------------------------------------*
 // *         INTERNAL-LINKAGE FUNCTIONS          *
@@ -136,11 +142,11 @@ static void compiler_error_at(ErrorKind const error_kind, LexerToken const *cons
   assert(token != NULL);
   assert(message != NULL);
 
-  if (parser.state != PARSER_OK) return;
+  if (compiler.state != PARSE_OK) return;
 
   // record error
-  parser.state = token->kind == LEXER_TOKEN_EOF ? PARSER_UNEXPECTED_EOF : PARSER_PANIC;
-  parser.had_error = true;
+  compiler.state = token->kind == LEXER_TOKEN_EOF ? PARSE_UNEXPECTED_EOF : PARSE_PANIC;
+  compiler.had_error = true;
 
   // print error
   static_assert(ERROR_KIND_COUNT == 3, "Exhaustive ErrorKind handling");
@@ -170,56 +176,56 @@ static void compiler_error_at(ErrorKind const error_kind, LexerToken const *cons
   }
 }
 
-/// Handle `error_kind` error at parser.previous token with `message`.
+/// Handle `error_kind` error at compiler.previous token with `message`.
 static inline void compiler_error_at_previous(ErrorKind const error_kind, char const *const message) {
-  compiler_error_at(error_kind, &parser.previous, message);
+  compiler_error_at(error_kind, &compiler.previous, message);
 }
 
-/// Handle `error_kind` error at parser.current token with `message`.
+/// Handle `error_kind` error at compiler.current token with `message`.
 static inline void compiler_error_at_current(ErrorKind const error_kind, char const *const message) {
-  compiler_error_at(error_kind, &parser.current, message);
+  compiler_error_at(error_kind, &compiler.current, message);
 }
 
-/// Update parser.previous, advance parser.current, and handle any error tokens.
+/// Update compiler.previous, advance compiler.current, and handle any error tokens.
 static void compiler_advance(void) {
-  if (parser.has_previous) lexer_token_free(parser.previous);
-  if (parser.has_current) {
-    parser.previous = parser.current;
-    parser.has_previous = true;
+  if (compiler.has_previous) lexer_token_free(compiler.previous);
+  if (compiler.has_current) {
+    compiler.previous = compiler.current;
+    compiler.has_previous = true;
   }
 
   for (;;) {
-    parser.current = lexer_scan();
-    if (parser.current.kind != LEXER_TOKEN_ERROR) break;
+    compiler.current = lexer_scan();
+    if (compiler.current.kind != LEXER_TOKEN_ERROR) break;
 
     // handle and discard error token; TokenHandlerFn never sees error tokens
-    compiler_error_at_current(ERROR_LEXICAL, parser.current.as.error.message);
-    lexer_token_free(parser.current);
+    compiler_error_at_current(ERROR_LEXICAL, compiler.current.as.error.message);
+    lexer_token_free(compiler.current);
   }
 }
 
-/// Advance compiler if parser.current.kind matches `kind`, report error with `message` otherwise.
+/// Advance compiler if compiler.current.kind matches `kind`, report error with `message` otherwise.
 static inline void compiler_consume(LexerTokenKind const kind, char const *const message) {
-  if (parser.current.kind != kind) compiler_error_at_current(ERROR_SYNTAX, message);
+  if (compiler.current.kind != kind) compiler_error_at_current(ERROR_SYNTAX, message);
   compiler_advance();
 }
 
-/// Advance compiler if parser.current.kind matches `kind`.
+/// Advance compiler if compiler.current.kind matches `kind`.
 /// @return true if it does, false otherwise.
 static inline bool compiler_match(LexerTokenKind const kind) {
-  if (parser.current.kind != kind) return false;
+  if (compiler.current.kind != kind) return false;
   compiler_advance();
   return true;
 }
 
 /// Generate `opcode` bytecode instruction and append it to current_chunk.
 static inline void emit_instruction(ChunkOpCode const opcode) {
-  chunk_append_instruction(get_current_chunk(), opcode, parser.previous.line);
+  chunk_append_instruction(get_current_chunk(), opcode, compiler.previous.line);
 }
 
 /// Generate bytecode constant instruction and append it to current_chunk.
 static inline void emit_constant_instruction(Value const value) {
-  chunk_append_constant_instruction(get_current_chunk(), value, parser.previous.line);
+  chunk_append_constant_instruction(get_current_chunk(), value, compiler.previous.line);
 }
 
 /// Compile `precedence` level expression.
@@ -227,16 +233,16 @@ static void compile_precedence_expr(Precedence const precedence) {
   compiler_advance();
 
   // compile head token subexpression
-  if (parse_rules[parser.previous.kind].nud == NULL) {
+  if (parse_rules[compiler.previous.kind].nud == NULL) {
     compiler_error_at_previous(ERROR_SYNTAX, "Expected expression");
     return;
   }
-  parse_rules[parser.previous.kind].nud();
+  parse_rules[compiler.previous.kind].nud();
 
   // compile tail tokens subexpression
-  while (parse_rules[parser.current.kind].precedence >= precedence) {
+  while (parse_rules[compiler.current.kind].precedence >= precedence) {
     compiler_advance();
-    parse_rules[parser.previous.kind].led();
+    parse_rules[compiler.previous.kind].led();
   }
 }
 
@@ -247,7 +253,7 @@ static void compile_expr(void) {
 
 /// Compile left-associaive binary expression.
 static void compile_left_associative_binary_expr(void) {
-  LexerTokenKind const operator_kind = parser.previous.kind;
+  LexerTokenKind const operator_kind = compiler.previous.kind;
   compile_precedence_expr(parse_rules[operator_kind].precedence + 1);
 
   switch (operator_kind) {
@@ -301,7 +307,7 @@ static void compile_left_associative_binary_expr(void) {
 
 /// Compile right-associative binary expression.
 static void compile_right_associative_binary_expr(void) {
-  LexerTokenKind const operator_kind = parser.previous.kind;
+  LexerTokenKind const operator_kind = compiler.previous.kind;
   compile_precedence_expr(parse_rules[operator_kind].precedence);
 
   switch (operator_kind) {
@@ -315,7 +321,7 @@ static void compile_right_associative_binary_expr(void) {
 
 /// Compile unary expression.
 static void compile_unary_expr(void) {
-  LexerTokenKind const operator_kind = parser.previous.kind;
+  LexerTokenKind const operator_kind = compiler.previous.kind;
   compile_precedence_expr(PRECEDENCE_UNARY);
 
   switch (operator_kind) {
@@ -340,12 +346,12 @@ static void compile_grouping_expr(void) {
 /// Compile numeric literal.
 static void compile_numeric_literal(void) {
   errno = 0;
-  double const value = strtod(parser.previous.as.basic.lexeme, NULL);
+  double const value = strtod(compiler.previous.as.basic.lexeme, NULL);
   if (errno != 0) {
     ERROR_MEMORY(
       COMMON_FILE_LINE_COLUMN_FORMAT COMMON_MS "Out-of-range numeric literal '%.*s'", g_source_file_path,
-      parser.previous.line, parser.previous.column, parser.previous.as.basic.lexeme_length,
-      parser.previous.as.basic.lexeme
+      compiler.previous.line, compiler.previous.column, compiler.previous.as.basic.lexeme_length,
+      compiler.previous.as.basic.lexeme
     );
   }
   emit_constant_instruction(value_make_number(value));
@@ -353,8 +359,8 @@ static void compile_numeric_literal(void) {
 
 /// Compile string literal.
 static void compile_string_literal(void) {
-  int const content_length = parser.previous.as.string.content_length;
-  char *const content = parser.previous.as.string.content;
+  int const content_length = compiler.previous.as.string.content_length;
+  char *const content = compiler.previous.as.string.content;
   EntityString *const string_entity = entity_string_adopt(content, content_length);
 
   emit_constant_instruction(value_make_entity((Entity *)string_entity));
@@ -362,7 +368,7 @@ static void compile_string_literal(void) {
 
 /// Compile invariable literal (one with fixed lexeme).
 static void compile_invariable_literal(void) {
-  LexerTokenKind const literal_kind = parser.previous.kind;
+  LexerTokenKind const literal_kind = compiler.previous.kind;
 
   switch (literal_kind) {
     case LEXER_TOKEN_NIL: {
@@ -401,17 +407,17 @@ static void compile_stmt(void) {
   else compile_expr_stmt();
 }
 
-/// Initialize parser with `source_code`.
-static void parser_init(char const *const source_code) {
+/// Initialize compiler with `source_code`.
+static void compiler_init(char const *const source_code) {
   lexer_init(source_code);
 
-  parser.state = PARSER_OK;
-  parser.had_error = false;
-  parser.has_current = false;
-  parser.has_previous = false;
+  compiler.state = PARSE_OK;
+  compiler.had_error = false;
+  compiler.has_current = false;
+  compiler.has_previous = false;
 
   compiler_advance();
-  parser.has_current = true;
+  compiler.has_current = true;
 }
 
 // *---------------------------------------------*
@@ -427,7 +433,7 @@ CompilerStatus compiler_compile(char const *const source_code, Chunk *const chun
 
   // reset compiler
   current_chunk = chunk; // TEMP
-  parser_init(source_code);
+  compiler_init(source_code);
 
   // compile source_code
   while (!compiler_match(LEXER_TOKEN_EOF)) compile_stmt();
@@ -435,14 +441,14 @@ CompilerStatus compiler_compile(char const *const source_code, Chunk *const chun
   emit_instruction(CHUNK_OP_RETURN); // TEMP
 
 #ifdef DEBUG_COMPILER
-  if (!parser.had_error) debug_disassemble_chunk(chunk, "DEBUG_COMPILER");
+  if (!compiler.had_error) debug_disassemble_chunk(chunk, "DEBUG_COMPILER");
 #endif
 
   // clean up
-  if (parser.has_current) lexer_token_free(parser.current);
-  if (parser.has_previous) lexer_token_free(parser.previous);
+  if (compiler.has_current) lexer_token_free(compiler.current);
+  if (compiler.has_previous) lexer_token_free(compiler.previous);
 
-  if (!parser.had_error) return COMPILER_SUCCESS;
-  if (parser.state == PARSER_UNEXPECTED_EOF) return COMPILER_UNEXPECTED_EOF;
+  if (!compiler.had_error) return COMPILER_SUCCESS;
+  if (compiler.state == PARSE_UNEXPECTED_EOF) return COMPILER_UNEXPECTED_EOF;
   return COMPILER_FAILURE;
 }
