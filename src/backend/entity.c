@@ -129,7 +129,7 @@ void entity_print(Entity const *const entity) {
   }
 }
 
-/// Determine whether `entity_a` equals `entity`.
+/// Determine whether `entity_a` equals `entity_b`.
 /// @return true if it does, false otherwise.
 bool entity_equals(Entity const *const entity_a, Entity const *const entity_b) {
   assert(entity_a != NULL);
